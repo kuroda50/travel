@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "769522994941",
+    "project_id": "getting-together-with-friends",
+    "storage_bucket": "getting-together-with-friends.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769522994941:android:c622451d320fee5c3ef894",
+        "android_client_info": {
+          "package_name": "com.example.travel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDaxUe7deO0fczE0itfGBhrz1YgkIQdjA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769522994941:android:b5dc0a1a5c52eae13ef894",
+        "android_client_info": {
+          "package_name": "com.getting.together.with.friend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDaxUe7deO0fczE0itfGBhrz1YgkIQdjA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

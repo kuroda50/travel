@@ -323,7 +323,8 @@ class _GenderSelectionWidgetState extends State<GenderSelectionWidget> {
         setState(() {
           if (index == 0)
             _selectedGender = Gender.female;
-          else if (index == 1) _selectedGender = Gender.male;
+          else if (index == 1) 
+            _selectedGender = Gender.male;
 
           widget.onGenderChanged(_selectedGender!);
         });

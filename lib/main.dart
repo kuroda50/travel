@@ -9,7 +9,7 @@ void main() async {
 );
   runApp(const MyApp());
 }
-
+//ここにコメントを追加
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

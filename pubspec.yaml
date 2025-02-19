@@ -17,6 +17,7 @@ dependencies:
   firebase_auth:
   cloud_firestore:
   intl:
+  go_router: ^14.8.0
 
 dev_dependencies:
   flutter_test:

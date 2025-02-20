@@ -20,13 +20,21 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<String> followingList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchFollowingList();
+  }
+
   Future<void> fetchFollowingList() async {
+    print("実行されたよ");
     final db = FirebaseFirestore.instance;
     DocumentSnapshot docRef =
         await db.collection("users").doc("HhaNFyI5x623En8ZtNtK").get();
     if (docRef.exists) {
       setState(() {
-        followingList = docRef["following"];
+        followingList = docRef["following"].cast<String>();
       });
     }
   }
@@ -52,7 +60,7 @@ class _MyAppState extends State<MyApp> {
                       print("${followingList[index]} が押されました");
                     },
                     title: Center(
-                      child: Text(followingList[index]),
+                      child: Text("ユーザID：${followingList[index]}"),
                     ),
                   ),
                 );

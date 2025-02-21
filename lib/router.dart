@@ -19,156 +19,193 @@ import 'screens/password_change_screen.dart';
 import 'screens/terms_of_use_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
+import 'component/bottom_navigation_bar.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel', 
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',
       name: 'login',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const LoginScreen(),
+        child: const CustomBottomNavigationBar(
+          child: LoginScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/account-create',
       name: 'accountCreate',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const AccountCreateScreen(),
+        child: const CustomBottomNavigationBar(
+          child: AccountCreateScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/travel',
       name: 'travel',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const TravelScreen(),
+        child: const CustomBottomNavigationBar(
+          child: TravelScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/recruitment-list',
       name: 'recruitmentList',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const RecruitmentListScreen(),
+        child: const CustomBottomNavigationBar(
+          child: RecruitmentListScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/recruitment-post',
       name: 'recruitmentPost',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const RecruitmentPostScreen(),
+        child: const CustomBottomNavigationBar(
+          child: RecruitmentPostScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/recruitment',
       name: 'recruitment',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const RecruitmentScreen(),
+        child: const CustomBottomNavigationBar(
+          child: RecruitmentScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/same-hobby',
       name: 'sameHobby',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const SameHobbyScreen(),
+        child: const CustomBottomNavigationBar(
+          child: SameHobbyScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/account-list',
       name: 'accountList',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const AccountListScreen(),
+        child: const CustomBottomNavigationBar(
+          child: AccountListScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/message',
       name: 'message',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const MessageScreen(),
+        child: const CustomBottomNavigationBar(
+          child: MessageScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/message-send',
       name: 'messageSend',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const MessageSendScreen(),
+        child: const CustomBottomNavigationBar(
+          child: MessageSendScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/message-room',
       name: 'messageRoom',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const MessageRoomScreen(),
+        child: const CustomBottomNavigationBar(
+          child: MessageRoomScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/follow-list',
       name: 'followList',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const FollowListScreen(),
+        child: const CustomBottomNavigationBar(
+          child: FollowListScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/follower-list',
       name: 'followerList',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const FollowerListScreen(),
+        child: const CustomBottomNavigationBar(
+          child: FollowerListScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/profile',
       name: 'profile',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const ProfileScreen(),
+        child: const CustomBottomNavigationBar(
+          child: ProfileScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/past-recruitment',
       name: 'pastRecruitment',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const PastRecruitmentScreen(),
+        child: const CustomBottomNavigationBar(
+          child: PastRecruitmentScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/settings',
       name: 'settings',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const SettingsScreen(),
+        child: const CustomBottomNavigationBar(
+          child: SettingsScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/password-change',
       name: 'passwordChange',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const PasswordChangeScreen(),
+        child: const CustomBottomNavigationBar(
+          child: PasswordChangeScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: '/terms-of-use',
       name: 'termsOfUse',
-      pageBuilder: (context, state) => MaterialPage(
+      pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const TermsOfUseScreen(),
+        child: const CustomBottomNavigationBar(
+          child: TermsOfUseScreen(),
+        ),
       ),
     ),
   ],
-  errorPageBuilder: (context, state) => MaterialPage(
+  errorPageBuilder: (context, state) => NoTransitionPage(
     key: state.pageKey,
     child: Scaffold(
       body: Center(

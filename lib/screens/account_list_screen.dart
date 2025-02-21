@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:travel/models/account_filter_params.dart';
 
-class AccountListScreen extends StatelessWidget {
-  const AccountListScreen({super.key});
+class AccountListScreen extends StatefulWidget {
+  final AccountFilterParams accountFilterParams;//ここ
+  const AccountListScreen({super.key, required this.accountFilterParams});//ここ
+
+  @override
+  State<AccountListScreen> createState() => _AccountListScreenState();
+}
+
+class _AccountListScreenState extends State<AccountListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    print("例えば、このように表示する${widget.accountFilterParams.hobbies[0]}");
+    print("例えば、このように表示する${widget.accountFilterParams.ageMax}");
+  }
 
   @override
   Widget build(BuildContext context) {

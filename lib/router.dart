@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'models/account_filter_params.dart';
 
 import 'screens/travel_screen.dart';
 import 'screens/recruitment_list_screen.dart';
@@ -82,10 +83,13 @@ final GoRouter goRouter = GoRouter(
     GoRoute(
       path: '/account-list',
       name: 'accountList',
-      pageBuilder: (context, state) => MaterialPage(
-        key: state.pageKey,
-        child: const AccountListScreen(),
-      ),
+      pageBuilder: (context, state) {
+        final accountFilterParams = state.extra as AccountFilterParams; 
+        return MaterialPage(
+          key: state.pageKey,
+          child: AccountListScreen(accountFilterParams: accountFilterParams),
+        );
+      },
     ),
     GoRoute(
       path: '/message',

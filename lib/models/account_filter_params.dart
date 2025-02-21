@@ -4,7 +4,7 @@ class AccountFilterParams {
   final int ageMin;
   final int ageMax;
 
-  FilterParams(
+  AccountFilterParams(
       {required this.hobbies,
       required this.gender,
       required this.ageMin,

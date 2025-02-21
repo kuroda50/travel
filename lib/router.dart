@@ -21,7 +21,7 @@ import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel', 
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',
@@ -50,10 +50,20 @@ final GoRouter goRouter = GoRouter(
     GoRoute(
       path: '/recruitment-list',
       name: 'recruitmentList',
-      pageBuilder: (context, state) => MaterialPage(
-        key: state.pageKey,
-        child: const RecruitmentListScreen(),
-      ),
+      pageBuilder: (context, state) {
+        final (gender, ageMax, ageMin, hasPhoto, area, prefecture) =
+            state.extra as (String, int, int, bool, String, String);
+        return MaterialPage(
+          key: state.pageKey,
+          child: RecruitmentListScreen(
+              gender: gender,
+              ageMax: ageMax,
+              ageMin: ageMin,
+              hasPhoto: hasPhoto,
+              area: area,
+              prefecture: prefecture),
+        );
+      },
     ),
     GoRoute(
       path: '/recruitment-post',

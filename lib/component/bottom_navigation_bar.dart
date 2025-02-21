@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:travel/colors/color.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final Widget child;
@@ -13,8 +14,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _getSelectedIndex(context),
         onTap: (index) => _onItemTapped(context, index),
-        selectedItemColor: Color(0xFF559900), // 選択中のアイコン・テキストの色
-        unselectedItemColor: Color(0xFFE0E0E0), // 非選択時のアイコン・テキストの色
+        selectedItemColor: AppColor.mainButtonColor , // 選択中のアイコン・テキストの色
+        unselectedItemColor: AppColor.nonActiveColor, // 非選択時のアイコン・テキストの色
         showUnselectedLabels: true, // 非選択時のラベルも表示
         type: BottomNavigationBarType.fixed,
         items: const [
@@ -68,4 +69,5 @@ class CustomBottomNavigationBar extends StatelessWidget {
     }
   }
 }
+
 

@@ -10,6 +10,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // aaa
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _getSelectedIndex(context),

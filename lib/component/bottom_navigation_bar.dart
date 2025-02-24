@@ -41,7 +41,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         return 2;
       case '/follow-list':
         return 3;
-      case '/profile':
+      case '/recruitment-post':
         return 4;
       default:
         return -1; // その他の画面では非選択状態
@@ -64,7 +64,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         context.go('/follow-list');
         break;
       case 4:
-        context.go('/profile');
+        context.go('/recruitment-post');
         break;
     }
   }

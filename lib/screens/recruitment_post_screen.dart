@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:travel/locations/location.dart';
 import 'package:flutter/services.dart';
 import 'package:travel/colors/color.dart';
+
+const Set<String> destinationsByArea = {
+  "ヨーロッパ", "北米", "中南米", "オセアニア・ハワイ", "アジア", "日本", "アフリカ・中東"
+};
+
+const List<String> prefectures = [
+  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県",
+  "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+  "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+  "徳島県", "香川県", "愛媛県", "高知県",
+  "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"
+];
 
 class RecruitmentPostScreen extends StatefulWidget {
   const RecruitmentPostScreen({super.key});
@@ -25,12 +38,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
 
   TextEditingController minAgeController = TextEditingController();
   TextEditingController maxAgeController = TextEditingController();
+  TextEditingController destinationController = TextEditingController();
 
   Future<void> _selectDate(BuildContext context, bool isFrom) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
+      firstDate: DateTime.now(), // 現在の日付より昔は選択できないようにする
       lastDate: DateTime(2030),
     );
     if (picked != null) {
@@ -64,10 +78,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       'organizerId': user.uid, // 現在のユーザーIDを使用
       'area': area,
       'destination': destination,
-      'departure': {
-        'name': departure,
-        'location': GeoPoint(35.682839, 139.759455), // ここは実際の出発地の座標に置き換えてください
-      },
+      'departure': departure,
       'startDate': startDate!.toIso8601String(),
       'endDate': endDate!.toIso8601String(),
       'expirationDate': startDate!.toIso8601String(),
@@ -115,7 +126,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                           filled: true,
                           fillColor: Colors.white,
                         ),
-                        items: destinationsByArea.keys.map((String key) {
+                        items: destinationsByArea.map((String key) {
                           return DropdownMenuItem<String>(
                             value: key,
                             child: Text(key),
@@ -142,26 +153,19 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     const Text("行き先", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     SizedBox(
                       width: 200,
-                      child: DropdownButtonFormField<String>(
+                      child: TextField(
+                        controller: destinationController,
                         decoration: const InputDecoration(
                           labelText: "行き先",
                           contentPadding: EdgeInsets.symmetric(vertical: 8.0),
                           filled: true,
                           fillColor: Colors.white,
                         ),
-                        items: (area != null ? destinationsByArea[area]! : [])
-                            .map<DropdownMenuItem<String>>((dynamic place) {
-                          return DropdownMenuItem<String>(
-                            value: place as String,
-                            child: Text(place as String),
-                          );
-                        }).toList(),
                         onChanged: (value) {
                           setState(() {
                             destination = value;
                           });
                         },
-                        value: destination,
                       ),
                     ),
                   ],

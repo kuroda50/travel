@@ -44,7 +44,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       case '/recruitment-post':
         return 4;
       default:
-        return -1; // その他の画面では非選択状態
+        return 0; // エラーが出るので一時的に0にしておく
     }
   }
 

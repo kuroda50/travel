@@ -39,7 +39,7 @@ final GoRouter goRouter = GoRouter(
       name: 'accountCreate',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: AccountCreateScreen(),
         ),
       ),

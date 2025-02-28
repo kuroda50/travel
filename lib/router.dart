@@ -139,7 +139,7 @@ final GoRouter goRouter = GoRouter(
       name: 'followList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child:  CustomBottomNavigationBar(
           child: FollowListScreen(),
         ),
       ),
@@ -149,7 +149,7 @@ final GoRouter goRouter = GoRouter(
       name: 'followerList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child:  CustomBottomNavigationBar(
           child: FollowerListScreen(),
         ),
       ),

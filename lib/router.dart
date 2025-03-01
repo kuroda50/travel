@@ -19,9 +19,10 @@ import 'screens/password_change_screen.dart';
 import 'screens/terms_of_use_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
+import 'screens/edit_profile_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel', 
+  initialLocation: '/edit-profile', 
   routes: [
     GoRoute(
       path: '/login',
@@ -165,6 +166,14 @@ final GoRouter goRouter = GoRouter(
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: const TermsOfUseScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      name: 'editProfile',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const EditProfileScreen(),
       ),
     ),
   ],

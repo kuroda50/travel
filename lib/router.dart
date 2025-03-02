@@ -28,7 +28,13 @@ final GoRouter goRouter = GoRouter(
       name: 'login',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
+<<<<<<< Updated upstream
         child: const LoginScreen(),
+=======
+        child:  CustomBottomNavigationBar(
+          child: LoginScreen(),
+        ),
+>>>>>>> Stashed changes
       ),
     ),
     GoRoute(

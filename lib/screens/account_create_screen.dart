@@ -252,11 +252,6 @@ class _SignupFormState extends State<AccountCreateScreen> {
       ],
     );
   }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
 
   int? _selectedYear;
   int? _selectedMonth;
@@ -390,8 +385,5 @@ class _SignupFormState extends State<AccountCreateScreen> {
       ],
     );
   }
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
 }

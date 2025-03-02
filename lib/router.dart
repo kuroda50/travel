@@ -21,23 +21,14 @@ import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/account-create', 
+  initialLocation: '/account-create',
   routes: [
     GoRoute(
       path: '/login',
       name: 'login',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        child: const LoginScreen(),
-=======
-=======
->>>>>>> Stashed changes
-        child:  CustomBottomNavigationBar(
-          child: LoginScreen(),
-        ),
->>>>>>> Stashed changes
+        child: LoginScreen(),
       ),
     ),
     GoRoute(
@@ -45,7 +36,7 @@ final GoRouter goRouter = GoRouter(
       name: 'accountCreate',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
-        child:  AccountCreateScreen(),
+        child: AccountCreateScreen(),
       ),
     ),
     GoRoute(

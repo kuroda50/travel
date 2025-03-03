@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -88,8 +89,18 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout, b
               onPressed: () {
                 if (isLogout) {
                   // ログアウト処理
+                  try {
+                    FirebaseAuth.instance.signOut();
+                  } catch (e) {
+                    print(e);
+                  }
                 } else if (isDelete) {
                   // アカウント削除処理
+                  try { 
+                    FirebaseAuth.instance.currentUser?.delete();
+                  } catch (e) {
+                    print(e);
+                  }
                 } else {
                   // その他処理
                 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter/gestures.dart';
 
 class AccountCreateScreen extends StatefulWidget {
   @override

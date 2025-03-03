@@ -157,14 +157,6 @@ class LoginScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
             ),
-            Container(
-              width: textWidth, // テキストと同じ幅の横線
-              child: Divider(
-                color: Colors.grey,
-                thickness: 1,
-                height: 0.1,
-              ),
-            ),
           ],
         );
       },

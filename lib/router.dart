@@ -23,14 +23,14 @@ import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel', 
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',
       name: 'login',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: LoginScreen(),
         ),
       ),
@@ -40,9 +40,7 @@ final GoRouter goRouter = GoRouter(
       name: 'accountCreate',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: AccountCreateScreen(),
-        ),
+        child: AccountCreateScreen(),
       ),
     ),
     GoRoute(

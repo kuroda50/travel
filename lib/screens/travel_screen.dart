@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:travel/component/post.dart';
 
 class TravelScreen extends StatelessWidget {
   const TravelScreen({super.key});
@@ -9,9 +10,15 @@ class TravelScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('旅へ行く'),
       ),
-      body: const Center(
-        child: Text('旅へ行く画面'),
+      body: Column(
+        children: [
+          PostWidget(postId: "bgvY4C5aQH3LVfsrMhFj"),
+          SizedBox(height: 10),
+          PostWidget(postId: "bgvY4C5aQH3LVfsrMhFj"),
+          SizedBox(height: 10),
+        ],
       ),
+      
     );
   }
 }

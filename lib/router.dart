@@ -23,7 +23,7 @@ import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel', 
+  initialLocation: '/recruitment', 
   routes: [
     GoRoute(
       path: '/login',

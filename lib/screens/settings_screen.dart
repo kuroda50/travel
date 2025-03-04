@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -12,17 +13,27 @@ class SettingsScreen extends StatelessWidget {
       body: Center(
         child: Column(
           children: [
-            buildButton(context, 'メールアドレスを変更する', isFirst: true, showDialog: false),
+            buildButton(context, 'メールアドレスを変更する',
+                isFirst: true, showDialog: false),
             buildButton(context, 'パスワードを変更する', showDialog: false),
             buildButton(context, 'ログアウト', isLogout: true),
             buildButton(context, 'アカウントを削除する', isLast: true, isDelete: true),
+            const SizedBox(height: 20),
+            buildButton(context, '利用規約',
+                isTerms: true, isFirst: true,  isLast: true, showDialog: false),
           ],
         ),
       ),
     );
   }
 
-  Widget buildButton(BuildContext context,  String text, {bool isFirst = false, bool isLast = false,  bool isLogout = false, bool isDelete = false, bool showDialog = true}) {
+  Widget buildButton(BuildContext context, String text,
+      {bool isFirst = false,
+      bool isLast = false,
+      bool isLogout = false,
+      bool isDelete = false,
+      bool showDialog = true,
+      bool isTerms = false}) {
     BorderRadius borderRadius = BorderRadius.only(
       topLeft: isFirst ? const Radius.circular(16) : Radius.zero,
       topRight: isFirst ? const Radius.circular(16) : Radius.zero,
@@ -40,17 +51,20 @@ class SettingsScreen extends StatelessWidget {
       child: SizedBox(
         height: 50,
         child: ElevatedButton(
-          onPressed: () =>{
-            if(showDialog){
-              showConfirmationDialog(context, text, isLogout, isDelete),
-            }else{
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PlaceholderScreen(title: text),
-                ),
-              )
-            }
+          onPressed: () => {
+            if (showDialog)
+              {
+                showConfirmationDialog(context, text, isLogout, isDelete, isTerms),
+              }
+            else
+              {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PlaceholderScreen(title: text),
+                  ),
+                )
+              }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
@@ -68,8 +82,9 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-void showConfirmationDialog(BuildContext context, String title, bool isLogout, bool isDelete) {
-    showDialog(
+void showConfirmationDialog(
+    BuildContext context, String title, bool isLogout, bool isDelete, bool isTerms) {
+  showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -86,10 +101,28 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout, b
             ),
             TextButton(
               onPressed: () {
-                if (isLogout) {
+                if (isTerms) {
+                  //利用規約
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PlaceholderScreen(title: title),
+                    ),
+                  );
+                } else if (isLogout) {
                   // ログアウト処理
+                  try {
+                    FirebaseAuth.instance.signOut();
+                  } catch (e) {
+                    print(e);
+                  }
                 } else if (isDelete) {
                   // アカウント削除処理
+                  try {
+                    FirebaseAuth.instance.currentUser?.delete();
+                  } catch (e) {
+                    print(e);
+                  }
                 } else {
                   // その他処理
                 }
@@ -99,9 +132,8 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout, b
             ),
           ],
         );
-      }
-    );
-  }
+      });
+}
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -112,6 +144,17 @@ class PlaceholderScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(child: Text('$title の画面')),
+    );
+  }
+}
+
+class TermsScreen extends StatelessWidget {
+  const TermsScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('利用規約')),
+      body: const Center(child: Text('ここに利用規約の内容を表示')),
     );
   }
 }

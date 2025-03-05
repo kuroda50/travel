@@ -1,39 +1,149 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
-void main() {
-  runApp(RecruitmentScreen());
+class RecruitmentScreen extends StatefulWidget {
+  final String postId;
+  const RecruitmentScreen({super.key, required this.postId});
+
+  @override
+  State<RecruitmentScreen> createState() => _RecruitmentScreenState();
 }
 
-class RecruitmentScreen extends StatelessWidget {
-  const RecruitmentScreen({Key? key}) : super(key: key);
+class _RecruitmentScreenState extends State<RecruitmentScreen> {
+  String title = "",
+      tags = "",
+      area = "未定",
+      destination = "未定",
+      startDate = "未定",
+      endDate = "未定",
+      daysOfWeek = "未定",
+      targetGroups = "未定",
+      age = "未定",
+      hasPhoto = "",
+      budget = "未定",
+      budgetType = "未定",
+      region = "未定",
+      departure = "未定",
+      organizerName = "",
+      organizerAge = "",
+      organizerGroup = "",
+      member2 = "",
+      member3 = "",
+      description = "";
+
+  void initState() {
+    super.initState();
+    getPostData();
+  }
+
+  void getPostData() async {
+    final docRef =
+        FirebaseFirestore.instance.collection("posts").doc(widget.postId);
+    await docRef.get().then((doc) {
+      if (!doc.exists) return;
+
+      title = doc['title'];
+      tags = doc['tags']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      area = doc['where']['area'];
+      destination = doc['where']['destination']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      startDate =
+          DateFormat('yyyy/MM/dd').format(doc['when']['startDate'].toDate());
+      endDate =
+          DateFormat('yyyy/MM/dd').format(doc['when']['endDate'].toDate());
+      daysOfWeek = doc['when']['dayOfWeek']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      targetGroups = doc['target']['targetGroups']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      int? ageMin = doc['target']['ageMin'];
+      int? ageMax = doc['target']['ageMax'];
+      if (ageMin == null && ageMax == null) {
+        age = '未設定';
+      } else if (ageMin != null && ageMax == null) {
+        age = '$ageMin歳以上';
+      } else if (ageMin == null && ageMax != null) {
+        age = '$ageMax歳以下';
+      } else {
+        age = '$ageMin歳～$ageMax歳';
+      }
+      hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
+      int? budgetMin = doc['budget']['budgetMin'];
+      int? budgetMax = doc['budget']['budgetMax'];
+      if (budgetMin == null && budgetMax == null) {
+        budget = '未設定';
+      } else if (budgetMin != null && budgetMax == null) {
+        budget = '$budgetMin万円以上';
+      } else if (budgetMin == null && budgetMax != null) {
+        budget = '$budgetMax万円以下';
+      } else {
+        budget = '$budgetMin万円～$budgetMax万円';
+      }
+      budgetType = doc['budget']['budgetType'];
+      if (doc['meetingPlace']['region'] != null)
+        region = doc['meetingPlace']['region'];
+      if (doc['meetingPlace']['departure'] != null)
+        departure = doc['meetingPlace']['departure'];
+      description = doc['description'];
+
+      organizerName = doc['organizer']['organizerName'];
+      organizerGroup = doc['organizer']['organizerGroup'];
+      organizerAge = calculateAge(doc['organizer']['organizerAge']).toString();
+
+      print("呼ばれたよ4");
+    });
+
+    setState(() {
+      title = title;
+      tags = tags;
+      area = area;
+      destination = destination;
+      startDate = startDate;
+      endDate = endDate;
+      daysOfWeek = daysOfWeek;
+      targetGroups = targetGroups;
+      age = age;
+      hasPhoto = hasPhoto;
+      budget = budget;
+      budgetType = budgetType;
+      region = region;
+      departure = departure;
+
+      organizerName = organizerName;
+      organizerGroup = organizerGroup;
+      organizerAge = organizerAge;
+
+      // member2 = member2;
+      // member3 = member3;
+      // description = description;
+    });
+  }
+
+  int calculateAge(DateTime birth) {
+    DateTime today = DateTime.now();
+    int age = today.year - birth.year;
+
+    // 誕生日がまだ来ていなければ1歳引く
+    if (today.month < birth.month ||
+        (today.month == birth.month && today.day < birth.day)) {
+      age--;
+    }
+
+    return age;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 変数を定義
-    String title = '北欧、ヨーロッパ旅行';
-    String tags = 'オーロラ 犬ぞり 北欧 ヨーロッパ';
-    String area = 'アジア';
-    String destination = '台湾、中国';
-    String startDate = '2024年-02月-15日';
-    String endDate = '2024年-02月-17日';
-    String days = '金、土、日';
-    String gender = '男、女、家族、グループ';
-    String age = '20歳~49歳';
-    String photo = 'どちらでも';
-    String budget = '未定';
-    String payment = '各自自腹';
-    String locationArea = '日本';
-    String departure = '福岡';
-    String memberTitle = '参加メンバー';
-    String organizerTitle = '主催者';
-    String member1Name = 'たなか、24歳、男';
-    String member2Name = 'かくえい、28歳、女';
-    String member3Name = 'ごん、23歳、男';
-    String moneyTitle = 'お金について';
-    String placeTitle = '集合場所';
-    String recruitText = '旅行仲間募集です。\n20~40代の方だと嬉しいです。\n場所は台湾、中国あたりを考えています。\n当方1年に4~6回ほど海外に行き英語話せます。\n現地の友人もいるのですが、日本人同士の旅行だと一緒に遊べて、現地でのスケジュールも合わせやすい為、友人募集させて頂きたいといった感じです。\n観光事、現地の人々との交流等、オープンマインドで気軽に一緒に楽しめる方を探しています。';
-    String buttonText = '話を聞きたい';
-
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -76,7 +186,8 @@ class RecruitmentScreen extends StatelessWidget {
                       children: [
                         Text(
                           'どこへ',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         Icon(Icons.favorite_border),
                       ],
@@ -92,7 +203,8 @@ class RecruitmentScreen extends StatelessWidget {
                     SizedBox(height: 20),
                     Text(
                       'いつ',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     ListTile(
                       title: Text('いつから'),
@@ -104,16 +216,17 @@ class RecruitmentScreen extends StatelessWidget {
                     ),
                     ListTile(
                       title: Text('曜日'),
-                      trailing: Text(days), // 変数を埋め込む
+                      trailing: Text(daysOfWeek), // 変数を埋め込む
                     ),
                     SizedBox(height: 20),
                     Text(
                       '募集する人',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     ListTile(
                       title: Text('性別、属性'),
-                      trailing: Text(gender), // 変数を埋め込む
+                      trailing: Text(targetGroups), // 変数を埋め込む
                     ),
                     ListTile(
                       title: Text('年齢'),
@@ -121,7 +234,7 @@ class RecruitmentScreen extends StatelessWidget {
                     ),
                     ListTile(
                       title: Text('写真付き'),
-                      trailing: Text(photo), // 変数を埋め込む
+                      trailing: Text(hasPhoto), // 変数を埋め込む
                     ),
                   ],
                 ),
@@ -129,39 +242,38 @@ class RecruitmentScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  memberTitle, // 変数を埋め込む
+                  "参加メンバー", // 変数を埋め込む
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
                 child: Text(
-                  organizerTitle, // 変数を埋め込む
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  "主催者", // 変数を埋め込む
                 ),
               ),
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.grey[300],
                 ),
-                title: Text(member1Name), // 変数を埋め込む
+                title: Text("${organizerName}、${organizerAge}、${organizerGroup}"), // 変数を埋め込む
               ),
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.grey[300],
                 ),
-                title: Text(member2Name), // 変数を埋め込む
+                title: Text(member2), // 変数を埋め込む
               ),
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.grey[300],
                 ),
-                title: Text(member3Name), // 変数を埋め込む
+                title: Text(member3), // 変数を埋め込む
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  moneyTitle, // 変数を埋め込む
+                  "お金について", // 変数を埋め込む
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -171,18 +283,18 @@ class RecruitmentScreen extends StatelessWidget {
               ),
               ListTile(
                 title: Text('お金の分け方'),
-                trailing: Text(payment), // 変数を埋め込む
+                trailing: Text(budgetType), // 変数を埋め込む
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  placeTitle, // 変数を埋め込む
+                  "集合場所", // 変数を埋め込む
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               ListTile(
                 title: Text('方面'),
-                trailing: Text(locationArea), // 変数を埋め込む
+                trailing: Text(region), // 変数を埋め込む
               ),
               ListTile(
                 title: Text('出発地'),
@@ -197,8 +309,7 @@ class RecruitmentScreen extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    recruitText, // 変数を埋め込む
-                    style: TextStyle(fontSize: 16),
+                    description, // 変数を埋め込む
                   ),
                 ),
               ),
@@ -209,8 +320,9 @@ class RecruitmentScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       // ボタンが押されたときの処理
+                      context.pop('/message');
                     },
-                    child: Text(buttonText), // 変数を埋め込む
+                    child: Text("話を聞きたい"), // 変数を埋め込む
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green, // ボタンの背景色
                       foregroundColor: Colors.white, // ボタンのテキスト色

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TravelScreen extends StatelessWidget {
   const TravelScreen({super.key});
@@ -9,9 +10,18 @@ class TravelScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('旅へ行く'),
       ),
-      body: const Center(
-        child: Text('旅へ行く画面'),
-      ),
+      body: Center(
+          child: Column(
+        children: [
+          Text('旅へ行く画面'),
+          ElevatedButton(
+              onPressed: () {
+                String postId = 'bgvY4C5aQH3LVfsrMhFj';
+                context.go('/recruitment', extra: postId);
+              },
+              child: Text("aaa"))
+        ],
+      )),
     );
   }
 }

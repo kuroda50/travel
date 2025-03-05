@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class RecruitmentScreen extends StatefulWidget {
   final String postId;
@@ -29,19 +31,22 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       organizerName = "",
       organizerAge = "",
       organizerGroup = "",
-      member2 = "",
-      member3 = "",
-      description = "";
+      description = "",
+      organizerImageURL = "";
+
+  List<String> memberTextList = [], memberImageURLList = [];
+  bool isFavorited = false;
 
   void initState() {
     super.initState();
     getPostData();
+    _checkFavoriteStatus(widget.postId);
   }
 
   void getPostData() async {
     final docRef =
         FirebaseFirestore.instance.collection("posts").doc(widget.postId);
-    await docRef.get().then((doc) {
+    await docRef.get().then((doc) async {
       if (!doc.exists) return;
 
       title = doc['title'];
@@ -98,9 +103,34 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
 
       organizerName = doc['organizer']['organizerName'];
       organizerGroup = doc['organizer']['organizerGroup'];
-      organizerAge = calculateAge(doc['organizer']['organizerAge']).toString();
+      organizerAge =
+          calculateAge(doc['organizer']['organizerBirthday'].toDate())
+              .toString();
+      if (doc['organizer']['hasPhoto']) {
+        DocumentReference userRef = FirebaseFirestore.instance
+            .collection("users")
+            .doc(doc['organizer']['organizerId']);
+        organizerImageURL = await userRef.get().then((userDoc) {
+          return userDoc['photoURLs'][0];
+        });
+        print("写真URLはこれです:" + organizerImageURL);
+      } else {
+        organizerImageURL = '';
+      }
 
-      print("呼ばれたよ4");
+      List<String> memberList = doc['participants'].cast<String>();
+      for (int i = 0; i < memberList.length; i++) {
+        DocumentReference memberRef =
+            FirebaseFirestore.instance.collection("users").doc(memberList[i]);
+        memberRef.get().then((doc) {
+          if (doc.exists)
+            memberTextList[i] =
+                '${doc['name']}、${calculateAge(doc['birthday'])}歳、${doc['gender']}';
+          memberImageURLList[i] = doc[memberList[i]]['hasPhto']
+              ? doc[memberList[i]]['photoURLs'][0]
+              : '';
+        });
+      }
     });
 
     setState(() {
@@ -118,14 +148,12 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       budgetType = budgetType;
       region = region;
       departure = departure;
-
       organizerName = organizerName;
       organizerGroup = organizerGroup;
       organizerAge = organizerAge;
-
-      // member2 = member2;
-      // member3 = member3;
-      // description = description;
+      description = description;
+      memberTextList = memberTextList;
+      organizerImageURL = organizerImageURL;
     });
   }
 
@@ -140,6 +168,56 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
     }
 
     return age;
+  }
+
+  // Future<String> getUserImageUrl(String userId) async {
+  //   try {
+  //     return await FirebaseStorage.instance
+  //         .ref('user_images/${userId}.png') // 実際のパスに変更
+  //         .getDownloadURL();
+  //   } catch (e) {
+  //     print("Error fetching image: $e");
+  //     return ''; // 画像がない場合
+  //   }
+  // }
+
+  Future<bool> _checkFavoriteStatus(String postId) async {
+    if (FirebaseAuth.instance.currentUser == null)
+      return false; //ログインしてなければfalseを返す
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    DocumentSnapshot doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    List<String> favoritePosts = doc['favoritePosts'].cast<String>();
+
+    bool favorited = favoritePosts.contains(widget.postId);
+    setState(() {
+      isFavorited = favorited;
+    });
+    if (favorited) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    // お気に入り登録/解除処理
+    print("呼ばれたよ");
+    if (FirebaseAuth.instance.currentUser == null) return; //ログインしてなければ終わる
+
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection("users").doc(userId);
+    print("ここまで実行");
+    userRef.get().then((doc) async {
+      List<String> favoritePosts = doc['favoritePosts'].cast<String>();
+      if (await _checkFavoriteStatus(widget.postId)) {
+        favoritePosts.remove(widget.postId);
+      } else {
+        favoritePosts.add(widget.postId);
+      }
+      userRef.update({'favoritePosts': favoritePosts});
+    });
   }
 
   @override
@@ -161,8 +239,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                 height: 200,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(
-                        'https://static.wikia.nocookie.net/pokemon/images/2/29/Spr_6x_677.png/revision/latest/scale-to-width-down/250?cb=20161026045550'), // 画像URLをここに入力
+                    image: NetworkImage(organizerImageURL), // 画像URLをここに入力
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -181,16 +258,10 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                       style: TextStyle(fontSize: 16),
                     ),
                     SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'どこへ',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        Icon(Icons.favorite_border),
-                      ],
+                    Text(
+                      'どこへ',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     ListTile(
                       title: Text('方面'),
@@ -254,22 +325,23 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
               ),
               ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                ),
-                title: Text("${organizerName}、${organizerAge}、${organizerGroup}"), // 変数を埋め込む
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: NetworkImage(organizerImageURL)),
+                title: Text(
+                    "${organizerName}、${organizerAge}歳、${organizerGroup}"), // 変数を埋め込む
               ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                ),
-                title: Text(member2), // 変数を埋め込む
-              ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                ),
-                title: Text(member3), // 変数を埋め込む
-              ),
+              ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: memberTextList.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.grey[300],
+                      ),
+                      title: Text(memberTextList[index]), // 変数を埋め込む
+                    );
+                  }),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
@@ -320,7 +392,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       // ボタンが押されたときの処理
-                      context.pop('/message');
+                      context.push('/message');
                     },
                     child: Text("話を聞きたい"), // 変数を埋め込む
                     style: ElevatedButton.styleFrom(
@@ -332,6 +404,13 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
               ),
             ],
           ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            _toggleFavorite();
+          },
+          backgroundColor: isFavorited ? Colors.red : Colors.grey,
+          child: Icon(isFavorited ? Icons.favorite : Icons.favorite_border),
         ),
       ),
     );

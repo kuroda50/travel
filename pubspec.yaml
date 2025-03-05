@@ -16,6 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^3.11.0
   firebase_auth: ^5.5.1
+  firebase_storage:
   cloud_firestore:
   intl:
   go_router: ^14.8.0

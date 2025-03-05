@@ -1,39 +1,227 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
-void main() {
-  runApp(RecruitmentScreen());
+class RecruitmentScreen extends StatefulWidget {
+  final String postId;
+  const RecruitmentScreen({super.key, required this.postId});
+
+  @override
+  State<RecruitmentScreen> createState() => _RecruitmentScreenState();
 }
 
-class RecruitmentScreen extends StatelessWidget {
-  const RecruitmentScreen({Key? key}) : super(key: key);
+class _RecruitmentScreenState extends State<RecruitmentScreen> {
+  String title = "",
+      tags = "",
+      area = "未定",
+      destination = "未定",
+      startDate = "未定",
+      endDate = "未定",
+      daysOfWeek = "未定",
+      targetGroups = "未定",
+      age = "未定",
+      hasPhoto = "",
+      budget = "未定",
+      budgetType = "未定",
+      region = "未定",
+      departure = "未定",
+      organizerName = "",
+      organizerAge = "",
+      organizerGroup = "",
+      description = "",
+      organizerImageURL = "";
+
+  List<String> memberTextList = [], memberImageURLList = [];
+  bool isFavorited = false;
+
+  void initState() {
+    super.initState();
+    getPostData();
+    _checkFavoriteStatus(widget.postId);
+  }
+
+  void getPostData() async {
+    final docRef =
+        FirebaseFirestore.instance.collection("posts").doc(widget.postId);
+    await docRef.get().then((doc) async {
+      if (!doc.exists) return;
+
+      title = doc['title'];
+      tags = doc['tags']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      area = doc['where']['area'];
+      destination = doc['where']['destination']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      startDate =
+          DateFormat('yyyy/MM/dd').format(doc['when']['startDate'].toDate());
+      endDate =
+          DateFormat('yyyy/MM/dd').format(doc['when']['endDate'].toDate());
+      daysOfWeek = doc['when']['dayOfWeek']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      targetGroups = doc['target']['targetGroups']
+          .cast<String>()
+          .map<String>((String value) => value.toString())
+          .join('、');
+      int? ageMin = doc['target']['ageMin'];
+      int? ageMax = doc['target']['ageMax'];
+      if (ageMin == null && ageMax == null) {
+        age = '未設定';
+      } else if (ageMin != null && ageMax == null) {
+        age = '$ageMin歳以上';
+      } else if (ageMin == null && ageMax != null) {
+        age = '$ageMax歳以下';
+      } else {
+        age = '$ageMin歳～$ageMax歳';
+      }
+      hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
+      int? budgetMin = doc['budget']['budgetMin'];
+      int? budgetMax = doc['budget']['budgetMax'];
+      if (budgetMin == null && budgetMax == null) {
+        budget = '未設定';
+      } else if (budgetMin != null && budgetMax == null) {
+        budget = '$budgetMin万円以上';
+      } else if (budgetMin == null && budgetMax != null) {
+        budget = '$budgetMax万円以下';
+      } else {
+        budget = '$budgetMin万円～$budgetMax万円';
+      }
+      budgetType = doc['budget']['budgetType'];
+      if (doc['meetingPlace']['region'] != null)
+        region = doc['meetingPlace']['region'];
+      if (doc['meetingPlace']['departure'] != null)
+        departure = doc['meetingPlace']['departure'];
+      description = doc['description'];
+
+      organizerName = doc['organizer']['organizerName'];
+      organizerGroup = doc['organizer']['organizerGroup'];
+      organizerAge =
+          calculateAge(doc['organizer']['organizerBirthday'].toDate())
+              .toString();
+      if (doc['organizer']['hasPhoto']) {
+        DocumentReference userRef = FirebaseFirestore.instance
+            .collection("users")
+            .doc(doc['organizer']['organizerId']);
+        organizerImageURL = await userRef.get().then((userDoc) {
+          return userDoc['photoURLs'][0];
+        });
+        print("写真URLはこれです:" + organizerImageURL);
+      } else {
+        organizerImageURL = '';
+      }
+
+      List<String> memberList = doc['participants'].cast<String>();
+      for (int i = 0; i < memberList.length; i++) {
+        DocumentReference memberRef =
+            FirebaseFirestore.instance.collection("users").doc(memberList[i]);
+        memberRef.get().then((doc) {
+          if (doc.exists)
+            memberTextList[i] =
+                '${doc['name']}、${calculateAge(doc['birthday'])}歳、${doc['gender']}';
+          memberImageURLList[i] = doc[memberList[i]]['hasPhto']
+              ? doc[memberList[i]]['photoURLs'][0]
+              : '';
+        });
+      }
+    });
+
+    setState(() {
+      title = title;
+      tags = tags;
+      area = area;
+      destination = destination;
+      startDate = startDate;
+      endDate = endDate;
+      daysOfWeek = daysOfWeek;
+      targetGroups = targetGroups;
+      age = age;
+      hasPhoto = hasPhoto;
+      budget = budget;
+      budgetType = budgetType;
+      region = region;
+      departure = departure;
+      organizerName = organizerName;
+      organizerGroup = organizerGroup;
+      organizerAge = organizerAge;
+      description = description;
+      memberTextList = memberTextList;
+      organizerImageURL = organizerImageURL;
+    });
+  }
+
+  int calculateAge(DateTime birth) {
+    DateTime today = DateTime.now();
+    int age = today.year - birth.year;
+
+    // 誕生日がまだ来ていなければ1歳引く
+    if (today.month < birth.month ||
+        (today.month == birth.month && today.day < birth.day)) {
+      age--;
+    }
+
+    return age;
+  }
+
+  // Future<String> getUserImageUrl(String userId) async {
+  //   try {
+  //     return await FirebaseStorage.instance
+  //         .ref('user_images/${userId}.png') // 実際のパスに変更
+  //         .getDownloadURL();
+  //   } catch (e) {
+  //     print("Error fetching image: $e");
+  //     return ''; // 画像がない場合
+  //   }
+  // }
+
+  Future<bool> _checkFavoriteStatus(String postId) async {
+    if (FirebaseAuth.instance.currentUser == null)
+      return false; //ログインしてなければfalseを返す
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    DocumentSnapshot doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    List<String> favoritePosts = doc['favoritePosts'].cast<String>();
+
+    bool favorited = favoritePosts.contains(widget.postId);
+    setState(() {
+      isFavorited = favorited;
+    });
+    if (favorited) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    // お気に入り登録/解除処理
+    print("呼ばれたよ");
+    if (FirebaseAuth.instance.currentUser == null) return; //ログインしてなければ終わる
+
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection("users").doc(userId);
+    print("ここまで実行");
+    userRef.get().then((doc) async {
+      List<String> favoritePosts = doc['favoritePosts'].cast<String>();
+      if (await _checkFavoriteStatus(widget.postId)) {
+        favoritePosts.remove(widget.postId);
+      } else {
+        favoritePosts.add(widget.postId);
+      }
+      userRef.update({'favoritePosts': favoritePosts});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 変数を定義
-    String title = '北欧、ヨーロッパ旅行';
-    String tags = 'オーロラ 犬ぞり 北欧 ヨーロッパ';
-    String area = 'アジア';
-    String destination = '台湾、中国';
-    String startDate = '2024年-02月-15日';
-    String endDate = '2024年-02月-17日';
-    String days = '金、土、日';
-    String gender = '男、女、家族、グループ';
-    String age = '20歳~49歳';
-    String photo = 'どちらでも';
-    String budget = '未定';
-    String payment = '各自自腹';
-    String locationArea = '日本';
-    String departure = '福岡';
-    String memberTitle = '参加メンバー';
-    String organizerTitle = '主催者';
-    String member1Name = 'たなか、24歳、男';
-    String member2Name = 'かくえい、28歳、女';
-    String member3Name = 'ごん、23歳、男';
-    String moneyTitle = 'お金について';
-    String placeTitle = '集合場所';
-    String recruitText = '旅行仲間募集です。\n20~40代の方だと嬉しいです。\n場所は台湾、中国あたりを考えています。\n当方1年に4~6回ほど海外に行き英語話せます。\n現地の友人もいるのですが、日本人同士の旅行だと一緒に遊べて、現地でのスケジュールも合わせやすい為、友人募集させて頂きたいといった感じです。\n観光事、現地の人々との交流等、オープンマインドで気軽に一緒に楽しめる方を探しています。';
-    String buttonText = '話を聞きたい';
-
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -51,8 +239,7 @@ class RecruitmentScreen extends StatelessWidget {
                 height: 200,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(
-                        'https://static.wikia.nocookie.net/pokemon/images/2/29/Spr_6x_677.png/revision/latest/scale-to-width-down/250?cb=20161026045550'), // 画像URLをここに入力
+                    image: NetworkImage(organizerImageURL), // 画像URLをここに入力
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -71,15 +258,10 @@ class RecruitmentScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 16),
                     ),
                     SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'どこへ',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        Icon(Icons.favorite_border),
-                      ],
+                    Text(
+                      'どこへ',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     ListTile(
                       title: Text('方面'),
@@ -92,7 +274,8 @@ class RecruitmentScreen extends StatelessWidget {
                     SizedBox(height: 20),
                     Text(
                       'いつ',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     ListTile(
                       title: Text('いつから'),
@@ -104,16 +287,17 @@ class RecruitmentScreen extends StatelessWidget {
                     ),
                     ListTile(
                       title: Text('曜日'),
-                      trailing: Text(days), // 変数を埋め込む
+                      trailing: Text(daysOfWeek), // 変数を埋め込む
                     ),
                     SizedBox(height: 20),
                     Text(
                       '募集する人',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     ListTile(
                       title: Text('性別、属性'),
-                      trailing: Text(gender), // 変数を埋め込む
+                      trailing: Text(targetGroups), // 変数を埋め込む
                     ),
                     ListTile(
                       title: Text('年齢'),
@@ -121,7 +305,7 @@ class RecruitmentScreen extends StatelessWidget {
                     ),
                     ListTile(
                       title: Text('写真付き'),
-                      trailing: Text(photo), // 変数を埋め込む
+                      trailing: Text(hasPhoto), // 変数を埋め込む
                     ),
                   ],
                 ),
@@ -129,39 +313,39 @@ class RecruitmentScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  memberTitle, // 変数を埋め込む
+                  "参加メンバー", // 変数を埋め込む
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
                 child: Text(
-                  organizerTitle, // 変数を埋め込む
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  "主催者", // 変数を埋め込む
                 ),
               ),
               ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                ),
-                title: Text(member1Name), // 変数を埋め込む
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: NetworkImage(organizerImageURL)),
+                title: Text(
+                    "${organizerName}、${organizerAge}歳、${organizerGroup}"), // 変数を埋め込む
               ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                ),
-                title: Text(member2Name), // 変数を埋め込む
-              ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                ),
-                title: Text(member3Name), // 変数を埋め込む
-              ),
+              ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: memberTextList.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.grey[300],
+                      ),
+                      title: Text(memberTextList[index]), // 変数を埋め込む
+                    );
+                  }),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  moneyTitle, // 変数を埋め込む
+                  "お金について", // 変数を埋め込む
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -171,18 +355,18 @@ class RecruitmentScreen extends StatelessWidget {
               ),
               ListTile(
                 title: Text('お金の分け方'),
-                trailing: Text(payment), // 変数を埋め込む
+                trailing: Text(budgetType), // 変数を埋め込む
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  placeTitle, // 変数を埋め込む
+                  "集合場所", // 変数を埋め込む
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               ListTile(
                 title: Text('方面'),
-                trailing: Text(locationArea), // 変数を埋め込む
+                trailing: Text(region), // 変数を埋め込む
               ),
               ListTile(
                 title: Text('出発地'),
@@ -197,8 +381,7 @@ class RecruitmentScreen extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    recruitText, // 変数を埋め込む
-                    style: TextStyle(fontSize: 16),
+                    description, // 変数を埋め込む
                   ),
                 ),
               ),
@@ -209,8 +392,9 @@ class RecruitmentScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       // ボタンが押されたときの処理
+                      context.push('/message');
                     },
-                    child: Text(buttonText), // 変数を埋め込む
+                    child: Text("話を聞きたい"), // 変数を埋め込む
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green, // ボタンの背景色
                       foregroundColor: Colors.white, // ボタンのテキスト色
@@ -220,6 +404,13 @@ class RecruitmentScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            _toggleFavorite();
+          },
+          backgroundColor: isFavorited ? Colors.red : Colors.grey,
+          child: Icon(isFavorited ? Icons.favorite : Icons.favorite_border),
         ),
       ),
     );

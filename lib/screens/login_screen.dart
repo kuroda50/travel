@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(MyApp());
-}
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MyApp extends StatelessWidget {
   @override
@@ -14,15 +11,51 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}) : super(key: key);
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("メールアドレスとパスワードを入力してください")),
+      );
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("ログイン成功！")),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("ログイン失敗: ${e.message}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5EEDC), // 背景色
-      body: SingleChildScrollView( // スマホ対応
+      body: SingleChildScrollView(
+        // スマホ対応
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
@@ -43,7 +76,8 @@ class LoginScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF559900),
                         ),
-                        child: Text('ログイン', style: TextStyle(color: Colors.white)),
+                        child:
+                            Text('ログイン', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -52,12 +86,13 @@ class LoginScreen extends StatelessWidget {
 
                 // メールアドレス入力
                 _buildLabel('メールアドレス'),
-                _buildTextField(),
+                _buildTextField(controller: emailController),
                 SizedBox(height: 15),
 
                 // パスワード入力
                 _buildLabel('パスワード'),
-                _buildTextField(obscureText: true),
+                _buildTextField(
+                    controller: passwordController, obscureText: true),
                 SizedBox(height: 15),
 
                 // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
@@ -67,12 +102,13 @@ class LoginScreen extends StatelessWidget {
                 // 「ログイン」ボタン
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF559900),
                       minimumSize: Size(200, 50),
                     ),
-                    child: Text('ログイン', style: TextStyle(fontSize: 18, color: Colors.white)),
+                    child: Text('ログイン',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
                 ),
 
@@ -100,7 +136,8 @@ class LoginScreen extends StatelessWidget {
                       backgroundColor: Color(0xFF559900),
                       minimumSize: Size(200, 50),
                     ),
-                    child: Text('アカウントを作る', style: TextStyle(fontSize: 18, color: Colors.white)),
+                    child: Text('アカウントを作る',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
                 ),
               ],
@@ -118,9 +155,11 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({bool obscureText = false}) {
+  Widget _buildTextField(
+      {bool obscureText = false, required TextEditingController controller}) {
     return TextField(
       obscureText: obscureText,
+      controller: controller,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         filled: true,

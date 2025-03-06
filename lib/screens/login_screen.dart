@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -54,10 +50,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5EEDC), // 背景色
-      body: SingleChildScrollView( // スマホ対応
+      body: SingleChildScrollView(
+        // スマホ対応
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
@@ -78,7 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF559900),
                         ),
-                        child: Text('ログイン', style: TextStyle(color: Colors.white)),
+                        child:
+                            Text('ログイン', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -92,7 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // パスワード入力
                 _buildLabel('パスワード'),
-                _buildTextField(controller: passwordController, obscureText: true),
+                _buildTextField(
+                    controller: passwordController, obscureText: true),
                 SizedBox(height: 15),
 
                 // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
@@ -107,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: Color(0xFF559900),
                       minimumSize: Size(200, 50),
                     ),
-                    child: Text('ログイン', style: TextStyle(fontSize: 18, color: Colors.white)),
+                    child: Text('ログイン',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
                 ),
 
@@ -135,7 +136,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: Color(0xFF559900),
                       minimumSize: Size(200, 50),
                     ),
-                    child: Text('アカウントを作る', style: TextStyle(fontSize: 18, color: Colors.white)),
+                    child: Text('アカウントを作る',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
                 ),
               ],
@@ -153,7 +155,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextField({bool obscureText = false, required TextEditingController controller}) {
+  Widget _buildTextField(
+      {bool obscureText = false, required TextEditingController controller}) {
     return TextField(
       obscureText: obscureText,
       controller: controller,

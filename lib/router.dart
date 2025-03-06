@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'screens/travel_search.dart';
 import 'screens/travel_screen.dart';
 import 'screens/recruitment_list_screen.dart';
 import 'screens/recruitment_post_screen.dart';
@@ -60,6 +61,16 @@ final GoRouter goRouter = GoRouter(
         key: state.pageKey,
         child: const CustomBottomNavigationBar(
           child: RecruitmentListScreen(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/travel_search',
+      name: 'travel_search',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child:  CustomBottomNavigationBar(
+          child: TravelSearch(),
         ),
       ),
     ),

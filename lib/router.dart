@@ -158,7 +158,7 @@ final GoRouter goRouter = GoRouter(
       name: 'profile',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: ProfileScreen(),
         ),
       ),

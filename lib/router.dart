@@ -159,7 +159,7 @@ final GoRouter goRouter = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: CustomBottomNavigationBar(
-          child: ProfileScreen(),
+          child: ProfileScreen(userId: state.extra! as String),
         ),
       ),
     ),

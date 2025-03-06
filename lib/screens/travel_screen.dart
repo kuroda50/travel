@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'travel_search.dart'; // ここに追加
 
 void main() {
+  runApp(TravelScreen());
 }
 
 class TravelScreen extends StatefulWidget {

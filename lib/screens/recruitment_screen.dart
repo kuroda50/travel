@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:travel/component/header.dart';
 
 class RecruitmentScreen extends StatefulWidget {
   final String postId;
@@ -224,10 +224,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('仲間と集まる'),
-          backgroundColor: Color(0xFF559900), // ヘッダーの色を559900に変更
-        ),
+        appBar: Header(),
         backgroundColor: Colors.white, // 背景色を白に変更
         body: SingleChildScrollView(
           child: Column(

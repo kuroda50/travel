@@ -17,6 +17,7 @@ import 'screens/profile_screen.dart';
 import 'screens/past_recruitment_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/password_change_screen.dart';
+import 'screens/password_change_screen_2.dart';
 import 'screens/terms_of_use_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
@@ -24,7 +25,7 @@ import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel',
+  initialLocation: '/password-change',
   routes: [
     GoRoute(
       path: '/login',
@@ -201,6 +202,16 @@ final GoRouter goRouter = GoRouter(
         key: state.pageKey,
         child: const CustomBottomNavigationBar(
           child: PasswordChangeScreen(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/password-change-2',
+      name: 'passwordChange2',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CustomBottomNavigationBar(
+          child: PasswordChangeScreen2(),
         ),
       ),
     ),

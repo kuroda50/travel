@@ -35,6 +35,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await getRecruitmentList();
   }
 
+  int calculateAge(DateTime birth) {
+    DateTime today = DateTime.now();
+    int age = today.year - birth.year;
+
+    // 誕生日がまだ来ていなければ1歳引く
+    if (today.month < birth.month ||
+        (today.month == birth.month && today.day < birth.day)) {
+      age--;
+    }
+    return age;
+  }
+
   Future<void> checkUserId(String userId) {
     if (userId == FirebaseAuth.instance.currentUser!.uid) {
       print('自分のプロフィールを見ています');
@@ -127,18 +139,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       });
     }
-  }
-
-  int calculateAge(DateTime birth) {
-    DateTime today = DateTime.now();
-    int age = today.year - birth.year;
-
-    // 誕生日がまだ来ていなければ1歳引く
-    if (today.month < birth.month ||
-        (today.month == birth.month && today.day < birth.day)) {
-      age--;
-    }
-    return age;
   }
 
   @override

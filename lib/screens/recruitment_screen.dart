@@ -106,17 +106,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       organizerAge =
           calculateAge(doc['organizer']['organizerBirthday'].toDate())
               .toString();
-      if (doc['organizer']['hasPhoto']) {
-        DocumentReference userRef = FirebaseFirestore.instance
-            .collection("users")
-            .doc(doc['organizer']['organizerId']);
-        organizerImageURL = await userRef.get().then((userDoc) {
-          return userDoc['photoURLs'][0];
-        });
-        print("写真URLはこれです:" + organizerImageURL);
-      } else {
-        organizerImageURL = '';
-      }
+      organizerImageURL = doc['organizer']['photoURL'];
 
       List<String> memberList = doc['participants'].cast<String>();
       for (int i = 0; i < memberList.length; i++) {
@@ -169,17 +159,6 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
 
     return age;
   }
-
-  // Future<String> getUserImageUrl(String userId) async {
-  //   try {
-  //     return await FirebaseStorage.instance
-  //         .ref('user_images/${userId}.png') // 実際のパスに変更
-  //         .getDownloadURL();
-  //   } catch (e) {
-  //     print("Error fetching image: $e");
-  //     return ''; // 画像がない場合
-  //   }
-  // }
 
   Future<bool> _checkFavoriteStatus(String postId) async {
     if (FirebaseAuth.instance.currentUser == null)

@@ -25,7 +25,7 @@ import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/password-change',
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',

@@ -4,6 +4,7 @@ import 'package:travel/colors/color.dart';
 import 'package:travel/component/header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -25,12 +26,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    checkUserId(widget.userId);
-    getUserProfile(widget.userId);
-    getRecruitmentList();
+    getInformation();
   }
 
-  void checkUserId(String userId) {
+  getInformation() async {
+    await checkUserId(widget.userId);
+    await getUserProfile(widget.userId);
+    await getRecruitmentList();
+  }
+
+  Future<void> checkUserId(String userId) {
     if (userId == FirebaseAuth.instance.currentUser!.uid) {
       print('自分のプロフィールを見ています');
       isMyProfile = true;
@@ -41,86 +46,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       isMyProfile = isMyProfile;
     });
-    return;
+    return Future.value();
   }
 
-  void getUserProfile(String userId) {
+  Future<void> getUserProfile(String userId) async {
     // ユーザー情報を取得する処理
     DocumentReference userRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
-    userRef.get().then((user) {
-      if (user.exists) {
-        print("ユーザ情報を取得します");
-        name = user['name'];
-        age = calculateAge(user['birthday'].toDate()).toString();
-        hobbies = user['hobbies'].map((hobby) => hobby.toString()).toList();
-        bio = user['bio'];
-        userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
-        recruitmentPostIdList =
-            user['participatedPosts'].map((post) => post.toString()).toList();
-        setState(() {
-          name = name;
-          age = age;
-          hobbies = hobbies;
-          bio = bio;
-          userImageURL = userImageURL;
-        });
-      } else {
-        print("ユーザが見つかりません");
-      }
-    });
+    var user = await userRef.get();
+    if (user.exists) {
+      print("ユーザ情報を取得します");
+      name = user['name'];
+      age = calculateAge(user['birthday'].toDate()).toString();
+      bio = user['bio'];
+      hobbies = List<String>.from(user['hobbies'] as List);
+      userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
+      recruitmentPostIdList =
+          List<String>.from(user['participatedPosts'] as List);
+      setState(() {
+        name = name;
+        age = age;
+        hobbies = hobbies;
+        bio = bio;
+        userImageURL = userImageURL;
+        print("ユーザ情報を取得しました");
+      });
+    } else {
+      print("ユーザが見つかりません");
+    }
   }
 
-  void getRecruitmentList() {
+  Future<void> getRecruitmentList() async {
+    print("今までの募集ID：" + recruitmentPostIdList[0]);
     for (int i = 0; i < recruitmentPostIdList.length; i++) {
       DocumentReference recruitmentRef = FirebaseFirestore.instance
           .collection('posts')
           .doc(recruitmentPostIdList[i]);
       recruitmentRef.get().then((recruitment) {
         if (recruitment.exists) {
-          recruitmentPosts[i].title = recruitment['title'];
-          recruitmentPosts[i].targetGroups = recruitment['target']
-                  ['targetGroups']
-              .map((group) => group.toString())
-              .toList();
-          recruitmentPosts[i].targetAgeMin = recruitment['target']['AgeMin'];
-          recruitmentPosts[i].targetAgeMax = recruitment['target']['AgeMax'];
-          recruitmentPosts[i].targetHasPhoto =
-              recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし';
-          recruitmentPosts[i].destinations = recruitment['destination']
-              .map((destination) => destination.toString())
-              .toList();
-          recruitmentPosts[i].organizerGroup =
-              recruitment['organizer']['organizerGroup'];
-          recruitmentPosts[i].organizerName =
-              recruitment['organizer']['organizerName'];
-          recruitmentPosts[i].organizerAge = calculateAge(
-                  recruitment['organizer']['organizerBirthday'].toDate())
-              .toString();
-          recruitmentPosts[i].startDate =
-              recruitment['when']['startDate'].toDate().toString();
-          recruitmentPosts[i].endDate =
-              recruitment['when']['endDate'].toDate().toString();
-          recruitmentPosts[i].days = recruitment['when']['dayOfWeek']
-              .map((day) => day.toString())
-              .toList();
+          // 'post' をここで初期化
           RecruitmentPost post = RecruitmentPost(
             postId: recruitmentPostIdList[i],
-            title: recruitmentPosts[i].title,
+            title: recruitment['title'],
             organizerPhotoURL: recruitment['organizer']['photoURL'],
-            organizerGroup: recruitmentPosts[i].organizerGroup,
-            targetGroups: recruitmentPosts[i].targetGroups,
-            targetAgeMin: recruitmentPosts[i].targetAgeMin,
-            targetAgeMax: recruitmentPosts[i].targetAgeMax,
-            targetHasPhoto: recruitmentPosts[i].targetHasPhoto,
-            destinations: recruitmentPosts[i].destinations,
-            organizerName: recruitmentPosts[i].organizerName,
-            organizerAge: recruitmentPosts[i].organizerAge,
-            startDate: recruitmentPosts[i].startDate,
-            endDate: recruitmentPosts[i].endDate,
-            days: recruitmentPosts[i].days,
+            organizerGroup: recruitment['organizer']['organizerGroup'],
+            targetGroups: List<String>.from(recruitment['target']
+                    ['targetGroups']
+                .map((group) => group.toString())
+                .toList()),
+            targetAgeMin: recruitment['target']['ageMin'].toString(),
+            targetAgeMax: recruitment['target']['ageMax'].toString(),
+            targetHasPhoto: recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし',
+            destinations: List<String>.from(recruitment['where']['destination']
+                .map((destination) => destination.toString())
+                .toList()),
+            organizerName: recruitment['organizer']['organizerName'],
+            organizerAge: calculateAge(
+                    recruitment['organizer']['organizerBirthday'].toDate())
+                .toString(),
+            startDate: DateFormat('yyyy/MM/dd')
+                .format(recruitment['when']['startDate'].toDate())
+                .toString(),
+            endDate: DateFormat('yyyy/MM/dd')
+                .format(recruitment['when']['endDate'].toDate())
+                .toString(),
+            days: List<String>.from(recruitment['when']['dayOfWeek']
+                .map((day) => day.toString())
+                .toList()),
           );
+
+          // 'post' をリストに追加
           recruitmentPosts.add(post);
+
+          // setState() を呼び出して UI 更新
           setState(() {
             recruitmentPosts = recruitmentPosts;
           });
@@ -179,7 +177,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundImage: NetworkImage(userImageURL),
+                  backgroundImage:
+                      userImageURL != '' ? NetworkImage(userImageURL) : null,
                 ),
                 SizedBox(width: 12),
                 Expanded(
@@ -299,18 +298,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text('${post.title}'),
-                Row(
-                  children: <Widget>[
-                    Icon(Icons.person),
-                    Text(
-                        '${post.organizerGroup}>${post.targetGroups} ${post.targetAgeMin}~${post.targetAgeMax} ${post.targetHasPhoto}'),
-                  ],
-                ),
+                Text(
+                    '${post.organizerGroup}>${post.targetGroups} ${post.targetAgeMin}歳~${post.targetAgeMax}歳 ${post.targetHasPhoto}'),
                 Text(post.destinations
                     .map((destination) => destination)
                     .join('、')),
+                Text('${post.organizerName}、${post.organizerAge}歳'),
                 Text(
-                    '${post.organizerName}、${post.organizerAge}歳 ${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}'),
+                    '${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}')
               ],
             ),
             onTap: () {

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/header.dart';
-import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/functions/function.dart';
 
 class RecruitmentListScreen extends StatefulWidget {
@@ -16,7 +14,6 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   List<String> recruitmentPostIdList = [];
   List<RecruitmentPost> recruitmentPosts = [];
 
-
   @override
   void initState() {
     super.initState();
@@ -25,63 +22,18 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
 
   void _getRecruitments() async {
     await _getRecruitmentIds();
-    await _buildRecruitments();
+    await fetchRecruitmentLists(recruitmentPostIdList);
   }
 
   Future<void> _getRecruitmentIds() async {}
-  Future<void> _buildRecruitments() async {}
-  
-  Future<void> getRecruitmentList() async {
-    print("今までの募集ID：" + recruitmentPostIdList[0]);
-    for (int i = 0; i < recruitmentPostIdList.length; i++) {
-      DocumentReference recruitmentRef = FirebaseFirestore.instance
-          .collection('posts')
-          .doc(recruitmentPostIdList[i]);
-      recruitmentRef.get().then((recruitment) {
-        if (recruitment.exists) {
-          // 'post' をここで初期化
-          RecruitmentPost post = RecruitmentPost(
-            postId: recruitmentPostIdList[i],
-            title: recruitment['title'],
-            organizerPhotoURL: recruitment['organizer']['photoURL'],
-            organizerGroup: recruitment['organizer']['organizerGroup'],
-            targetGroups: List<String>.from(recruitment['target']
-                    ['targetGroups']
-                .map((group) => group.toString())
-                .toList()),
-            targetAgeMin: recruitment['target']['ageMin'].toString(),
-            targetAgeMax: recruitment['target']['ageMax'].toString(),
-            targetHasPhoto: recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし',
-            destinations: List<String>.from(recruitment['where']['destination']
-                .map((destination) => destination.toString())
-                .toList()),
-            organizerName: recruitment['organizer']['organizerName'],
-            organizerAge: calculateAge(
-                    recruitment['organizer']['organizerBirthday'].toDate())
-                .toString(),
-            startDate: DateFormat('yyyy/MM/dd')
-                .format(recruitment['when']['startDate'].toDate())
-                .toString(),
-            endDate: DateFormat('yyyy/MM/dd')
-                .format(recruitment['when']['endDate'].toDate())
-                .toString(),
-            days: List<String>.from(recruitment['when']['dayOfWeek']
-                .map((day) => day.toString())
-                .toList()),
-          );
 
-          // 'post' をリストに追加
-          recruitmentPosts.add(post);
-        } else {
-          print("募集情報が見つかりません");
-        }
-      });
-    }
-    // setState() を呼び出して UI 更新
+  Future<void> fetchRecruitmentLists(List<String> recruitmentPostIdList) async {
+    recruitmentPosts = await getRecruitmentList(recruitmentPostIdList);
     setState(() {
       recruitmentPosts = recruitmentPosts;
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -126,40 +78,6 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
       }).toList(),
     );
   }
-}
-
-class RecruitmentPost {
-  String postId;
-  String title;
-  String organizerPhotoURL;
-  String organizerGroup;
-  List<String> targetGroups;
-  String targetAgeMin;
-  String targetAgeMax;
-  String targetHasPhoto;
-  List<String> destinations;
-  String organizerName;
-  String organizerAge;
-  String startDate;
-  String endDate;
-  List<String> days;
-
-  RecruitmentPost({
-    required this.postId,
-    required this.title,
-    required this.organizerPhotoURL,
-    required this.organizerGroup,
-    required this.targetGroups,
-    required this.targetAgeMin,
-    required this.targetAgeMax,
-    required this.targetHasPhoto,
-    required this.destinations,
-    required this.organizerName,
-    required this.organizerAge,
-    required this.startDate,
-    required this.endDate,
-    required this.days,
-  });
 }
 
 

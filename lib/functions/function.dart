@@ -13,7 +13,53 @@ int calculateAge(DateTime birth) {
   return age;
 }
 
-
+Future<List<RecruitmentPost>> getRecruitmentList(
+    List<String> recruitmentPostIdList) async {
+  List<RecruitmentPost> recruitmentPosts = [];
+  for (int i = 0; i < recruitmentPostIdList.length; i++) {
+    DocumentReference recruitmentRef = FirebaseFirestore.instance
+        .collection('posts')
+        .doc(recruitmentPostIdList[i]);
+    await recruitmentRef.get().then((recruitment) {
+      if (recruitment.exists) {
+        // 'post' をここで初期化
+        RecruitmentPost post = RecruitmentPost(
+          postId: recruitmentPostIdList[i],
+          title: recruitment['title'],
+          organizerPhotoURL: recruitment['organizer']['photoURL'],
+          organizerGroup: recruitment['organizer']['organizerGroup'],
+          targetGroups: List<String>.from(recruitment['target']['targetGroups']
+              .map((group) => group.toString())
+              .toList()),
+          targetAgeMin: recruitment['target']['ageMin'].toString(),
+          targetAgeMax: recruitment['target']['ageMax'].toString(),
+          targetHasPhoto: recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし',
+          destinations: List<String>.from(recruitment['where']['destination']
+              .map((destination) => destination.toString())
+              .toList()),
+          organizerName: recruitment['organizer']['organizerName'],
+          organizerAge: calculateAge(
+                  recruitment['organizer']['organizerBirthday'].toDate())
+              .toString(),
+          startDate: DateFormat('yyyy/MM/dd')
+              .format(recruitment['when']['startDate'].toDate())
+              .toString(),
+          endDate: DateFormat('yyyy/MM/dd')
+              .format(recruitment['when']['endDate'].toDate())
+              .toString(),
+          days: List<String>.from(recruitment['when']['dayOfWeek']
+              .map((day) => day.toString())
+              .toList()),
+        );
+        // 'post' をリストに追加
+        recruitmentPosts.add(post);
+      } else {
+        print("募集情報が見つかりません");
+      }
+    });
+  }
+  return recruitmentPosts;
+}
 
 class RecruitmentPost {
   String postId;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter/services.dart'; // FilteringTextInputFormatter をインポート
 void main() {
   runApp(TravelSearch());
 }
@@ -345,6 +345,92 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
+    void _showAgeModal(BuildContext context, bool isHost) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String ageMin = isHost
+            ? selectedAgeHost.split('〜')[0] == 'こだわらない'
+                ? ''
+                : selectedAgeHost.split('〜')[0]
+            : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+                ? ''
+                : selectedAgeRecruit.split('〜')[0];
+        String ageMax = isHost
+            ? selectedAgeHost.split('〜')[1] == 'こだわらない'
+                ? ''
+                : selectedAgeHost.split('〜')[1]
+            : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+                ? ''
+                : selectedAgeRecruit.split('〜')[1];
+
+        return AlertDialog(
+          title: Text('年齢設定'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                decoration: InputDecoration(labelText: '最低年齢'),
+                onChanged: (value) {
+                  ageMin = value;
+                },
+                controller: TextEditingController(text: ageMin),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 追加
+              ),
+              TextField(
+                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                decoration: InputDecoration(labelText: '最高年齢'),
+                onChanged: (value) {
+                  ageMax = value;
+                },
+                controller: TextEditingController(text: ageMax),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 追加
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('キャンセル'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                setState(() {
+                  if (isHost) {
+                    selectedAgeHost =
+                        ageMin.isEmpty && ageMax.isEmpty
+                            ? 'こだわらない〜こだわらない'
+                            : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                  } else {
+                    selectedAgeRecruit =
+                        ageMin.isEmpty && ageMax.isEmpty
+                            ? 'こだわらない〜こだわらない'
+                            : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                  }
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
   void _showMeetingRegionModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -603,54 +689,12 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  void _showAgeModal(BuildContext context, bool isHost) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.5,
-          child: Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  '年齢を選択',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: 100 - 18 + 1,
-                  itemBuilder: (BuildContext context, int index) {
-                    final age = 18 + index;
-                    return ListTile(
-                      title: Text('$age歳'),
-                      onTap: () {
-                        setState(() {
-                          if (isHost) {
-                            selectedAgeHost = '$age歳〜$age歳';
-                          } else {
-                            selectedAgeRecruit = '$age歳〜$age歳';
-                          }
-                        });
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
+  
   Future<void> _selectDate(BuildContext context, String label) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2101),
        builder: (context, child) {
       return Theme(
@@ -668,7 +712,7 @@ class _TravelSearchState extends State<TravelSearch> {
       );
     },
     );
-    if (picked != null) {
+   if (picked != null) {
       setState(() {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
         if (label == 'いつから') {

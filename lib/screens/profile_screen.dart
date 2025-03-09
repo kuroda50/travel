@@ -5,6 +5,7 @@ import 'package:travel/component/header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:travel/functions/function.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -33,18 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await checkUserId(widget.userId);
     await getUserProfile(widget.userId);
     await getRecruitmentList();
-  }
-
-  int calculateAge(DateTime birth) {
-    DateTime today = DateTime.now();
-    int age = today.year - birth.year;
-
-    // 誕生日がまだ来ていなければ1歳引く
-    if (today.month < birth.month ||
-        (today.month == birth.month && today.day < birth.day)) {
-      age--;
-    }
-    return age;
   }
 
   Future<void> checkUserId(String userId) {
@@ -126,19 +115,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 .map((day) => day.toString())
                 .toList()),
           );
-
           // 'post' をリストに追加
           recruitmentPosts.add(post);
-
-          // setState() を呼び出して UI 更新
-          setState(() {
-            recruitmentPosts = recruitmentPosts;
-          });
         } else {
           print("募集情報が見つかりません");
         }
       });
     }
+    // setState() を呼び出して UI 更新
+    setState(() {
+      recruitmentPosts = recruitmentPosts;
+    });
   }
 
   @override
@@ -316,38 +303,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }).toList(),
     );
   }
-}
-
-class RecruitmentPost {
-  String postId;
-  String title;
-  String organizerPhotoURL;
-  String organizerGroup;
-  List<String> targetGroups;
-  String targetAgeMin;
-  String targetAgeMax;
-  String targetHasPhoto;
-  List<String> destinations;
-  String organizerName;
-  String organizerAge;
-  String startDate;
-  String endDate;
-  List<String> days;
-
-  RecruitmentPost({
-    required this.postId,
-    required this.title,
-    required this.organizerPhotoURL,
-    required this.organizerGroup,
-    required this.targetGroups,
-    required this.targetAgeMin,
-    required this.targetAgeMax,
-    required this.targetHasPhoto,
-    required this.destinations,
-    required this.organizerName,
-    required this.organizerAge,
-    required this.startDate,
-    required this.endDate,
-    required this.days,
-  });
 }

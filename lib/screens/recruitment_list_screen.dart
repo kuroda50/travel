@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:travel/component/header.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'profile_screen.dart';
+import 'package:travel/functions/function.dart';
 
 class RecruitmentListScreen extends StatefulWidget {
   const RecruitmentListScreen({super.key});
@@ -13,7 +13,9 @@ class RecruitmentListScreen extends StatefulWidget {
 }
 
 class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
-  List<RecruitmentPost> recruitmentPostIdList = [];
+  List<String> recruitmentPostIdList = [];
+  List<RecruitmentPost> recruitmentPosts = [];
+
 
   @override
   void initState() {
@@ -28,6 +30,7 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
 
   Future<void> _getRecruitmentIds() async {}
   Future<void> _buildRecruitments() async {}
+  
   Future<void> getRecruitmentList() async {
     print("今までの募集ID：" + recruitmentPostIdList[0]);
     for (int i = 0; i < recruitmentPostIdList.length; i++) {
@@ -69,29 +72,15 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
 
           // 'post' をリストに追加
           recruitmentPosts.add(post);
-
-          // setState() を呼び出して UI 更新
-          setState(() {
-            recruitmentPosts = recruitmentPosts;
-          });
         } else {
           print("募集情報が見つかりません");
         }
       });
     }
-  }
-
-
-  int calculateAge(DateTime birth) {
-    DateTime today = DateTime.now();
-    int age = today.year - birth.year;
-
-    // 誕生日がまだ来ていなければ1歳引く
-    if (today.month < birth.month ||
-        (today.month == birth.month && today.day < birth.day)) {
-      age--;
-    }
-    return age;
+    // setState() を呼び出して UI 更新
+    setState(() {
+      recruitmentPosts = recruitmentPosts;
+    });
   }
 
   @override

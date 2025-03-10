@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'message_room_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MessageScreen extends StatelessWidget {
   const MessageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final String currentUserId = 'userId111'; // 自分のユーザーID
+    // final String currentUserId = 'userId111'; // 自分のユーザーID
+    final String currentUserId =  FirebaseAuth.instance.currentUser!.uid;
     final CollectionReference usersCollection =
-    FirebaseFirestore.instance.collection('users');
+        FirebaseFirestore.instance.collection('users');
 
     return Scaffold(
       appBar: AppBar(
@@ -51,9 +53,9 @@ class MessageScreen extends StatelessWidget {
                         child: Text('エラーが発生しました: ${chatRoomSnapshot.error}'));
                   }
                   final chatRoomData = chatRoomSnapshot.data!;
-                  final String lastMessage = chatRoomData['lastMessage'];
+                  final List<String> lastMessage = List<String>.from(chatRoomData['latestMessage']);
                   final Timestamp lastMessageTime =
-                  chatRoomData['lastMessageTime'];
+                      chatRoomData['lastMessageTime'];
                   final String partnerId = chatRoomData['partnerId'];
 
                   return FutureBuilder<DocumentSnapshot>(
@@ -65,7 +67,7 @@ class MessageScreen extends StatelessWidget {
                       if (partnerSnapshot.hasError) {
                         return Center(
                             child:
-                            Text('エラーが発生しました: ${partnerSnapshot.error}'));
+                                Text('エラーが発生しました: ${partnerSnapshot.error}'));
                       }
                       final partnerData = partnerSnapshot.data!;
                       final String partnerName = partnerData['name'];

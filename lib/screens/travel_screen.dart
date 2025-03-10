@@ -99,8 +99,7 @@ class _TravelScreenState extends State<TravelScreen> {
                     ),
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.only(top: 16.0, left: 0, right: 0),
+                    padding: const EdgeInsets.only(top: 16.0, left: 0, right: 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -112,6 +111,8 @@ class _TravelScreenState extends State<TravelScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            backgroundColor: Colors.green, // 背景色を緑に設定
+                            foregroundColor: Colors.white, // テキスト色を白に設定
                           ),
                         ),
                         ElevatedButton(
@@ -122,6 +123,8 @@ class _TravelScreenState extends State<TravelScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            backgroundColor: Colors.green, // 背景色を緑に設定
+                            foregroundColor: Colors.white, // テキスト色を白に設定
                           ),
                         ),
                       ],
@@ -199,6 +202,10 @@ class _TravelScreenState extends State<TravelScreen> {
                       // 人を募集する処理
                     },
                     child: Text('人を募集する'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green, // 背景色を緑に設定
+                      foregroundColor: Colors.white, // テキスト色を白に設定
+                    ),
                   ),
                 ),
               ),

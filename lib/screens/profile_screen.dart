@@ -5,6 +5,7 @@ import 'package:travel/component/header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
 
 class ProfileScreen extends StatefulWidget {

@@ -1,8 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter をインポート
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/colors/color.dart';
+import 'package:go_router/go_router.dart';
+import 'package:travel/component/header.dart';
+import 'package:travel/functions/function.dart';
+import 'package:travel/screens/travel_screen.dart';
+
 void main() {
-  runApp(TravelSearch());
+  runApp(TravelApp());
+}
+
+class TravelApp extends StatelessWidget {
+  TravelApp({Key? key}) : super(key: key); // keyパラメータを追加
+
+  final GoRouter _router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => TravelSearch(),
+      ),
+      GoRoute(
+        path: '/travel',
+        builder: (context, state) => TravelScreen(),
+      ),
+    ],
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: _router,
+    );
+  }
 }
 
 class TravelSearch extends StatefulWidget {
@@ -35,10 +67,35 @@ class _TravelSearchState extends State<TravelSearch> {
 
   int filteredPeopleCount = 1571316;
 
+  List<String> latestPostIds = [];
+  List<RecruitmentPost> latestPosts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLatestPosts();
+  }
+
+  Future<void> fetchLatestPosts() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .orderBy('createdAt', descending: true)
+        .limit(4)
+        .get();
+
+    latestPostIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    latestPosts = await getRecruitmentList(latestPostIds);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          title: Text('検索', textAlign: TextAlign.center),
+          centerTitle: true,
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -47,11 +104,23 @@ class _TravelSearchState extends State<TravelSearch> {
                   padding: const EdgeInsets.all(16.0),
                   children: <Widget>[
                     SizedBox(height: 16),
-                    Text(
-                      '検索条件',
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 145), // 左側のパディングを調整
+                          child: Text(
+                            '検索条件',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () {
+                            context.go('/travel'); // '/travel' へ遷移
+                          },
+                        ),
+                      ],
                     ),
                     SizedBox(height: 16),
                     _buildSectionTitle('どこへ'),
@@ -65,7 +134,8 @@ class _TravelSearchState extends State<TravelSearch> {
                     _buildFilterItem(context, 'いつまで', selectedEndDate,
                         isDate: true),
                     _buildSectionTitle('主催者'),
-                    _buildFilterItem(context, '性別、属性', selectedGenderAttributeHost,
+                    _buildFilterItem(
+                        context, '性別、属性', selectedGenderAttributeHost,
                         isGenderAttribute: true, isHost: true),
                     _buildFilterItem(context, '年齢', selectedAgeHost,
                         isAge: true, isHost: true),
@@ -141,14 +211,22 @@ class _TravelSearchState extends State<TravelSearch> {
                       children: <Widget>[
                         ElevatedButton(
                           onPressed: () {},
-                          child: Text('リセット'),
+                          child: Text('リセット',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green, // ボタンの色を緑に設定
+                          ),
                         ),
                         Row(
                           children: [
                             Icon(Icons.search),
                             ElevatedButton(
                               onPressed: () {},
-                              child: Text('この条件で検索'),
+                              child: Text('この条件で検索',
+                                  style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green, // ボタンの色を緑に設定
+                              ),
                             ),
                           ],
                         ),
@@ -241,6 +319,47 @@ class _TravelSearchState extends State<TravelSearch> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLatestPostsSection() {
+    //3の時出た
+    return Column(
+      children: latestPosts.map((post) {
+        return Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 2,
+          margin: EdgeInsets.symmetric(vertical: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.grey[300],
+              backgroundImage: (post.organizerPhotoURL != null &&
+                      post.organizerPhotoURL.isNotEmpty)
+                  ? NetworkImage(post.organizerPhotoURL)
+                  : null,
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(post.title ?? 'タイトルなし'),
+                Text('${post.organizerGroup ?? 'グループ不明'} > '
+                    '${post.targetGroups ?? '対象不明'} '
+                    '${post.targetAgeMin ?? '年齢不明'}歳~${post.targetAgeMax ?? '年齢不明'}歳 '
+                    '${post.targetHasPhoto ?? '不明'}'),
+                Text(post.destinations?.join('、') ?? '目的地なし'),
+                Text(
+                    '${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳'),
+                Text('${post.startDate ?? '開始日不明'}~${post.endDate ?? '終了日不明'} '
+                    '${post.days?.join('') ?? '日程不明'}')
+              ],
+            ),
+            onTap: () {
+              context.push('/recruitment', extra: post.postId);
+            },
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -345,7 +464,7 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-    void _showAgeModal(BuildContext context, bool isHost) {
+  void _showAgeModal(BuildContext context, bool isHost) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -401,15 +520,13 @@ class _TravelSearchState extends State<TravelSearch> {
               onPressed: () {
                 setState(() {
                   if (isHost) {
-                    selectedAgeHost =
-                        ageMin.isEmpty && ageMax.isEmpty
-                            ? 'こだわらない〜こだわらない'
-                            : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                    selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
+                        ? 'こだわらない〜こだわらない'
+                        : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
                   } else {
-                    selectedAgeRecruit =
-                        ageMin.isEmpty && ageMax.isEmpty
-                            ? 'こだわらない〜こだわらない'
-                            : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                    selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
+                        ? 'こだわらない〜こだわらない'
+                        : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
                   }
                 });
                 Navigator.of(context).pop();
@@ -689,30 +806,29 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  
   Future<void> _selectDate(BuildContext context, String label) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
-       builder: (context, child) {
-      return Theme(
-        data: ThemeData.light().copyWith(
-          primaryColor: Colors.blueAccent, // アクセントカラー
-          colorScheme: ColorScheme.light(primary: Colors.blueAccent),
-          dialogBackgroundColor: Colors.white,
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blueAccent, // ボタンの色
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Colors.blueAccent, // アクセントカラー
+            colorScheme: ColorScheme.light(primary: Colors.blueAccent),
+            dialogBackgroundColor: Colors.white,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blueAccent, // ボタンの色
+              ),
             ),
           ),
-        ),
-        child: child!,
-      );
-    },
+          child: child!,
+        );
+      },
     );
-   if (picked != null) {
+    if (picked != null) {
       setState(() {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
         if (label == 'いつから') {
@@ -737,54 +853,259 @@ Widget _buildSectionTitle(String title) {
 
 const Map<String, List<String>> destinationsByArea = {
   "ヨーロッパ": [
-    "アイスランド", "アイルランド", "アゼルバイジャン", "アルバニア", "アルメニア", "アンドラ", "イギリス", "イタリア", "ウクライナ",
-    "エストニア", "オーストリア", "オランダ", "ギリシャ", "クロアチア", "コソボ", "サンマリノ", "ジョージア", "スイス",
-    "スウェーデン", "スペイン", "スロバキア", "スロベニア", "セルビア", "タジキスタン", "チェコ", "デンマーク",
-    "ドイツ", "ノルウェー", "ハンガリー", "フィンランド", "フランス", "ブルガリア", "ベラルーシ", "ベルギー",
-    "ボスニア・ヘルツェゴビナ", "ポルトガル", "ポーランド", "マケドニア", "マルタ", "モナコ", "モルドバ",
-    "モンテネグロ", "ラトビア", "リトアニア", "リヒテンシュタイン", "ルクセンブルク", "ルーマニア", "ロシア"
+    "アイスランド",
+    "アイルランド",
+    "アゼルバイジャン",
+    "アルバニア",
+    "アルメニア",
+    "アンドラ",
+    "イギリス",
+    "イタリア",
+    "ウクライナ",
+    "エストニア",
+    "オーストリア",
+    "オランダ",
+    "ギリシャ",
+    "クロアチア",
+    "コソボ",
+    "サンマリノ",
+    "ジョージア",
+    "スイス",
+    "スウェーデン",
+    "スペイン",
+    "スロバキア",
+    "スロベニア",
+    "セルビア",
+    "タジキスタン",
+    "チェコ",
+    "デンマーク",
+    "ドイツ",
+    "ノルウェー",
+    "ハンガリー",
+    "フィンランド",
+    "フランス",
+    "ブルガリア",
+    "ベラルーシ",
+    "ベルギー",
+    "ボスニア・ヘルツェゴビナ",
+    "ポルトガル",
+    "ポーランド",
+    "マケドニア",
+    "マルタ",
+    "モナコ",
+    "モルドバ",
+    "モンテネグロ",
+    "ラトビア",
+    "リトアニア",
+    "リヒテンシュタイン",
+    "ルクセンブルク",
+    "ルーマニア",
+    "ロシア"
   ],
   "北中米": [
-    "アメリカ", "カナダ", "メキシコ", "バハマ", "バルバドス", "キューバ", "ドミニカ共和国", "ハイチ", "ジャマイカ",
-    "セントクリストファー・ネイビス", "セントルシア", "セントビンセント・グレナディーン", "トリニダード・トバゴ",
-    "アンティグア・バーブーダ", "ベリーズ", "コスタリカ", "エルサルバドル", "グアテマラ",
-    "ホンジュラス", "ニカラグア", "パナマ"
+    "アメリカ",
+    "カナダ",
+    "メキシコ",
+    "バハマ",
+    "バルバドス",
+    "キューバ",
+    "ドミニカ共和国",
+    "ハイチ",
+    "ジャマイカ",
+    "セントクリストファー・ネイビス",
+    "セントルシア",
+    "セントビンセント・グレナディーン",
+    "トリニダード・トバゴ",
+    "アンティグア・バーブーダ",
+    "ベリーズ",
+    "コスタリカ",
+    "エルサルバドル",
+    "グアテマラ",
+    "ホンジュラス",
+    "ニカラグア",
+    "パナマ"
   ],
   "南米": [
-    "アルゼンチン", "ボリビア", "ブラジル", "チリ", "コロンビア",
-    "エクアドル", "ガイアナ", "パラグアイ", "ペルー", "スリナム", "ウルグアイ", "ベネズエラ"
+    "アルゼンチン",
+    "ボリビア",
+    "ブラジル",
+    "チリ",
+    "コロンビア",
+    "エクアドル",
+    "ガイアナ",
+    "パラグアイ",
+    "ペルー",
+    "スリナム",
+    "ウルグアイ",
+    "ベネズエラ"
   ],
   "オセアニア・ハワイ": [
-    "オーストラリア", "ニュージーランド", "フィジー", "パプアニューギニア", "サモア",
-    "ソロモン諸島", "トンガ", "バヌアツ", "ハワイ"
+    "オーストラリア",
+    "ニュージーランド",
+    "フィジー",
+    "パプアニューギニア",
+    "サモア",
+    "ソロモン諸島",
+    "トンガ",
+    "バヌアツ",
+    "ハワイ"
   ],
   "アジア": [
-    "アフガニスタン", "バングラデシュ", "ブータン", "ブルネイ", "カンボジア", "中国", "インド",
-    "インドネシア", "イラン", "イラク", "イスラエル",  "ヨルダン", "カザフスタン",
-    "韓国", "クウェート", "キルギス", "ラオス", "レバノン", "マレーシア", "モルディブ",
-    "モンゴル", "ミャンマー", "ネパール", "オマーン", "パキスタン", "フィリピン", "カタール",
-    "サウジアラビア", "シンガポール", "スリランカ", "シリア", "タジキスタン", "タイ",
-    "トルクメニスタン", "アラブ首長国連邦", "ウズベキスタン", "ベトナム", "イエメン"
+    "アフガニスタン",
+    "バングラデシュ",
+    "ブータン",
+    "ブルネイ",
+    "カンボジア",
+    "中国",
+    "インド",
+    "インドネシア",
+    "イラン",
+    "イラク",
+    "イスラエル",
+    "ヨルダン",
+    "カザフスタン",
+    "韓国",
+    "クウェート",
+    "キルギス",
+    "ラオス",
+    "レバノン",
+    "マレーシア",
+    "モルディブ",
+    "モンゴル",
+    "ミャンマー",
+    "ネパール",
+    "オマーン",
+    "パキスタン",
+    "フィリピン",
+    "カタール",
+    "サウジアラビア",
+    "シンガポール",
+    "スリランカ",
+    "シリア",
+    "タジキスタン",
+    "タイ",
+    "トルクメニスタン",
+    "アラブ首長国連邦",
+    "ウズベキスタン",
+    "ベトナム",
+    "イエメン"
   ],
   "日本": [
-    "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
-    "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
-    "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県",
-    "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
-    "鳥取県", "島根県", "岡山県", "広島県", "山口県",
-    "徳島県", "香川県", "愛媛県", "高知県",
-    "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"
+    "北海道",
+    "青森県",
+    "岩手県",
+    "宮城県",
+    "秋田県",
+    "山形県",
+    "福島県",
+    "茨城県",
+    "栃木県",
+    "群馬県",
+    "埼玉県",
+    "千葉県",
+    "東京都",
+    "神奈川県",
+    "新潟県",
+    "富山県",
+    "石川県",
+    "福井県",
+    "山梨県",
+    "長野県",
+    "岐阜県",
+    "静岡県",
+    "愛知県",
+    "三重県",
+    "滋賀県",
+    "京都府",
+    "大阪府",
+    "兵庫県",
+    "奈良県",
+    "和歌山県",
+    "鳥取県",
+    "島根県",
+    "岡山県",
+    "広島県",
+    "山口県",
+    "徳島県",
+    "香川県",
+    "愛媛県",
+    "高知県",
+    "福岡県",
+    "佐賀県",
+    "長崎県",
+    "熊本県",
+    "大分県",
+    "宮崎県",
+    "鹿児島県",
+    "沖縄県"
   ],
   "アフリカ・中東": [
-    "アルジェリア", "アンゴラ", "ベナン", "ボツワナ", "ブルキナファソ", "ブルンジ", "カメルーン",
-    "カーボベルデ", "中央アフリカ共和国", "チャド", "コモロ", "コンゴ共和国", "コンゴ民主共和国",
-    "ジブチ", "エジプト", "赤道ギニア", "エリトリア", "エスワティニ", "エチオピア", "ガボン",
-    "ガンビア", "ガーナ", "ギニア", "ギニアビサウ", "コートジボワール", "ケニア", "レソト",
-    "リベリア", "リビア", "マダガスカル", "マラウイ", "マリ", "モーリタニア", "モーリシャス",
-    "モロッコ", "モザンビーク", "ナミビア", "ニジェール", "ナイジェリア", "ルワンダ",
-    "サントメ・プリンシペ", "セネガル", "セーシェル", "シエラレオネ", "ソマリア", "南アフリカ",
-    "南スーダン", "スーダン", "タンザニア", "トーゴ", "チュニジア", "ウガンダ", "ザンビア", "ジンバブエ",
-    "アラブ首長国連邦", "サウジアラビア", "イエメン", "オマーン", "カタール", "バーレーン",
-    "クウェート", "イスラエル", "ヨルダン", "レバノン", "シリア", "イラク", "イラン"
+    "アルジェリア",
+    "アンゴラ",
+    "ベナン",
+    "ボツワナ",
+    "ブルキナファソ",
+    "ブルンジ",
+    "カメルーン",
+    "カーボベルデ",
+    "中央アフリカ共和国",
+    "チャド",
+    "コモロ",
+    "コンゴ共和国",
+    "コンゴ民主共和国",
+    "ジブチ",
+    "エジプト",
+    "赤道ギニア",
+    "エリトリア",
+    "エスワティニ",
+    "エチオピア",
+    "ガボン",
+    "ガンビア",
+    "ガーナ",
+    "ギニア",
+    "ギニアビサウ",
+    "コートジボワール",
+    "ケニア",
+    "レソト",
+    "リベリア",
+    "リビア",
+    "マダガスカル",
+    "マラウイ",
+    "マリ",
+    "モーリタニア",
+    "モーリシャス",
+    "モロッコ",
+    "モザンビーク",
+    "ナミビア",
+    "ニジェール",
+    "ナイジェリア",
+    "ルワンダ",
+    "サントメ・プリンシペ",
+    "セネガル",
+    "セーシェル",
+    "シエラレオネ",
+    "ソマリア",
+    "南アフリカ",
+    "南スーダン",
+    "スーダン",
+    "タンザニア",
+    "トーゴ",
+    "チュニジア",
+    "ウガンダ",
+    "ザンビア",
+    "ジンバブエ",
+    "アラブ首長国連邦",
+    "サウジアラビア",
+    "イエメン",
+    "オマーン",
+    "カタール",
+    "バーレーン",
+    "クウェート",
+    "イスラエル",
+    "ヨルダン",
+    "レバノン",
+    "シリア",
+    "イラク",
+    "イラン"
   ]
 };

@@ -19,6 +19,7 @@ class MessageRoomScreen extends StatefulWidget {
 class _MessageRoomScreenState extends State<MessageRoomScreen> {
   final _textEditingController = TextEditingController();
   late final CollectionReference messagesCollection;
+  late final CollectionReference chatRoomsCollection;
   late final CollectionReference usersCollection;
 
   @override
@@ -26,6 +27,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
     super.initState();
     messagesCollection = FirebaseFirestore.instance
         .collection('chatRooms/${widget.roomId}/messages');
+    chatRoomsCollection = FirebaseFirestore.instance.collection('chatRooms');
     usersCollection = FirebaseFirestore.instance.collection('users');
   }
 
@@ -47,31 +49,69 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                   return Center(child: CircularProgressIndicator());
                 }
                 final messages = snapshot.data!.docs;
+                String? lastDate;
                 return ListView.builder(
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final messageData = messages[index];
                     final messageText = messageData['text'];
                     final senderId = messageData['sender'];
+                    final Timestamp? timeStamp =
+                        messageData['timeStamp'] as Timestamp?;
                     final isSentByMe = senderId == widget.currentUserId;
-                    if (isSentByMe) {
-                      return _SentMessageWidget(message: messageText);
-                    } else {
-                      return FutureBuilder<DocumentSnapshot>(
-                        future: usersCollection.doc(senderId).get(),
-                        builder: (context, userSnapshot) {
-                          if (!userSnapshot.hasData) {
-                            return Center(child: CircularProgressIndicator());
-                          }
-                          final userData = userSnapshot.data!;
-                          final photoURL = userData['photoURL'];
-                          return _ReceivedMessageWidget(
-                            message: messageText,
-                            photoURL: photoURL,
-                          );
-                        },
-                      );
+                    final currentDate = timeStamp != null
+                        ? DateFormat("yyyy/MM/dd").format(timeStamp.toDate())
+                        : '';
+                    final showDate = lastDate != currentDate;
+                    lastDate = currentDate;
+
+                    // メッセージを見たユーザーを更新
+                    if (!isSentByMe) {
+                      messagesCollection.doc(messageData.id).update({
+                        'readBy': FieldValue.arrayUnion([widget.currentUserId])
+                      });
                     }
+
+                    return Column(
+                      children: [
+                        if (showDate)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              currentDate,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey),
+                            ),
+                          ),
+                        if (isSentByMe)
+                          _SentMessageWidget(
+                            message: messageText,
+                            timeStamp: timeStamp ?? Timestamp.now(),
+                          )
+                        else
+                          FutureBuilder<DocumentSnapshot>(
+                            future: usersCollection.doc(senderId).get(),
+                            builder: (context, userSnapshot) {
+                              if (!userSnapshot.hasData) {
+                                return Center(
+                                    child: CircularProgressIndicator());
+                              }
+                              final userData = userSnapshot.data!;
+                              final userDataMap =
+                                  userData.data() as Map<String, dynamic>?;
+                              final photoURL = userDataMap != null &&
+                                      userDataMap.containsKey('photoURL')
+                                  ? userDataMap['photoURL']
+                                  : null;
+                              return _ReceivedMessageWidget(
+                                message: messageText,
+                                photoURL: photoURL,
+                                timeStamp: timeStamp ?? Timestamp.now(),
+                              );
+                            },
+                          ),
+                      ],
+                    );
                   },
                 );
               },
@@ -120,11 +160,15 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                       if (msg.isEmpty) {
                         return;
                       }
-                      await messagesCollection.add({
+                      final newMessage = {
                         'text': msg,
                         'sender': widget.currentUserId,
                         'timeStamp': FieldValue.serverTimestamp(),
-                        'isRead': false,
+                        'readBy': [],
+                      };
+                      await messagesCollection.add(newMessage);
+                      await chatRoomsCollection.doc(widget.roomId).update({
+                        'latestMessage': newMessage,
                       });
                       _textEditingController.clear();
                     },
@@ -141,11 +185,16 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
 
 class _ReceivedMessageWidget extends StatelessWidget {
   final String message;
-  final String photoURL;
+  final String? photoURL;
+  final Timestamp timeStamp;
 
-  _ReceivedMessageWidget({required this.message, required this.photoURL});
+  _ReceivedMessageWidget({
+    required this.message,
+    this.photoURL,
+    required this.timeStamp,
+  });
 
-  final _formatter = DateFormat("HH:mm");
+  final _timeFormatter = DateFormat("HH:mm");
 
   @override
   Widget build(BuildContext context) {
@@ -155,9 +204,19 @@ class _ReceivedMessageWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage(photoURL),
-          ),
+          if (photoURL != null)
+            CircleAvatar(
+              backgroundImage: NetworkImage(photoURL!),
+            )
+          else
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                shape: BoxShape.circle,
+              ),
+            ),
           const SizedBox(width: 5),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +240,7 @@ class _ReceivedMessageWidget extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                _formatter.format(DateTime.now()),
+                _timeFormatter.format(timeStamp.toDate()),
                 style: const TextStyle(fontSize: 10),
               ),
             ],
@@ -194,10 +253,14 @@ class _ReceivedMessageWidget extends StatelessWidget {
 
 class _SentMessageWidget extends StatelessWidget {
   final String message;
+  final Timestamp timeStamp;
 
-  _SentMessageWidget({required this.message});
+  _SentMessageWidget({
+    required this.message,
+    required this.timeStamp,
+  });
 
-  final _formatter = DateFormat("HH:mm");
+  final _timeFormatter = DateFormat("HH:mm");
 
   @override
   Widget build(BuildContext context) {
@@ -207,15 +270,9 @@ class _SentMessageWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            _formatter.format(DateTime.now()),
-            style: const TextStyle(fontSize: 10),
-          ),
-          const SizedBox(width: 5),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const SizedBox(height: 5),
               Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 5,
@@ -231,6 +288,11 @@ class _SentMessageWidget extends StatelessWidget {
                 child: Text(
                   message,
                 ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                _timeFormatter.format(timeStamp.toDate()),
+                style: const TextStyle(fontSize: 10),
               ),
             ],
           ),

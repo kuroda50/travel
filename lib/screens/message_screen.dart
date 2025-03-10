@@ -8,8 +8,7 @@ class MessageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final String currentUserId = 'userId111'; // 自分のユーザーID
-    final String currentUserId =  FirebaseAuth.instance.currentUser!.uid;
+    final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
     final CollectionReference usersCollection =
         FirebaseFirestore.instance.collection('users');
 
@@ -53,13 +52,17 @@ class MessageScreen extends StatelessWidget {
                         child: Text('エラーが発生しました: ${chatRoomSnapshot.error}'));
                   }
                   final chatRoomData = chatRoomSnapshot.data!;
-                  final String lastMessage = chatRoomData['latestMessage'];
+                  final Map<String, dynamic> latestMessage =
+                      Map<String, dynamic>.from(chatRoomData['latestMessage']);
+                  final String lastMessageText = latestMessage['text'];
                   final Timestamp lastMessageTime =
-                      chatRoomData['lastMessageTime'];
-                  final String partnerId = chatRoomData['partnerId'];
+                      latestMessage.containsKey('timeStamp')
+                          ? (latestMessage['timeStamp'] as Timestamp)
+                          : Timestamp.now();
+                  final String senderId = latestMessage['sender'];
 
                   return FutureBuilder<DocumentSnapshot>(
-                    future: usersCollection.doc(partnerId).get(),
+                    future: usersCollection.doc(senderId).get(),
                     builder: (context, partnerSnapshot) {
                       if (!partnerSnapshot.hasData) {
                         return Center(child: CircularProgressIndicator());
@@ -70,15 +73,28 @@ class MessageScreen extends StatelessWidget {
                                 Text('エラーが発生しました: ${partnerSnapshot.error}'));
                       }
                       final partnerData = partnerSnapshot.data!;
-                      final String partnerName = partnerData['name'];
-                      final String partnerImageUrl = partnerData['imageUrl'];
+                      final partnerDataMap =
+                          partnerData.data() as Map<String, dynamic>?;
+                      final String partnerName = partnerDataMap != null &&
+                              partnerDataMap.containsKey('name')
+                          ? partnerDataMap['name']
+                          : 'Unknown';
+                      final String partnerImageUrl = partnerDataMap != null &&
+                              partnerDataMap.containsKey('imageUrl')
+                          ? partnerDataMap['imageUrl']
+                          : '';
 
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundImage: NetworkImage(partnerImageUrl),
+                          backgroundImage: partnerImageUrl.isNotEmpty
+                              ? NetworkImage(partnerImageUrl)
+                              : null,
+                          child: partnerImageUrl.isEmpty
+                              ? Icon(Icons.person)
+                              : null,
                         ),
                         title: Text(partnerName),
-                        subtitle: Text(lastMessage),
+                        subtitle: Text(lastMessageText),
                         trailing: Text(
                           lastMessageTime.toDate().toString(),
                           style: TextStyle(fontSize: 12),

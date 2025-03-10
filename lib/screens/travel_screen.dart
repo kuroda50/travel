@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'travel_search.dart'; // ここに追加
-
-void main() {
-  runApp(TravelScreen());
-}
+import 'package:go_router/go_router.dart';
 
 class TravelScreen extends StatefulWidget {
   const TravelScreen({Key? key}) : super(key: key);
@@ -99,7 +95,8 @@ class _TravelScreenState extends State<TravelScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 16.0, left: 0, right: 0),
+                    padding:
+                        const EdgeInsets.only(top: 16.0, left: 0, right: 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -136,10 +133,7 @@ class _TravelScreenState extends State<TravelScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TravelSearch()),
-                    );
+                    context.push('/travel_search');
                   },
                   child: Container(
                     padding:

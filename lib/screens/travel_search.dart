@@ -1,45 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter をインポート
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:travel/colors/color.dart';
 import 'package:go_router/go_router.dart';
-import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
-import 'package:travel/screens/travel_screen.dart';
-
-void main() {
-  runApp(TravelApp());
-}
-
-class TravelApp extends StatelessWidget {
-  TravelApp({Key? key}) : super(key: key); // keyパラメータを追加
-
-  final GoRouter _router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => TravelSearch(),
-      ),
-      GoRoute(
-        path: '/travel',
-        builder: (context, state) => TravelScreen(),
-      ),
-    ],
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _router,
-    );
-  }
-}
 
 class TravelSearch extends StatefulWidget {
+  const TravelSearch({super.key});
+
   @override
-  _TravelSearchState createState() => _TravelSearchState();
+  State<TravelSearch> createState() => _TravelSearchState();
 }
 
 class _TravelSearchState extends State<TravelSearch> {
@@ -85,7 +55,9 @@ class _TravelSearchState extends State<TravelSearch> {
 
     latestPostIds = querySnapshot.docs.map((doc) => doc.id).toList();
     latestPosts = await getRecruitmentList(latestPostIds);
-    setState(() {});
+    setState(() {
+      latestPosts = latestPosts;
+    });
   }
 
   @override

@@ -72,7 +72,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         context.go('/follow-list');
         break;
       case 4:
-        context.go('/profile');
+        context.go('/profile', extra: user!.uid);
         break;
     }
   }

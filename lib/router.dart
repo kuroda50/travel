@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'screens/travel_search.dart';
 import 'screens/travel_screen.dart';
 import 'screens/recruitment_list_screen.dart';
 import 'screens/recruitment_post_screen.dart';
@@ -16,20 +17,22 @@ import 'screens/profile_screen.dart';
 import 'screens/past_recruitment_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/password_change_screen.dart';
+import 'screens/password_change_screen_2.dart';
 import 'screens/terms_of_use_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
+import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel',
+  initialLocation: '/travel_search',
   routes: [
     GoRoute(
       path: '/login',
       name: 'login',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: LoginScreen(),
         ),
       ),
@@ -39,9 +42,7 @@ final GoRouter goRouter = GoRouter(
       name: 'accountCreate',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: AccountCreateScreen(),
-        ),
+        child: AccountCreateScreen(),
       ),
     ),
     GoRoute(
@@ -59,8 +60,18 @@ final GoRouter goRouter = GoRouter(
       name: 'recruitmentList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: RecruitmentListScreen(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/travel_search',
+      name: 'travel_search',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child:  CustomBottomNavigationBar(
+          child: TravelSearch(),
         ),
       ),
     ),
@@ -79,8 +90,8 @@ final GoRouter goRouter = GoRouter(
       name: 'recruitment',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: RecruitmentScreen(),
+        child: CustomBottomNavigationBar(
+          child: RecruitmentScreen(postId: state.extra! as String),
         ),
       ),
     ),
@@ -159,8 +170,8 @@ final GoRouter goRouter = GoRouter(
       name: 'profile',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: ProfileScreen(),
+        child: CustomBottomNavigationBar(
+          child: ProfileScreen(userId: state.extra! as String),
         ),
       ),
     ),
@@ -195,6 +206,16 @@ final GoRouter goRouter = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/password-change-2',
+      name: 'passwordChange2',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CustomBottomNavigationBar(
+          child: PasswordChangeScreen2(),
+        ),
+      ),
+    ),
+    GoRoute(
       path: '/terms-of-use',
       name: 'termsOfUse',
       pageBuilder: (context, state) => NoTransitionPage(
@@ -202,6 +223,14 @@ final GoRouter goRouter = GoRouter(
         child: const CustomBottomNavigationBar(
           child: TermsOfUseScreen(),
         ),
+      ),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      name: 'editProfile',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const EditProfileScreen(),
       ),
     ),
   ],

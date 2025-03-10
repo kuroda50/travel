@@ -53,7 +53,7 @@ class MessageScreen extends StatelessWidget {
                         child: Text('エラーが発生しました: ${chatRoomSnapshot.error}'));
                   }
                   final chatRoomData = chatRoomSnapshot.data!;
-                  final List<String> lastMessage = List<String>.from(chatRoomData['latestMessage']);
+                  final String lastMessage = chatRoomData['latestMessage'];
                   final Timestamp lastMessageTime =
                       chatRoomData['lastMessageTime'];
                   final String partnerId = chatRoomData['partnerId'];

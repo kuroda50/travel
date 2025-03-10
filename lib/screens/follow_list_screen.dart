@@ -1,115 +1,274 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-// class User {
-//   final String id;
-//   final String name;
-//   final String avatarUrl;
-
-//   User({required this.id, required this.name, required this.avatarUrl});
-// }
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:travel/colors/color.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:travel/functions/function.dart';
 
 class FollowListScreen extends StatefulWidget {
   const FollowListScreen({super.key});
 
   @override
-  _FollowListScreenState createState() => _FollowListScreenState();
+  State<FollowListScreen> createState() => _FollowListScreenState();
 }
 
 class _FollowListScreenState extends State<FollowListScreen> {
-  late Future<List<User>> _followList;
+  List<String> followList = [
+    '伊藤博文',
+    '山縣有朋',
+    '松方正義',
+    '大山巌',
+    '西郷従道',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _followList = fetchFollowList();
+    BuildFollowList();
   }
 
-Future<void> getFollowingList() async {
-  User? user = FirebaseAuth.instance.currentUser;
-
-  if (user != null) {
-    DocumentSnapshot<Object?> snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-
-    // ドキュメントのデータを取得
-    Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
-
-    if (data != null && data.containsKey('following')) {
-      List<dynamic> followingList = data['following']; // following フィールドの配列を取得
-
-      print("Following List: $followingList");
-    } else {
-      print("Following list is empty or does not exist.");
-    }
-  } else {
-    print("User is not logged in.");
-  }
-}
-
-     
-  if (user != null) {
-    // ユーザーがログインしている場合
-    print("User ID: ${user.uid}");
-  } else {
-    // ユーザーがログインしていない場合
-    print("No user is logged in.");
-  }
-
-
-      DocumentSnapshot<Object?> snapshot = await FirebaseFirestore.instance
-    .collection('users')
-    .doc(user.uid)
-    .get();
-  }
-}
-  Future<void> unfollowUser(String userId) async {
-    await FirebaseFirestore.instance
-        .collection('following')
-        .doc(userId)
-        .delete();
+  void BuildFollowList() async {
+    String userId = await getUserId();
+    List<String> followIdList = await getFollowList(userId);
+    List<UserInformation> followUserList =
+        await getFollowUserList(followIdList);
     setState(() {
-      _followList = fetchFollowList();
+      followUserList = followUserList;
     });
+  }
+
+  Future<String> getUserId() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null)
+      return "ログインしていません";
+    else
+      return user.uid;
+  }
+
+  Future<List<String>> getFollowList(String userId) async {
+    List<String> followIdList = [];
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection("users").doc(userId);
+    await userRef.get().then((user) {
+      if (user.exists) {
+        followIdList = List<String>.from(user["following"]);
+      } else {
+        print("フォローしている人がいません");
+      }
+    });
+    return followIdList;
+  }
+
+  Future<List<UserInformation>> getFollowUserList(
+      List<String> followIdList) async {
+    List<UserInformation> followUserList = [];
+    for (int i = 0; i < followIdList.length; i++) {
+      DocumentReference userRef =
+          FirebaseFirestore.instance.collection("users").doc(followIdList[i]);
+      await userRef.get().then((user) {
+        UserInformation followUser = UserInformation(
+            userId: followIdList[i],
+            photoURL: user['photoURL'],
+            name: user['name'],
+            age: calculateAge(user['birthday'].toDate()),
+            gender: user['gender']);
+        followUserList.add(followUser);
+      });
+    }
+    return followUserList;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('フォロー一覧'),
-      ),
-      body: FutureBuilder<List<User>>(
-        future: _followList,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('フォローがいません'));
-          }
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              final user = snapshot.data![index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(user.avatarUrl),
-                ),
-                title: Text(user.name),
-                trailing: IconButton(
-                  icon: const Icon(Icons.remove_circle, color: Colors.red),
-                  onPressed: () => unfollowUser(user.id),
-                ),
-              );
-            },
-          );
-        },
+    return DefaultTabController(
+      length: 3, // タブの数を指定
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColor.mainButtonColor,
+          title: const Text(
+            '仲間と集まる',
+            style: TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.black,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(text: 'フォロー(5)'),
+              Tab(text: 'フォロワー(5)'),
+              Tab(text: '募集(3)'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            FollowList(followList: followList),
+            Center(child: Text('フォロワー一覧')), // 仮の画面
+            Center(child: Text('募集一覧')), // 仮の画面
+          ],
+        ),
       ),
     );
   }
 }
+
+class FollowList extends StatelessWidget {
+  final List<String> followList;
+
+  const FollowList({super.key, required this.followList});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: followList.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          leading: const CircleAvatar(
+            backgroundColor: Colors.grey,
+          ),
+          title: Text(followList[index]),
+          trailing: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {}, // 削除機能を後で追加
+          ),
+        );
+      },
+    );
+  }
+}
+
+class UserInformation {
+  String userId;
+  String photoURL;
+  String name;
+  int age;
+  String gender;
+
+  UserInformation(
+      {required this.userId,
+      required this.photoURL,
+      required this.name,
+      required this.age,
+      required this.gender});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// バックアップとして残しておく
+// class FollowListScreen extends StatefulWidget {
+//   const FollowListScreen({super.key});
+
+//   @override
+//   _FollowListScreenState createState() => _FollowListScreenState();
+// }
+
+// class _FollowListScreenState extends State<FollowListScreen> {
+//   late Future<List<User>> _followList;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _followList = fetchFollowList();
+//   }
+
+// Future<void> getFollowingList() async {
+//   User? user = FirebaseAuth.instance.currentUser;
+
+//   if (user != null) {
+//     DocumentSnapshot<Object?> snapshot = await FirebaseFirestore.instance
+//         .collection('users')
+//         .doc(user.uid)
+//         .get();
+
+//     // ドキュメントのデータを取得
+//     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+
+//     if (data != null && data.containsKey('following')) {
+//       List<dynamic> followingList = data['following']; // following フィールドの配列を取得
+
+//       print("Following List: $followingList");
+//     } else {
+//       print("Following list is empty or does not exist.");
+//     }
+//   } else {
+//     print("User is not logged in.");
+//   }
+//     if (user != null) {
+//     // ユーザーがログインしている場合
+//     print("User ID: ${user.uid}");
+//   } else {
+//     // ユーザーがログインしていない場合
+//     print("No user is logged in.");
+//   }
+
+
+//       DocumentSnapshot<Object?> snapshot = await FirebaseFirestore.instance
+//     .collection('users')
+//     .doc(user.uid)
+//     .get();
+//   }
+// }
+
+     
+
+
+//   Future<void> unfollowUser(String userId) async {
+//     await FirebaseFirestore.instance
+//         .collection('following')
+//         .doc(userId)
+//         .delete();
+//     setState(() {
+//       _followList = fetchFollowList();
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('フォロー一覧'),
+//       ),
+//       body: FutureBuilder<List<User>>(
+//         future: _followList,
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Center(child: CircularProgressIndicator());
+//           } else if (snapshot.hasError) {
+//             return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
+//           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+//             return const Center(child: Text('フォローがいません'));
+//           }
+//           return ListView.builder(
+//             itemCount: snapshot.data!.length,
+//             itemBuilder: (context, index) {
+//               final user = snapshot.data![index];
+//               return ListTile(
+//                 leading: CircleAvatar(
+//                   backgroundImage: NetworkImage(user.avatarUrl),
+//                 ),
+//                 title: Text(user.name),
+//                 trailing: IconButton(
+//                   icon: const Icon(Icons.remove_circle, color: Colors.red),
+//                   onPressed: () => unfollowUser(user.id),
+//                 ),
+//               );
+//             },
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }

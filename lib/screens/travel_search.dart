@@ -1,41 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter をインポート
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:travel/colors/color.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
-import 'package:travel/screens/travel_screen.dart';
-
-void main() {
-  runApp(TravelApp());
-}
-
-class TravelApp extends StatelessWidget {
-  TravelApp({Key? key}) : super(key: key); // keyパラメータを追加
-
-  final GoRouter _router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => TravelSearch(),
-      ),
-      GoRoute(
-        path: '/travel',
-        builder: (context, state) => TravelScreen(),
-      ),
-    ],
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _router,
-    );
-  }
-}
 
 class TravelSearch extends StatefulWidget {
   @override
@@ -92,10 +61,7 @@ class _TravelSearchState extends State<TravelSearch> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('検索', textAlign: TextAlign.center),
-          centerTitle: true,
-        ),
+        appBar: Header(),
         body: SafeArea(
           child: Column(
             children: [
@@ -214,21 +180,17 @@ class _TravelSearchState extends State<TravelSearch> {
                           child: Text('リセット',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green, // ボタンの色を緑に設定
+                            backgroundColor: Color(0xFF559900), // ボタンの色を緑に設定
                           ),
                         ),
-                        Row(
-                          children: [
-                            Icon(Icons.search),
-                            ElevatedButton(
-                              onPressed: () {},
-                              child: Text('この条件で検索',
-                                  style: TextStyle(color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green, // ボタンの色を緑に設定
-                              ),
-                            ),
-                          ],
+                         ElevatedButton.icon( // ElevatedButton.icon を使用
+                          onPressed: () {},
+                          icon: Icon(Icons.search, color: Colors.white), // 虫眼鏡アイコンを追加
+                          label: Text('この条件で検索',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF559900), // ボタンの色を緑に設定
+                          ),
                         ),
                       ],
                     ),
@@ -241,6 +203,7 @@ class _TravelSearchState extends State<TravelSearch> {
       ),
     );
   }
+
 
   Widget _buildFilterItem(BuildContext context, String label, String value,
       {bool isRegion = false,

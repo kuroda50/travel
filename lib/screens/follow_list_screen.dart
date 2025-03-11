@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel/functions/function.dart';
 
 class FollowListScreen extends StatefulWidget {
@@ -14,25 +12,18 @@ class FollowListScreen extends StatefulWidget {
 }
 
 class _FollowListScreenState extends State<FollowListScreen> {
-  List<String> followList = [
-    '伊藤博文',
-    '山縣有朋',
-    '松方正義',
-    '大山巌',
-    '西郷従道',
-  ];
+  List<UserInformation> followUserList = [];
 
   @override
   void initState() {
     super.initState();
-    BuildFollowList();
+    buildFollowList();
   }
 
-  void BuildFollowList() async {
+  void buildFollowList() async {
     String userId = await getUserId();
     List<String> followIdList = await getFollowList(userId);
-    List<UserInformation> followUserList =
-        await getFollowUserList(followIdList);
+    followUserList = await getFollowUserList(followIdList);
     setState(() {
       followUserList = followUserList;
     });
@@ -40,10 +31,11 @@ class _FollowListScreenState extends State<FollowListScreen> {
 
   Future<String> getUserId() async {
     User? user = FirebaseAuth.instance.currentUser;
-    if (user == null)
+    if (user == null) {
       return "ログインしていません";
-    else
+    } else {
       return user.uid;
+    }
   }
 
   Future<List<String>> getFollowList(String userId) async {
@@ -69,7 +61,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
       await userRef.get().then((user) {
         UserInformation followUser = UserInformation(
             userId: followIdList[i],
-            photoURL: user['photoURL'],
+            photoURL: user['photoURLs'][0],
             name: user['name'],
             age: calculateAge(user['birthday'].toDate()),
             gender: user['gender']);
@@ -90,13 +82,12 @@ class _FollowListScreenState extends State<FollowListScreen> {
             '仲間と集まる',
             style: TextStyle(color: Colors.white),
           ),
-          centerTitle: true,
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.black,
             indicatorColor: Colors.white,
             tabs: [
-              Tab(text: 'フォロー(5)'),
+              Tab(text: 'フォロー(${followUserList.length})'),
               Tab(text: 'フォロワー(5)'),
               Tab(text: '募集(3)'),
             ],
@@ -104,7 +95,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
         ),
         body: TabBarView(
           children: [
-            FollowList(followList: followList),
+            FollowList(followUserList: followUserList),
             Center(child: Text('フォロワー一覧')), // 仮の画面
             Center(child: Text('募集一覧')), // 仮の画面
           ],
@@ -115,20 +106,23 @@ class _FollowListScreenState extends State<FollowListScreen> {
 }
 
 class FollowList extends StatelessWidget {
-  final List<String> followList;
+  final List<UserInformation> followUserList;
 
-  const FollowList({super.key, required this.followList});
+  const FollowList({super.key, required this.followUserList});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: followList.length,
+      itemCount: followUserList.length,
       itemBuilder: (context, index) {
         return ListTile(
-          leading: const CircleAvatar(
+          leading: CircleAvatar(
             backgroundColor: Colors.grey,
+            backgroundImage: followUserList[index].photoURL != ''
+                ? NetworkImage(followUserList[index].photoURL)
+                : null,
           ),
-          title: Text(followList[index]),
+          title: Text('${followUserList[index].name}、${followUserList[index].age}、${followUserList[index].gender}'),
           trailing: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () {}, // 削除機能を後で追加

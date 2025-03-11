@@ -26,7 +26,7 @@ import 'component/bottom_navigation_bar.dart';
 import 'screens/follow_recruitments_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel_search',
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',

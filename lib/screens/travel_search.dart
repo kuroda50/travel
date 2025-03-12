@@ -15,7 +15,7 @@ class TravelSearch extends StatefulWidget {
 
 class _TravelSearchState extends State<TravelSearch> {
   String selectedRegion = 'こだわらない';
-  List<String> selectedDestination = ['こだわらない']; //
+  List<String> selectedDestinations = ['こだわらない']; //
   String selectedStartDate = 'こだわらない';
   String selectedEndDate = 'こだわらない';
   List<String> selectedDays = ['こだわらない']; //
@@ -88,14 +88,14 @@ class _TravelSearchState extends State<TravelSearch> {
           final tags = data["tags"];
           final expire = data["expire"];
 
-          final checkFilter = (area == selectedRegion) &&
-              (destinations == selectedDestination) &&
-              (startDate <= selectedEndDate) &&
-              (endDate >= selectedStartDate) &&
-              (targetGroups == selectedGenderAttributeRecruit) &&
-              (targetAgeMax == selectedGenderAttributeRecruit) &&
-              (targetAgeMin == selectedGenderAttributeRecruit) &&
-              (targetHasPhoto == selectedGenderAttributeRecruit);
+          // final checkFilter = (area == selectedRegion) &&
+          //     (destinations == selectedDestination) &&
+          //     (startDate <= selectedEndDate) &&
+          //     (endDate >= selectedStartDate) &&
+          //     (targetGroups == selectedGenderAttributeRecruit) &&
+          //     (targetAgeMax == selectedGenderAttributeRecruit) &&
+          //     (targetAgeMin == selectedGenderAttributeRecruit) &&
+          //     (targetHasPhoto == selectedGenderAttributeRecruit);
 
           return area == "アジア";
         }).toList();
@@ -162,44 +162,20 @@ class _TravelSearchState extends State<TravelSearch> {
                       ],
                     ),
                     SizedBox(height: 16),
+                    // どこへ
                     _buildSectionTitle('どこへ'),
                     _buildFilterItem(context, '方面', selectedRegion,
                         isRegion: true),
-                    _buildListFilterItem(
-                      context,
-                      '行き先',
-                      selectedDestination,
-                      isDestination: true,
-                    ),
+                    _buildListFilterItem(context, '行き先', selectedDestinations,
+                        isDestination: true),
+                    // いつ
                     _buildSectionTitle('いつ'),
                     _buildFilterItem(context, 'いつから', selectedStartDate,
                         isDate: true),
                     _buildFilterItem(context, 'いつまで', selectedEndDate,
                         isDate: true),
-                    InkWell(
-                      onTap: () {}, //曜日を複数選択する処理を後で追加
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Text("曜日選択"),
-                            ),
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: <Widget>[
-                                  Text(selectedDays.join()),
-                                  Icon(Icons.expand_more),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildListFilterItem(context, '曜日選択', selectedDays),
+                    // 主催者
                     _buildSectionTitle('主催者'),
                     _buildListFilterItem(
                         context, '性別、属性', selectedGenderAttributeHost,
@@ -208,6 +184,7 @@ class _TravelSearchState extends State<TravelSearch> {
                         isAge: true, isHost: true),
                     _buildFilterItem(context, '写真付き', '',
                         isCheckbox: true, isHost: true),
+                    // 募集する人
                     _buildSectionTitle('募集する人'),
                     _buildListFilterItem(
                         context, '性別、属性', selectedGenderAttributeRecruit,
@@ -216,15 +193,19 @@ class _TravelSearchState extends State<TravelSearch> {
                         isAge: true, isHost: false),
                     _buildFilterItem(context, '写真付き', '',
                         isCheckbox: true, isHost: false),
+                    // お金について
                     _buildSectionTitle('お金について'),
                     _buildBudgetFilterItem(context, '予算'),
-                    _buildListFilterItem(context, 'お金の分け方', selectedPaymentMethod,
+                    _buildListFilterItem(
+                        context, 'お金の分け方', selectedPaymentMethod,
                         isPaymentMethod: true),
+                    // 集合場所
                     _buildSectionTitle('集合場所'),
                     _buildFilterItem(context, '方面', selectedMeetingRegion,
                         isMeetingRegion: true),
                     _buildListFilterItem(context, '出発地', selectedDeparture,
                         isDeparture: true),
+                    // タグ
                     _buildSectionTitle('タグ'),
                     Row(
                       children: [
@@ -288,17 +269,14 @@ class _TravelSearchState extends State<TravelSearch> {
                           ),
                         ),
                         ElevatedButton.icon(
-                          // ElevatedButton.icon を使用
                           onPressed: () {
                             context.push('/recruitment-list');
                           },
-                          icon: Icon(Icons.search,
-                              color: Colors.white), // 虫眼鏡アイコンを追加
+                          icon: Icon(Icons.search, color: Colors.white),
                           label: Text('この条件で検索',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                AppColor.mainButtonColor, // ボタンの色を緑に設定
+                            backgroundColor: AppColor.mainButtonColor,
                           ),
                         ),
                       ],
@@ -327,8 +305,6 @@ class _TravelSearchState extends State<TravelSearch> {
           : () {
               if (isRegion) {
                 _showRegionModal(context);
-              } else if (isDestination && selectedRegion != 'こだわらない') {
-                _showDestinationModal(context, selectedRegion);
               } else if (isDate) {
                 _selectDate(context, label);
               } else if (isCheckbox) {
@@ -339,16 +315,12 @@ class _TravelSearchState extends State<TravelSearch> {
                     isPhotoCheckedRecruit = !isPhotoCheckedRecruit;
                   }
                 });
-              } else if (isGenderAttribute) {
-                _showGenderAttributeModal(context, isHost);
-              } else if (isPaymentMethod) {
-                _showPaymentMethodModal(context);
               } else if (isAge) {
                 _showAgeModal(context, isHost);
               } else if (isMeetingRegion) {
                 _showMeetingRegionModal(context);
-              } else if (isDeparture && selectedMeetingRegion.isNotEmpty) {
-                _showDepartureModal(context, selectedMeetingRegion);
+              } else if (selectedMeetingRegion.isNotEmpty) {
+                _showDestinaitonModal(context, selectedMeetingRegion);
               }
             },
       child: Padding(
@@ -394,41 +366,26 @@ class _TravelSearchState extends State<TravelSearch> {
     String label,
     List<String> values, {
     bool isDestination = false,
+    bool isDay = false,
     bool isHost = true,
     bool isGenderAttribute = false,
     bool isPaymentMethod = false,
     bool isDeparture = false,
   }) {
     return InkWell(
-      onTap: isBudget
-          ? null
-          : () {
-              if (isRegion) {
-                _showRegionModal(context);
-              } else if (isDestination && selectedRegion != 'こだわらない') {
-                _showDestinationModal(context, selectedRegion);
-              } else if (isDate) {
-                _selectDate(context, label);
-              } else if (isCheckbox) {
-                setState(() {
-                  if (isHost) {
-                    isPhotoCheckedHost = !isPhotoCheckedHost;
-                  } else {
-                    isPhotoCheckedRecruit = !isPhotoCheckedRecruit;
-                  }
-                });
-              } else if (isGenderAttribute) {
-                _showGenderAttributeModal(context, isHost);
-              } else if (isPaymentMethod) {
-                _showPaymentMethodModal(context);
-              } else if (isAge) {
-                _showAgeModal(context, isHost);
-              } else if (isMeetingRegion) {
-                _showMeetingRegionModal(context);
-              } else if (isDeparture && selectedMeetingRegion.isNotEmpty) {
-                _showDepartureModal(context, selectedMeetingRegion);
-              }
-            },
+      onTap: () {
+        if (isDestination && selectedRegion != 'こだわらない') {
+          _showDestinationModal(context, selectedRegion);
+        } else if (isDay) {
+          _showDaysModal(context, selectedDays);
+        } else if (isGenderAttribute) {
+          _showGenderAttributeModal(context, isHost);
+        } else if (isPaymentMethod) {
+          _showPaymentMethodModal(context);
+        } else if (isDeparture && selectedMeetingRegion.isNotEmpty) {
+          _showDestinaitonModal(context, selectedMeetingRegion);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
@@ -438,29 +395,15 @@ class _TravelSearchState extends State<TravelSearch> {
               padding: const EdgeInsets.only(left: 8.0),
               child: Text(label),
             ),
-            if (isCheckbox)
-              Icon(
-                isHost
-                    ? (isPhotoCheckedHost
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank)
-                    : (isPhotoCheckedRecruit
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank),
-                color: (isHost ? isPhotoCheckedHost : isPhotoCheckedRecruit)
-                    ? Colors.blue
-                    : Colors.grey,
-              )
-            else
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Text(value),
-                    Icon(Icons.expand_more),
-                  ],
-                ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Text(values.join('、')),
+                  Icon(Icons.expand_more),
+                ],
               ),
+            ),
           ],
         ),
       ),
@@ -652,32 +595,54 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  void _showDaysModal(BuildContext context) {
+  void _showDaysModal(BuildContext context, List<String> selectedDays) {
+    List<String> days = ['月', '火', '水', '木', '金', '土', '日'];
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('曜日',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              for (var region in destinationsByArea.keys)
-                ListTile(
-                  title: Text(region),
-                  onTap: () {
-                    setState(() {
-                      selectedRegion = region;
-                      selectedDestination = 'こだわらない';
-                    });
-                    Navigator.pop(context);
-                  },
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            selectedDays = selectedDays;
+                          });
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('曜日',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
                 ),
-            ],
-          ),
-        );
+                SizedBox(height: 16),
+                for (var day in days)
+                  CheckboxListTile(
+                    title: Text(day),
+                    value: selectedDays.contains(day),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isChecked == true) {
+                          if (selectedDays.contains('こだわらない')) {
+                            selectedDays.remove('こだわらない');
+                          }
+                          selectedDays.add(day);
+                        } else {
+                          selectedDays.remove(day);
+                        }
+                      });
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
       },
     );
   }
@@ -700,7 +665,7 @@ class _TravelSearchState extends State<TravelSearch> {
                   onTap: () {
                     setState(() {
                       selectedMeetingRegion = region;
-                      selectedDeparture = 'こだわらない';
+                      selectedDeparture = ['こだわらない'];
                     });
                     Navigator.pop(context);
                   },
@@ -712,7 +677,7 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  void _showDepartureModal(BuildContext context, String region) {
+  void _showDestinaitonModal(BuildContext context, String region) {
     List<String> destinations = destinationsByArea[region] ?? [];
 
     showModalBottomSheet(
@@ -724,18 +689,34 @@ class _TravelSearchState extends State<TravelSearch> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text('出発地',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            selectedDestinations = selectedDestinations;
+                          });
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('出発地',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
                 SizedBox(height: 16),
                 for (var destination in destinations)
-                  ListTile(
+                  CheckboxListTile(
                     title: Text(destination),
-                    onTap: () {
+                    value: selectedDestinations.contains(destination),
+                    onChanged: (bool? isChecked) {
                       setState(() {
-                        selectedDestination = destination;
+                        if (isChecked == true) {
+                          selectedDestinations.add(destination);
+                        } else {
+                          selectedDestinations.remove(destination);
+                        }
                       });
-                      Navigator.pop(context);
                     },
                   ),
               ],
@@ -746,7 +727,8 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  void _showGenderAttributeModal(BuildContext context, bool isHost) {
+  void _showPaymentMethodModal(BuildContext context) {
+    List<String> paymentMethods = ['割り勘', '各自自腹', '主催者が多めに出す', '主催者が少な目に出す'];
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -755,66 +737,114 @@ class _TravelSearchState extends State<TravelSearch> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(
-                '性別、属性',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        setState(() {
+                          selectedPaymentMethod = selectedPaymentMethod;
+                        });
+                      },
+                      icon: Icon(Icons.arrow_back)),
+                  Text('お金の分け方',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
               ),
               SizedBox(height: 16),
-              ListTile(
-                title: Text('男性'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = '男性';
-                    } else {
-                      selectedGenderAttributeRecruit = '男性';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('女性'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = '女性';
-                    } else {
-                      selectedGenderAttributeRecruit = '女性';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('家族'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = '家族';
-                    } else {
-                      selectedGenderAttributeRecruit = '家族';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('グループ'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = 'グループ';
-                    } else {
-                      selectedGenderAttributeRecruit = 'グループ';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
+              for (var paymentMethod in paymentMethods)
+                CheckboxListTile(
+                  title: Text(paymentMethod),
+                  value: selectedPaymentMethod.contains(paymentMethod),
+                  onChanged: (bool? isChecked) {
+                    setState(() {
+                      if (isChecked == true) {
+                        selectedPaymentMethod.add(paymentMethod);
+                      } else {
+                        selectedPaymentMethod.remove(paymentMethod);
+                      }
+                    });
+                  },
+                ),
             ],
           ),
         );
+      },
+    );
+  }
+
+  void _showGenderAttributeModal(BuildContext context, bool isHost) {
+    List<String> genders = ['男性', '女性', '家族', 'グループ'];
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            if (isHost) {
+                              selectedGenderAttributeHost =
+                                  selectedGenderAttributeHost;
+                            } else {
+                              selectedGenderAttributeRecruit =
+                                  selectedGenderAttributeRecruit;
+                            }
+                          });
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('性別、属性',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 16),
+                for (var gender in genders)
+                  CheckboxListTile(
+                    title: Text(gender),
+                    value: isHost
+                        ? selectedGenderAttributeHost.contains(gender)
+                        : selectedGenderAttributeRecruit.contains(gender),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isHost) {
+                          //主催者の場合
+                          if (isChecked == true) {
+                            if (selectedGenderAttributeHost
+                                .contains('こだわらない')) {
+                              selectedGenderAttributeHost.remove('こだわらない');
+                            }
+                            selectedGenderAttributeHost.add(gender);
+                          } else {
+                            selectedGenderAttributeHost.remove(gender);
+                          }
+                        } else {
+                          //参加者の場合
+                          if (isChecked == true) {
+                            if (selectedGenderAttributeRecruit
+                                .contains('こだわらない')) {
+                              selectedGenderAttributeRecruit.remove('こだわらない');
+                            }
+                            selectedGenderAttributeRecruit.add(gender);
+                          } else {
+                            selectedGenderAttributeRecruit.remove(gender);
+                          }
+                        }
+                      });
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
       },
     );
   }
@@ -837,7 +867,7 @@ class _TravelSearchState extends State<TravelSearch> {
                   onTap: () {
                     setState(() {
                       selectedRegion = region;
-                      selectedDestination = 'こだわらない';
+                      selectedDestinations = ['こだわらない'];
                     });
                     Navigator.pop(context);
                   },
@@ -861,79 +891,42 @@ class _TravelSearchState extends State<TravelSearch> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text('行き先',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            selectedDestinations = selectedDestinations;
+                          });
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('行き先',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
                 SizedBox(height: 16),
                 for (var destination in destinations)
-                  ListTile(
+                  CheckboxListTile(
                     title: Text(destination),
-                    onTap: () {
+                    value: selectedDestinations.contains(destination),
+                    onChanged: (bool? isChecked) {
+                      if (isChecked == true) {
+                        if (selectedDestinations.contains('こだわらない')) {
+                          selectedDestinations.remove('こだわらない');
+                        }
+                        selectedDestinations.add(destination);
+                      } else if (isChecked == false) {
+                        selectedDestinations.remove(destination);
+                      }
                       setState(() {
-                        selectedDestination = destination;
+                        selectedDestinations = selectedDestinations;
                       });
-                      Navigator.pop(context);
                     },
                   ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showPaymentMethodModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                'お金の分け方',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              ListTile(
-                title: Text('割り勘'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '割り勘';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('各自自腹'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '各自自腹';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('主催者が多めに出す'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '主催者が多めに出す';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('主催者が少な目に出す'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '主催者が少な目に出す';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-            ],
           ),
         );
       },

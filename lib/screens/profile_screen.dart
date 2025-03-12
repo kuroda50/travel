@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Header(),

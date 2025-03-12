@@ -90,7 +90,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(),
+      appBar: Header(title: "アカウント作成",),
       backgroundColor: AppColor.subBackgroundColor,
       body: LayoutBuilder(
         builder: (context, constraints) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:travel/component/header.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -7,12 +8,11 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('設定'),
-      ),
+      appBar: Header(title: "設定"),
       body: Center(
         child: Column(
           children: [
+            const SizedBox(height: 40),
             buildButton(context, 'メールアドレスを変更する',
                 isFirst: true, showDialog: false),
             buildButton(context, 'パスワードを変更する', showDialog: false),

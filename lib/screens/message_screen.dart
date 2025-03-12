@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/component/header.dart';
 import 'message_room_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,9 +14,7 @@ class MessageScreen extends StatelessWidget {
         FirebaseFirestore.instance.collection('users');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('メッセージ'),
-      ),
+      appBar: Header(title: "メッセージ一覧",),
       body: FutureBuilder<DocumentSnapshot>(
         future: usersCollection.doc(currentUserId).get(),
         builder: (context, snapshot) {

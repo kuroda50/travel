@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // go_router をインポート
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/colors/color.dart';
 import 'dart:async';
 import 'travel_search.dart'; // ここに追加
 import 'package:travel/component/header.dart';
@@ -127,7 +128,9 @@ class _TravelScreenState extends State<TravelScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: Header(),
+        appBar: Header(
+          title: "旅へ行こう！",
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(16.0),
@@ -167,27 +170,31 @@ class _TravelScreenState extends State<TravelScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go('/travel');
+                        },
                         child: Text(
                           '旅行仲間と\n集まる',
                           textAlign: TextAlign.center,
                         ),
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColor.mainButtonColor,
+                          foregroundColor: AppColor.subTextColor,
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go('/same-hobby');
+                        },
                         child: Text(
                           '同じ趣味の人と\n集まる',
                           textAlign: TextAlign.center,
                         ),
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColor.mainButtonColor,
+                          foregroundColor: AppColor.subTextColor,
                         ),
                       ),
                     ],
@@ -195,10 +202,7 @@ class _TravelScreenState extends State<TravelScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TravelSearch()),
-                    );
+                    context.push('/travel_search');
                   },
                   child: Container(
                     padding:
@@ -233,12 +237,12 @@ class _TravelScreenState extends State<TravelScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // 人を募集する処理
+                        context.push('/recruitment-post');
                       },
                       child: Text('人を募集する'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColor.mainButtonColor,
+                        foregroundColor: AppColor.subTextColor,
                       ),
                     ),
                   ),

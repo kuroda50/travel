@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:travel/colors/color.dart';
+import 'package:travel/component/header.dart';
 
 const Set<String> destinationsByArea = {
   "ヨーロッパ", "北米", "中南米", "オセアニア・ハワイ", "アジア", "日本", "アフリカ・中東"
@@ -99,10 +100,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('募集する'),
-        backgroundColor: Colors.white,
-      ),
+      appBar: Header(title: "募集する"),
       backgroundColor: AppColor.subBackgroundColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

@@ -38,7 +38,7 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(),
+      appBar: Header(title: "募集",),
       body: _buildRecruitmentList(context),
     );
   }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
+import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
 import 'package:go_router/go_router.dart';
 
@@ -200,13 +201,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
             followerUserList.isEmpty &&
             followerPostsList.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColor.mainButtonColor,
-          title: const Text(
-            '旅へ行こう！',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
+        appBar: Header(title: "お気に入り",),
         body: Center(child: CircularProgressIndicator()), // ローディング中の表示
       );
     }
@@ -217,7 +212,10 @@ class _FollowListScreenState extends State<FollowListScreen> {
           backgroundColor: AppColor.mainButtonColor,
           title: const Text(
             '旅へ行こう！',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(
+              fontSize: 20,
+              color: AppColor.subTextColor,
+            ),
           ),
           bottom: TabBar(
             labelColor: Colors.white,

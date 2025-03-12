@@ -1,15 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
-    );
-  }
-}
+import 'package:travel/component/header.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -49,6 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: Header(
+        title: "ログイン",
+      ),
       backgroundColor: Color(0xFFF5EEDC), // 背景色
       body: SingleChildScrollView(
         // スマホ対応
@@ -60,30 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
               children: [
-                // ヘッダー部分
-                Container(
-                  color: Color(0xFF559900),
-                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '仲間と集まる',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF559900),
-                        ),
-                        child:
-                            Text('ログイン', style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 40),
-
                 // メールアドレス入力
                 _buildLabel('メールアドレス'),
                 _buildTextField(controller: emailController),
@@ -131,7 +102,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 // 「アカウントを作る」ボタン
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.push("/account-create");
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF559900),
                       minimumSize: Size(200, 50),

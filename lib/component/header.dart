@@ -4,13 +4,14 @@ import 'package:travel/colors/color.dart';
 import 'package:go_router/go_router.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
-  const Header({super.key});
+  final String title;
+  const Header({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text(
-        '旅へ行こう！',
+      title: Text(
+        title,
         style: TextStyle(
           fontSize: 20,
           color: AppColor.subTextColor,

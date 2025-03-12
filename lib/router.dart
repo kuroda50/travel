@@ -23,9 +23,10 @@ import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
+import 'screens/follow_recruitments_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/edit-profile',
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',
@@ -60,7 +61,7 @@ final GoRouter goRouter = GoRouter(
       name: 'recruitmentList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: RecruitmentListScreen(),
         ),
       ),
@@ -162,6 +163,16 @@ final GoRouter goRouter = GoRouter(
         key: state.pageKey,
         child:  CustomBottomNavigationBar(
           child: FollowerListScreen(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/follow-recruitmnts-list',
+      name: 'followRecruitmentsList',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child:  CustomBottomNavigationBar(
+          child: FollowRecruitmentsScreen(),
         ),
       ),
     ),

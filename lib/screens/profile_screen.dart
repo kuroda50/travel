@@ -4,6 +4,7 @@ import 'package:travel/colors/color.dart';
 import 'package:travel/component/header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:travel/functions/function.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -25,12 +26,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    checkUserId(widget.userId);
-    getUserProfile(widget.userId);
-    getRecruitmentList();
+    getInformation();
   }
 
-  void checkUserId(String userId) {
+  getInformation() async {
+    await checkUserId(widget.userId);
+    await getUserProfile(widget.userId);
+    await fetchRecruitmentList();
+  }
+
+  Future<void> checkUserId(String userId) {
     if (userId == FirebaseAuth.instance.currentUser!.uid) {
       print('自分のプロフィールを見ています');
       isMyProfile = true;
@@ -41,112 +46,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       isMyProfile = isMyProfile;
     });
-    return;
+    return Future.value();
   }
 
-  void getUserProfile(String userId) {
+  Future<void> getUserProfile(String userId) async {
     // ユーザー情報を取得する処理
     DocumentReference userRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
-    userRef.get().then((user) {
-      if (user.exists) {
-        print("ユーザ情報を取得します");
-        name = user['name'];
-        age = calculateAge(user['birthday'].toDate()).toString();
-        hobbies = user['hobbies'].map((hobby) => hobby.toString()).toList();
-        bio = user['bio'];
-        userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
-        recruitmentPostIdList =
-            user['participatedPosts'].map((post) => post.toString()).toList();
-        setState(() {
-          name = name;
-          age = age;
-          hobbies = hobbies;
-          bio = bio;
-          userImageURL = userImageURL;
-        });
-      } else {
-        print("ユーザが見つかりません");
-      }
-    });
-  }
-
-  void getRecruitmentList() {
-    for (int i = 0; i < recruitmentPostIdList.length; i++) {
-      DocumentReference recruitmentRef = FirebaseFirestore.instance
-          .collection('posts')
-          .doc(recruitmentPostIdList[i]);
-      recruitmentRef.get().then((recruitment) {
-        if (recruitment.exists) {
-          recruitmentPosts[i].title = recruitment['title'];
-          recruitmentPosts[i].targetGroups = recruitment['target']
-                  ['targetGroups']
-              .map((group) => group.toString())
-              .toList();
-          recruitmentPosts[i].targetAgeMin = recruitment['target']['AgeMin'];
-          recruitmentPosts[i].targetAgeMax = recruitment['target']['AgeMax'];
-          recruitmentPosts[i].targetHasPhoto =
-              recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし';
-          recruitmentPosts[i].destinations = recruitment['destination']
-              .map((destination) => destination.toString())
-              .toList();
-          recruitmentPosts[i].organizerGroup =
-              recruitment['organizer']['organizerGroup'];
-          recruitmentPosts[i].organizerName =
-              recruitment['organizer']['organizerName'];
-          recruitmentPosts[i].organizerAge = calculateAge(
-                  recruitment['organizer']['organizerBirthday'].toDate())
-              .toString();
-          recruitmentPosts[i].startDate =
-              recruitment['when']['startDate'].toDate().toString();
-          recruitmentPosts[i].endDate =
-              recruitment['when']['endDate'].toDate().toString();
-          recruitmentPosts[i].days = recruitment['when']['dayOfWeek']
-              .map((day) => day.toString())
-              .toList();
-          RecruitmentPost post = RecruitmentPost(
-            postId: recruitmentPostIdList[i],
-            title: recruitmentPosts[i].title,
-            organizerPhotoURL: recruitment['organizer']['photoURL'],
-            organizerGroup: recruitmentPosts[i].organizerGroup,
-            targetGroups: recruitmentPosts[i].targetGroups,
-            targetAgeMin: recruitmentPosts[i].targetAgeMin,
-            targetAgeMax: recruitmentPosts[i].targetAgeMax,
-            targetHasPhoto: recruitmentPosts[i].targetHasPhoto,
-            destinations: recruitmentPosts[i].destinations,
-            organizerName: recruitmentPosts[i].organizerName,
-            organizerAge: recruitmentPosts[i].organizerAge,
-            startDate: recruitmentPosts[i].startDate,
-            endDate: recruitmentPosts[i].endDate,
-            days: recruitmentPosts[i].days,
-          );
-          recruitmentPosts.add(post);
-          setState(() {
-            recruitmentPosts = recruitmentPosts;
-          });
-        } else {
-          print("募集情報が見つかりません");
-        }
+    var user = await userRef.get();
+    if (user.exists) {
+      print("ユーザ情報を取得します");
+      name = user['name'];
+      age = calculateAge(user['birthday'].toDate()).toString();
+      bio = user['bio'];
+      hobbies = List<String>.from(user['hobbies'] as List);
+      userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
+      recruitmentPostIdList =
+          List<String>.from(user['participatedPosts'] as List);
+      setState(() {
+        name = name;
+        age = age;
+        hobbies = hobbies;
+        bio = bio;
+        userImageURL = userImageURL;
       });
+    } else {
+      print("ユーザが見つかりません");
     }
   }
 
-  int calculateAge(DateTime birth) {
-    DateTime today = DateTime.now();
-    int age = today.year - birth.year;
-
-    // 誕生日がまだ来ていなければ1歳引く
-    if (today.month < birth.month ||
-        (today.month == birth.month && today.day < birth.day)) {
-      age--;
-    }
-    return age;
+  Future<void> fetchRecruitmentList() async {
+    recruitmentPosts = await getRecruitmentList(recruitmentPostIdList);
+    setState(() {
+      recruitmentPosts = recruitmentPosts;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(),
+      appBar: Header(title: "プロフィール",),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -179,7 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundImage: NetworkImage(userImageURL),
+                  backgroundImage:
+                      userImageURL != '' ? NetworkImage(userImageURL) : null,
                 ),
                 SizedBox(width: 12),
                 Expanded(
@@ -299,18 +239,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text('${post.title}'),
-                Row(
-                  children: <Widget>[
-                    Icon(Icons.person),
-                    Text(
-                        '${post.organizerGroup}>${post.targetGroups} ${post.targetAgeMin}~${post.targetAgeMax} ${post.targetHasPhoto}'),
-                  ],
-                ),
+                Text(
+                    '${post.organizerGroup}>${post.targetGroups} ${post.targetAgeMin}歳~${post.targetAgeMax}歳 ${post.targetHasPhoto}'),
                 Text(post.destinations
                     .map((destination) => destination)
                     .join('、')),
+                Text('${post.organizerName}、${post.organizerAge}歳'),
                 Text(
-                    '${post.organizerName}、${post.organizerAge}歳 ${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}'),
+                    '${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}')
               ],
             ),
             onTap: () {
@@ -321,38 +257,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }).toList(),
     );
   }
-}
-
-class RecruitmentPost {
-  String postId;
-  String title;
-  String organizerPhotoURL;
-  String organizerGroup;
-  List<String> targetGroups;
-  String targetAgeMin;
-  String targetAgeMax;
-  String targetHasPhoto;
-  List<String> destinations;
-  String organizerName;
-  String organizerAge;
-  String startDate;
-  String endDate;
-  List<String> days;
-
-  RecruitmentPost({
-    required this.postId,
-    required this.title,
-    required this.organizerPhotoURL,
-    required this.organizerGroup,
-    required this.targetGroups,
-    required this.targetAgeMin,
-    required this.targetAgeMax,
-    required this.targetHasPhoto,
-    required this.destinations,
-    required this.organizerName,
-    required this.organizerAge,
-    required this.startDate,
-    required this.endDate,
-    required this.days,
-  });
 }

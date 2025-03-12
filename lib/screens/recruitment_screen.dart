@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:travel/component/header.dart';
+import 'package:travel/colors/color.dart';
 
 class RecruitmentScreen extends StatefulWidget {
   final String postId;
@@ -106,17 +106,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       organizerAge =
           calculateAge(doc['organizer']['organizerBirthday'].toDate())
               .toString();
-      if (doc['organizer']['hasPhoto']) {
-        DocumentReference userRef = FirebaseFirestore.instance
-            .collection("users")
-            .doc(doc['organizer']['organizerId']);
-        organizerImageURL = await userRef.get().then((userDoc) {
-          return userDoc['photoURLs'][0];
-        });
-        print("写真URLはこれです:" + organizerImageURL);
-      } else {
-        organizerImageURL = '';
-      }
+      organizerImageURL = doc['organizer']['photoURL'];
 
       List<String> memberList = doc['participants'].cast<String>();
       for (int i = 0; i < memberList.length; i++) {
@@ -170,17 +160,6 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
     return age;
   }
 
-  // Future<String> getUserImageUrl(String userId) async {
-  //   try {
-  //     return await FirebaseStorage.instance
-  //         .ref('user_images/${userId}.png') // 実際のパスに変更
-  //         .getDownloadURL();
-  //   } catch (e) {
-  //     print("Error fetching image: $e");
-  //     return ''; // 画像がない場合
-  //   }
-  // }
-
   Future<bool> _checkFavoriteStatus(String postId) async {
     if (FirebaseAuth.instance.currentUser == null)
       return false; //ログインしてなければfalseを返す
@@ -224,7 +203,39 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: Header(),
+        appBar: AppBar(
+          title: const Text(
+            '募集',
+            style: TextStyle(
+              fontSize: 20,
+              color: AppColor.subTextColor,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              context.pop(); // 戻る処理
+            },
+          ),
+          backgroundColor: AppColor.mainButtonColor,
+          actions: FirebaseAuth.instance.currentUser == null
+              ? [
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: TextButton(
+                      onPressed: () {
+                        context.go('/login');
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                      ),
+                      child: Text("ログイン",
+                          style: TextStyle(color: AppColor.mainTextColor)),
+                    ),
+                  )
+                ]
+              : null,
+        ),
         backgroundColor: Colors.white, // 背景色を白に変更
         body: SingleChildScrollView(
           child: Column(

@@ -26,7 +26,7 @@ import 'component/bottom_navigation_bar.dart';
 import 'screens/follow_recruitments_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/travel',
+  initialLocation: '/account-list',
   routes: [
     GoRoute(
       path: '/login',
@@ -111,7 +111,7 @@ final GoRouter goRouter = GoRouter(
       name: 'accountList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child:  CustomBottomNavigationBar(
           child: AccountListScreen(),
         ),
       ),

@@ -14,31 +14,37 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   List<String> recruitmentPostIdList = [];
   List<RecruitmentPost> recruitmentPosts = [];
 
+
   @override
   void initState() {
     super.initState();
-    _getRecruitments();
   }
+
+
 
   void _getRecruitments() async {
-    await _getRecruitmentIds();
-    await fetchRecruitmentLists(recruitmentPostIdList);
-  }
-
-  Future<void> _getRecruitmentIds() async {}
-
-  Future<void> fetchRecruitmentLists(List<String> recruitmentPostIdList) async {
-    recruitmentPosts = await getRecruitmentList(recruitmentPostIdList);
+    // recruitmentPostIdList = await _getRecruitmentIds();
+    recruitmentPosts = await fetchRecruitmentLists(recruitmentPostIdList);
     setState(() {
       recruitmentPosts = recruitmentPosts;
     });
   }
 
+  // Future<List<String>> _getRecruitmentIds() async {
+  //   return
+  // }
+
+  Future<List<RecruitmentPost>> fetchRecruitmentLists(
+      List<String> recruitmentPostIdList) async {
+    return await getRecruitmentList(recruitmentPostIdList);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: "募集",),
+      appBar: Header(
+        title: "募集",
+      ),
       body: _buildRecruitmentList(context),
     );
   }
@@ -79,21 +85,6 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // class RecruitmentListScreen extends StatelessWidget {
 //   RecruitmentListScreen({super.key});

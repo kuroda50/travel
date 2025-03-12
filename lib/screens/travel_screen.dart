@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart'; // go_router をインポート
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/colors/color.dart';
 import 'dart:async';
-import 'travel_search.dart'; // ここに追加
 import 'package:travel/component/header.dart';
 
 class TravelScreen extends StatefulWidget {
@@ -327,3 +326,36 @@ class Post {
     this.organizerPhotoURL,
   });
 }
+
+  // "where": {
+  //     "area": "アジア",
+  //     "destination": ["台湾","中国"],
+  // }
+  // "when": {
+  //     "startDate":"2025-02-28",
+  //     "endDate":"2025-03-02",
+  //     "dayOfWeek":["Fri","Sat","Sun"],
+  // }
+  // "target": {
+  //     "targetGroups": ["female","male"],
+  //     "ageMax": 29,
+  //     "ageMin": 20,
+  //     "hasPhoto": true
+  // },
+  // "organizer": {
+  //     "organizerGroup": "female",
+  //     "organizerBirthday": "2005-02-24",
+  //     "hasPhoto": true,
+  // }
+  // "budget": {
+  //     "budgetMin": 10, //nullでもok
+  //     "budgetMax": 15, //nullでもok
+  //     "budgetType": "splitEvenly" //nullでもok
+  // }
+  // "meetingPlace": {
+  //     "region": "日本", //nullでもok
+  //     "departure": "福岡県", //nullでもok
+  // }
+  // "title": "北欧、ヨーロッパ旅行",
+  // "tags": ["オーロラ","犬ぞり","北欧","ヨーロッパ"],
+  // "expire": false,

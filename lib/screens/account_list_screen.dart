@@ -16,7 +16,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(),
+      appBar: Header(title: "アカウント一覧"),
       body: SafeArea(
         child: Column(
           children: [

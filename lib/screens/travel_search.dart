@@ -174,7 +174,8 @@ class _TravelSearchState extends State<TravelSearch> {
                         isDate: true),
                     _buildFilterItem(context, 'いつまで', selectedEndDate,
                         isDate: true),
-                    _buildListFilterItem(context, '曜日選択', selectedDays),
+                    _buildListFilterItem(context, '曜日選択', selectedDays,
+                        isDay: true),
                     // 主催者
                     _buildSectionTitle('主催者'),
                     _buildListFilterItem(
@@ -376,8 +377,14 @@ class _TravelSearchState extends State<TravelSearch> {
       onTap: () {
         if (isDestination && selectedRegion != 'こだわらない') {
           _showDestinationModal(context, selectedRegion);
+          print("これが呼ばれた");
         } else if (isDay) {
-          _showDaysModal(context, selectedDays);
+          _showDaysModal(context, (updatedDays) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDays);
+            });
+          });
         } else if (isGenderAttribute) {
           _showGenderAttributeModal(context, isHost);
         } else if (isPaymentMethod) {
@@ -595,8 +602,8 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  void _showDaysModal(BuildContext context, List<String> selectedDays) {
-    List<String> days = ['月', '火', '水', '木', '金', '土', '日'];
+  void _showDaysModal(
+      BuildContext context, Function(List<String>) onDaysSelected) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -611,9 +618,6 @@ class _TravelSearchState extends State<TravelSearch> {
                     IconButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          setState(() {
-                            selectedDays = selectedDays;
-                          });
                         },
                         icon: Icon(Icons.arrow_back)),
                     Text('曜日',
@@ -622,7 +626,7 @@ class _TravelSearchState extends State<TravelSearch> {
                   ],
                 ),
                 SizedBox(height: 16),
-                for (var day in days)
+                for (var day in ['月', '火', '水', '木', '金', '土', '日'])
                   CheckboxListTile(
                     title: Text(day),
                     value: selectedDays.contains(day),
@@ -637,6 +641,7 @@ class _TravelSearchState extends State<TravelSearch> {
                           selectedDays.remove(day);
                         }
                       });
+                      onDaysSelected(List.from(selectedDays));
                     },
                   ),
               ],
@@ -912,16 +917,15 @@ class _TravelSearchState extends State<TravelSearch> {
                     title: Text(destination),
                     value: selectedDestinations.contains(destination),
                     onChanged: (bool? isChecked) {
-                      if (isChecked == true) {
-                        if (selectedDestinations.contains('こだわらない')) {
-                          selectedDestinations.remove('こだわらない');
-                        }
-                        selectedDestinations.add(destination);
-                      } else if (isChecked == false) {
-                        selectedDestinations.remove(destination);
-                      }
                       setState(() {
-                        selectedDestinations = selectedDestinations;
+                        if (isChecked == true) {
+                          if (selectedDestinations.contains('こだわらない')) {
+                            selectedDestinations.remove('こだわらない');
+                          }
+                          selectedDestinations.add(destination);
+                        } else if (isChecked == false) {
+                          selectedDestinations.remove(destination);
+                        }
                       });
                     },
                   ),

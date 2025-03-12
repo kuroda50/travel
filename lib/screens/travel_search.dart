@@ -3,8 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter をインポート
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
-import 'package:travel/component/header.dart';
+import 'package:travel/colors/color.dart';
 import 'package:travel/functions/function.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TravelSearch extends StatefulWidget {
   @override
@@ -61,7 +62,38 @@ class _TravelSearchState extends State<TravelSearch> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: Header(),
+        appBar: AppBar(
+          title: Text(
+            "募集検索",
+            style: TextStyle(
+              fontSize: 20,
+              color: AppColor.subTextColor,
+            ),
+          ),
+          backgroundColor: AppColor.mainButtonColor,
+          actions: FirebaseAuth.instance.currentUser == null
+              ? [
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: TextButton(
+                      onPressed: () {
+                        context.push('/login');
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                      ),
+                      child: Text("ログイン",
+                          style: TextStyle(color: AppColor.mainTextColor)),
+                    ),
+                  )
+                ]
+              : null,
+          leading: IconButton(
+              onPressed: () {
+                context.pop();
+              },
+              icon: Icon(Icons.arrow_back)),
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -80,12 +112,12 @@ class _TravelSearchState extends State<TravelSearch> {
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.close),
-                          onPressed: () {
-                            context.go('/travel'); // '/travel' へ遷移
-                          },
-                        ),
+                        // IconButton(
+                        //   icon: Icon(Icons.close),
+                        //   onPressed: () {
+                        //     context.go('/travel'); // '/travel' へ遷移
+                        //   },
+                        // ),
                       ],
                     ),
                     SizedBox(height: 16),
@@ -180,16 +212,20 @@ class _TravelSearchState extends State<TravelSearch> {
                           child: Text('リセット',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF559900), // ボタンの色を緑に設定
+                            backgroundColor:
+                                AppColor.mainButtonColor, // ボタンの色を緑に設定
                           ),
                         ),
-                         ElevatedButton.icon( // ElevatedButton.icon を使用
+                        ElevatedButton.icon(
+                          // ElevatedButton.icon を使用
                           onPressed: () {},
-                          icon: Icon(Icons.search, color: Colors.white), // 虫眼鏡アイコンを追加
+                          icon: Icon(Icons.search,
+                              color: Colors.white), // 虫眼鏡アイコンを追加
                           label: Text('この条件で検索',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF559900), // ボタンの色を緑に設定
+                            backgroundColor:
+                                AppColor.mainButtonColor, // ボタンの色を緑に設定
                           ),
                         ),
                       ],
@@ -203,7 +239,6 @@ class _TravelSearchState extends State<TravelSearch> {
       ),
     );
   }
-
 
   Widget _buildFilterItem(BuildContext context, String label, String value,
       {bool isRegion = false,

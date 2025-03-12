@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/component/header.dart';
 
 class MessageRoomScreen extends StatefulWidget {
   final String? roomId;
@@ -34,9 +35,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('メッセージルーム'),
-      ),
+      appBar: Header(title: "メッセージ",),
       backgroundColor: Colors.white,
       body: Column(
         mainAxisSize: MainAxisSize.min,

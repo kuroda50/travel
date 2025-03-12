@@ -205,7 +205,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text(
-            '旅へ行こう！',
+            '募集',
             style: TextStyle(
               fontSize: 20,
               color: AppColor.subTextColor,

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter をインポート
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/colors/color.dart';
-import 'package:travel/functions/function.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+import 'package:travel/functions/function.dart';
 
 class TravelSearch extends StatefulWidget {
   @override
@@ -14,16 +15,17 @@ class TravelSearch extends StatefulWidget {
 
 class _TravelSearchState extends State<TravelSearch> {
   String selectedRegion = 'こだわらない';
-  String selectedDestination = 'こだわらない';
+  List<String> selectedDestinations = ['こだわらない']; //
   String selectedStartDate = 'こだわらない';
   String selectedEndDate = 'こだわらない';
-  String selectedGenderAttributeHost = 'こだわらない';
-  String selectedGenderAttributeRecruit = 'こだわらない';
-  String selectedPaymentMethod = '';
+  List<String> selectedDays = ['こだわらない']; //
+  List<String> selectedGenderAttributeHost = ['こだわらない']; //
+  List<String> selectedGenderAttributeRecruit = ['こだわらない']; //
+  List<String> selectedPaymentMethod = ['こだわらない']; //
   String selectedAgeHost = 'こだわらない〜こだわらない';
   String selectedAgeRecruit = 'こだわらない〜こだわらない';
-  String selectedMeetingRegion = '';
-  String selectedDeparture = '';
+  String selectedMeetingRegion = 'こだわらない';
+  List<String> selectedDeparture = ['こだわらない']; //
 
   bool isPhotoCheckedHost = false;
   bool isPhotoCheckedRecruit = false;
@@ -35,27 +37,179 @@ class _TravelSearchState extends State<TravelSearch> {
   TextEditingController tagController = TextEditingController();
   TextEditingController additionalTextController = TextEditingController();
 
-  int filteredPeopleCount = 1571316;
+  int filteredPostsCount = 1571316;
 
-  List<String> latestPostIds = [];
-  List<RecruitmentPost> latestPosts = [];
+  List<DocumentSnapshot> _allPosts = []; // Firestore から取得した全データ
+  List<DocumentSnapshot> _filteredPosts = []; // フィルタ後のデータ
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    fetchLatestPosts();
+    _fetchAllPosts();
   }
 
-  Future<void> fetchLatestPosts() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('posts')
-        .orderBy('createdAt', descending: true)
-        .limit(4)
-        .get();
+  Future<void> _fetchAllPosts() async {
+    QuerySnapshot postsSnapshot =
+        await FirebaseFirestore.instance.collection("posts").get();
+    setState(() {
+      _allPosts = postsSnapshot.docs;
+      _filteredPosts = _allPosts; //初回はすべて表示
+      filteredPostsCount = _filteredPosts.length;
+    });
+  }
 
-    latestPostIds = querySnapshot.docs.map((doc) => doc.id).toList();
-    latestPosts = await getRecruitmentList(latestPostIds);
-    setState(() {});
+  void _onSearchChanged() {
+    print("検索を呼び出したよ");
+    // 既存のタイマーがあればキャンセル
+    _debounce?.cancel();
+
+    _debounce = Timer(Duration(microseconds: 500), () {
+      setState(() {
+        _filteredPosts = _allPosts.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+
+          final area = data["where"]["area"];
+          final destinations = List<String>.from(data["where"]["destination"]);
+          final startDate = data["when"]["startDate"].toDate();
+          final endDate = data["when"]["endDate"].toDate();
+          final dayOfWeek = data["when"]["dayOfWeek"];
+          final targetGroups = data["target"]["targetGroups"];
+          final targetAgeMax = data["target"]["ageMax"];
+          final targetAgeMin = data["target"]["ageMin"];
+          final targetHasPhoto = data["target"]["hasPhoto"];
+          final organizerGroup = data["organizer"]["organizerGroup"];
+          final organizerAge =
+              calculateAge(data["organizer"]["organizerBirthday"].toDate());
+          final organizerHasPhoto = data["organizer"]["hasPhoto"];
+          final budgetMin = data["budget"]["budgetMin"];
+          final budgetMax = data["budget"]["budgetMax"];
+          final budgetType = data["budget"]["budgetType"];
+          final region = data["meetingPlace"]["region"];
+          final departure = data["meetingPlace"]["departure"];
+          final tagsData = data["tags"];
+          final expire = data["expire"];
+          print("エラーはないよ");
+
+          final checkFilter = (selectedRegion == area ||
+                  selectedRegion == "こだわらない") &&
+              (matchesSearch(selectedDestinations, destinations) ||
+                  selectedDestinations[0] == "こだわらない") &&
+              (isOverlapping(parseDate(selectedStartDate, true),
+                  parseDate(selectedEndDate, false), startDate, endDate)) &&
+              (matchesSearch(selectedDays, dayOfWeek) ||
+                  selectedDays[0] == 'こだわらない') &&
+              (selectedGenderAttributeHost.contains(organizerGroup) ||
+                  selectedGenderAttributeHost[0] == 'こだわらない') &&
+              (matchesSearch(selectedGenderAttributeRecruit, targetGroups) ||
+                  selectedGenderAttributeRecruit[0] == 'こだわらない') &&
+              (selectedPaymentMethod.contains(budgetType) ||
+                  selectedPaymentMethod[0] == 'こだわらない') &&
+              (isAgeHostInRange(selectedAgeHost, organizerAge)) &&
+              (isAgeRecruitInRange(
+                  selectedAgeRecruit, targetAgeMin, targetAgeMax)) &&
+              (selectedMeetingRegion == region ||
+                  selectedMeetingRegion == "こだわらない") &&
+              (selectedDeparture.contains(departure) ||
+                  selectedDeparture[0] == "こだわらない") &&
+              (organizerHasPhoto || !isPhotoCheckedHost) &&
+              (targetHasPhoto || isPhotoCheckedRecruit) &&
+              (isBudgetInRange(selectedBudgetMin, selectedBudgetMax, budgetMin,
+                  budgetMax)) &&
+              (matchesSearch(tags, tagsData) || tags.isEmpty) &&
+              (!expire);
+
+          return checkFilter;
+        }).toList();
+        filteredPostsCount = _filteredPosts.length;
+      });
+      print("PostId:${_filteredPosts[0].id}");
+    });
+  }
+
+  //二つのリストの要素に同じものが一つでも含まれていたらtrueを返す
+  bool matchesSearch(
+      List<dynamic> conditions, List<dynamic> travelDestinations) {
+    return conditions
+        .toSet()
+        .intersection(travelDestinations.toSet())
+        .isNotEmpty;
+  }
+
+// (検索開始日 <= 募集終了日) かつ (検索終了日 >= 募集開始日)ならtrue
+  bool isOverlapping(DateTime searchStart, DateTime searchEnd,
+      DateTime postStart, DateTime postEnd) {
+    return searchStart.isBefore(postEnd) && searchEnd.isAfter(postStart);
+  }
+
+  DateTime parseDate(String dateStr, bool isStart) {
+    if (dateStr == 'こだわらない') {
+      return isStart ? DateTime(2000, 1, 1) : DateTime(2100, 12, 31);
+    } else {
+      return DateFormat("yyyy/MM/dd").parse(dateStr);
+    }
+  }
+
+  bool isAgeHostInRange(String selectedAge, int Age) {
+    List<String> ageRange = selectedAge.split('〜');
+
+    int minAge = ageRange[0] == 'こだわらない' ? 0 : int.parse(ageRange[0]); // 最小年齢
+    int maxAge = ageRange[1] == 'こだわらない' ? 100 : int.parse(ageRange[1]); // 最大年齢
+
+    return Age >= minAge && Age <= maxAge;
+  }
+
+  bool isAgeRecruitInRange(
+      String selectedAge, int? targetAgeMin, int? targetAgeMax) {
+    List<String> ageRange = selectedAge.split('〜');
+    int selectedAgeMin =
+        ageRange[0] == 'こだわらない' ? 0 : int.parse(ageRange[0]); // 最小年齢
+    int selectedAgeMax =
+        ageRange[1] == 'こだわらない' ? 100 : int.parse(ageRange[1]); // 最大年齢
+
+    targetAgeMin = targetAgeMin ?? 0;
+    targetAgeMax = targetAgeMax ?? 100;
+
+    return selectedAgeMax >= targetAgeMin && selectedAgeMin <= targetAgeMax;
+  }
+
+  bool isBudgetInRange(String selectedBudgetMin, String selectedBudgetMax,
+      int? budgetMin, int? budgetMax) {
+    int selectedBudgetMinInt =
+        selectedBudgetMin == '' ? 0 : int.parse(selectedBudgetMin);
+    int selectedBudgetMaxInt =
+        selectedBudgetMax == '' ? 10000 : int.parse(selectedBudgetMax);
+
+    budgetMin = budgetMin ?? 0;
+    budgetMax = budgetMax ?? 10000;
+
+    return (selectedBudgetMaxInt >= budgetMin &&
+        selectedBudgetMinInt <= budgetMax);
+  }
+
+  void resetFilter() {
+    setState(() {
+      selectedRegion = 'こだわらない';
+      selectedDestinations = ['こだわらない'];
+      selectedStartDate = 'こだわらない';
+      selectedEndDate = 'こだわらない';
+      selectedDays = ['こだわらない'];
+      selectedGenderAttributeHost = ['こだわらない'];
+      selectedGenderAttributeRecruit = ['こだわらない'];
+      selectedPaymentMethod = ['こだわらない'];
+      selectedAgeHost = 'こだわらない〜こだわらない';
+      selectedAgeRecruit = 'こだわらない〜こだわらない';
+      selectedMeetingRegion = 'こだわらない';
+      selectedDeparture = ['こだわらない'];
+
+      isPhotoCheckedHost = false;
+      isPhotoCheckedRecruit = false;
+
+      selectedBudgetMin = '';
+      selectedBudgetMax = '';
+
+      tags = [];
+    });
   }
 
   @override
@@ -112,50 +266,54 @@ class _TravelSearchState extends State<TravelSearch> {
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        // IconButton(
-                        //   icon: Icon(Icons.close),
-                        //   onPressed: () {
-                        //     context.go('/travel'); // '/travel' へ遷移
-                        //   },
-                        // ),
                       ],
                     ),
                     SizedBox(height: 16),
+                    // どこへ
                     _buildSectionTitle('どこへ'),
                     _buildFilterItem(context, '方面', selectedRegion,
                         isRegion: true),
-                    _buildFilterItem(context, '行き先', selectedDestination,
+                    _buildListFilterItem(context, '行き先', selectedDestinations,
                         isDestination: true),
+                    // いつ
                     _buildSectionTitle('いつ'),
                     _buildFilterItem(context, 'いつから', selectedStartDate,
                         isDate: true),
                     _buildFilterItem(context, 'いつまで', selectedEndDate,
                         isDate: true),
+                    _buildListFilterItem(context, '曜日選択', selectedDays,
+                        isDay: true),
+                    // 主催者
                     _buildSectionTitle('主催者'),
-                    _buildFilterItem(
+                    _buildListFilterItem(
                         context, '性別、属性', selectedGenderAttributeHost,
                         isGenderAttribute: true, isHost: true),
                     _buildFilterItem(context, '年齢', selectedAgeHost,
                         isAge: true, isHost: true),
                     _buildFilterItem(context, '写真付き', '',
                         isCheckbox: true, isHost: true),
+                    // 募集する人
                     _buildSectionTitle('募集する人'),
-                    _buildFilterItem(
+                    _buildListFilterItem(
                         context, '性別、属性', selectedGenderAttributeRecruit,
                         isGenderAttribute: true, isHost: false),
                     _buildFilterItem(context, '年齢', selectedAgeRecruit,
                         isAge: true, isHost: false),
                     _buildFilterItem(context, '写真付き', '',
                         isCheckbox: true, isHost: false),
+                    // お金について
                     _buildSectionTitle('お金について'),
                     _buildBudgetFilterItem(context, '予算'),
-                    _buildFilterItem(context, 'お金の分け方', selectedPaymentMethod,
+                    _buildListFilterItem(
+                        context, 'お金の分け方', selectedPaymentMethod,
                         isPaymentMethod: true),
+                    // 集合場所
                     _buildSectionTitle('集合場所'),
                     _buildFilterItem(context, '方面', selectedMeetingRegion,
                         isMeetingRegion: true),
-                    _buildFilterItem(context, '出発地', selectedDeparture,
+                    _buildListFilterItem(context, '出発地', selectedDeparture,
                         isDeparture: true),
+                    // タグ
                     _buildSectionTitle('タグ'),
                     Row(
                       children: [
@@ -171,6 +329,7 @@ class _TravelSearchState extends State<TravelSearch> {
                                   tags.add(value);
                                   tagController.clear();
                                 });
+                                _onSearchChanged();
                               }
                             },
                           ),
@@ -183,6 +342,7 @@ class _TravelSearchState extends State<TravelSearch> {
                                 tags.add(tagController.text);
                                 tagController.clear();
                               });
+                              _onSearchChanged();
                             }
                           },
                         ),
@@ -198,7 +358,7 @@ class _TravelSearchState extends State<TravelSearch> {
                       children: <Widget>[
                         Icon(Icons.search),
                         Text(
-                          '$filteredPeopleCount人に絞り込み中',
+                          '$filteredPostsCount個に絞り込み中',
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -208,7 +368,10 @@ class _TravelSearchState extends State<TravelSearch> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            resetFilter();
+                            _onSearchChanged();
+                          },
                           child: Text('リセット',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
@@ -217,15 +380,15 @@ class _TravelSearchState extends State<TravelSearch> {
                           ),
                         ),
                         ElevatedButton.icon(
-                          // ElevatedButton.icon を使用
-                          onPressed: () {},
-                          icon: Icon(Icons.search,
-                              color: Colors.white), // 虫眼鏡アイコンを追加
+                          onPressed: () {
+                            context.push('/recruitment-list',
+                                extra: _filteredPosts);
+                          },
+                          icon: Icon(Icons.search, color: Colors.white),
                           label: Text('この条件で検索',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                AppColor.mainButtonColor, // ボタンの色を緑に設定
+                            backgroundColor: AppColor.mainButtonColor,
                           ),
                         ),
                       ],
@@ -242,46 +405,32 @@ class _TravelSearchState extends State<TravelSearch> {
 
   Widget _buildFilterItem(BuildContext context, String label, String value,
       {bool isRegion = false,
-      bool isDestination = false,
       bool isDate = false,
       bool isCheckbox = false,
       bool isHost = true,
-      bool isGenderAttribute = false,
-      bool isPaymentMethod = false,
       bool isAge = false,
-      bool isMeetingRegion = false,
-      bool isDeparture = false,
-      bool isBudget = false}) {
+      bool isMeetingRegion = false}) {
     return InkWell(
-      onTap: isBudget
-          ? null
-          : () {
-              if (isRegion) {
-                _showRegionModal(context);
-              } else if (isDestination && selectedRegion != 'こだわらない') {
-                _showDestinationModal(context, selectedRegion);
-              } else if (isDate) {
-                _selectDate(context, label);
-              } else if (isCheckbox) {
-                setState(() {
-                  if (isHost) {
-                    isPhotoCheckedHost = !isPhotoCheckedHost;
-                  } else {
-                    isPhotoCheckedRecruit = !isPhotoCheckedRecruit;
-                  }
-                });
-              } else if (isGenderAttribute) {
-                _showGenderAttributeModal(context, isHost);
-              } else if (isPaymentMethod) {
-                _showPaymentMethodModal(context);
-              } else if (isAge) {
-                _showAgeModal(context, isHost);
-              } else if (isMeetingRegion) {
-                _showMeetingRegionModal(context);
-              } else if (isDeparture && selectedMeetingRegion.isNotEmpty) {
-                _showDepartureModal(context, selectedMeetingRegion);
-              }
-            },
+      onTap: () {
+        if (isRegion) {
+          _showRegionModal(context);
+        } else if (isDate) {
+          _selectDate(context, label);
+        } else if (isCheckbox) {
+          setState(() {
+            if (isHost) {
+              isPhotoCheckedHost = !isPhotoCheckedHost;
+            } else {
+              isPhotoCheckedRecruit = !isPhotoCheckedRecruit;
+            }
+            _onSearchChanged();
+          });
+        } else if (isAge) {
+          _showAgeModal(context, isHost);
+        } else if (isMeetingRegion) {
+          _showMeetingRegionModal(context);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
@@ -309,7 +458,9 @@ class _TravelSearchState extends State<TravelSearch> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Text(value),
+                    Text(
+                      value,
+                    ),
                     Icon(Icons.expand_more),
                   ],
                 ),
@@ -320,44 +471,92 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  Widget _buildLatestPostsSection() {
-    //3の時出た
-    return Column(
-      children: latestPosts.map((post) {
-        return Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              backgroundImage: (post.organizerPhotoURL != null &&
-                      post.organizerPhotoURL.isNotEmpty)
-                  ? NetworkImage(post.organizerPhotoURL)
-                  : null,
+  Widget _buildListFilterItem(
+    BuildContext context,
+    String label,
+    List<String> values, {
+    bool isDestination = false,
+    bool isDay = false,
+    bool isHost = true,
+    bool isGenderAttribute = false,
+    bool isPaymentMethod = false,
+    bool isDeparture = false,
+  }) {
+    return InkWell(
+      onTap: () {
+        if (isDestination && selectedRegion != 'こだわらない') {
+          _showDestinationModal(context, selectedRegion, (updatedDestination) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDestination);
+            });
+            _onSearchChanged();
+          });
+        } else if (isDay) {
+          _showDaysModal(context, (updatedDays) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDays);
+            });
+            _onSearchChanged();
+          });
+        } else if (isGenderAttribute) {
+          _showGenderAttributeModal(context, isHost, (updatedGender) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedGender);
+            });
+            _onSearchChanged();
+          });
+        } else if (isPaymentMethod) {
+          _showPaymentMethodModal(context, (updatedPaymentMethod) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedPaymentMethod);
+            });
+            _onSearchChanged();
+          });
+        } else if (isDeparture && selectedMeetingRegion != 'こだわらない') {
+          _showDepartureModal(context, selectedMeetingRegion,
+              (updatedDeparture) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDeparture);
+            });
+            _onSearchChanged();
+          });
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(label),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(post.title ?? 'タイトルなし'),
-                Text('${post.organizerGroup ?? 'グループ不明'} > '
-                    '${post.targetGroups ?? '対象不明'} '
-                    '${post.targetAgeMin ?? '年齢不明'}歳~${post.targetAgeMax ?? '年齢不明'}歳 '
-                    '${post.targetHasPhoto ?? '不明'}'),
-                Text(post.destinations?.join('、') ?? '目的地なし'),
-                Text(
-                    '${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳'),
-                Text('${post.startDate ?? '開始日不明'}~${post.endDate ?? '終了日不明'} '
-                    '${post.days?.join('') ?? '日程不明'}')
-              ],
+            SizedBox(
+              width: 20,
             ),
-            onTap: () {
-              context.push('/recruitment', extra: post.postId);
-            },
-          ),
-        );
-      }).toList(),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      values.join('、'),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                  Icon(Icons.expand_more),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -389,7 +588,7 @@ class _TravelSearchState extends State<TravelSearch> {
                       child: Text(selectedBudgetMin),
                     ),
                   ),
-                  Text(' 円〜 '),
+                  Text(' 万円〜 '),
                   Container(
                     width: 40,
                     height: 24,
@@ -400,7 +599,7 @@ class _TravelSearchState extends State<TravelSearch> {
                       child: Text(selectedBudgetMax),
                     ),
                   ),
-                  Text(' 円'),
+                  Text(' 万円'),
                   Icon(Icons.expand_more),
                 ],
               ),
@@ -425,14 +624,14 @@ class _TravelSearchState extends State<TravelSearch> {
             children: <Widget>[
               TextField(
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '最低予算（円）'),
+                decoration: InputDecoration(labelText: '最低予算（万円）'),
                 onChanged: (value) {
                   budgetMin = value;
                 },
               ),
               TextField(
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '最高予算（円）'),
+                decoration: InputDecoration(labelText: '最高予算（万円）'),
                 onChanged: (value) {
                   budgetMax = value;
                 },
@@ -454,6 +653,7 @@ class _TravelSearchState extends State<TravelSearch> {
                   selectedBudgetMax = budgetMax;
                 });
                 Navigator.of(context).pop();
+                _onSearchChanged();
               },
             ),
           ],
@@ -528,6 +728,7 @@ class _TravelSearchState extends State<TravelSearch> {
                   }
                 });
                 Navigator.of(context).pop();
+                _onSearchChanged();
               },
             ),
           ],
@@ -543,6 +744,331 @@ class _TravelSearchState extends State<TravelSearch> {
         title,
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
+    );
+  }
+
+  void _showDestinationModal(BuildContext context, String region,
+      Function(List<String>) onDestinationSelected) {
+    List<String> destinations = destinationsByArea[region] ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: Icon(Icons.arrow_back)),
+                      Text('行き先',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  for (var destination in destinations)
+                    CheckboxListTile(
+                      title: Text(destination),
+                      value: selectedDestinations.contains(destination),
+                      onChanged: (bool? isChecked) {
+                        setState(() {
+                          if (isChecked == true) {
+                            if (selectedDestinations.contains('こだわらない')) {
+                              selectedDestinations.remove('こだわらない');
+                            }
+                            selectedDestinations.add(destination);
+                          } else {
+                            selectedDestinations.remove(destination);
+                            if (selectedDestinations.isEmpty) {
+                              selectedDestinations.add('こだわらない');
+                            }
+                          }
+                        });
+                        onDestinationSelected(List.from(selectedDestinations));
+                      },
+                    ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showDaysModal(
+      BuildContext context, Function(List<String>) onDaysSelected) {
+    // 曜日の並び順を定義
+    List<String> days = ['月', '火', '水', '木', '金', '土', '日'];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('曜日',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 16),
+                for (var day in days)
+                  CheckboxListTile(
+                    title: Text(day),
+                    value: selectedDays.contains(day),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isChecked == true) {
+                          if (selectedDays.contains('こだわらない')) {
+                            selectedDays.remove('こだわらない');
+                          }
+                          selectedDays.add(day);
+                        } else {
+                          selectedDays.remove(day);
+                          if (selectedDays.isEmpty) {
+                            selectedDays.add('こだわらない');
+                          }
+                        }
+                      });
+                      // days のインデックスを基準にソート
+                      selectedDays.sort(
+                          (a, b) => days.indexOf(a).compareTo(days.indexOf(b)));
+                      onDaysSelected(List.from(selectedDays));
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showGenderAttributeModal(BuildContext context, bool isHost,
+      Function(List<String>) onGenderSelected) {
+    List<String> genders = ['男性', '女性', '家族', 'グループ'];
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            if (isHost) {
+                              selectedGenderAttributeHost =
+                                  selectedGenderAttributeHost;
+                            } else {
+                              selectedGenderAttributeRecruit =
+                                  selectedGenderAttributeRecruit;
+                            }
+                          });
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('性別、属性',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 16),
+                for (var gender in genders)
+                  CheckboxListTile(
+                    title: Text(gender),
+                    value: isHost
+                        ? selectedGenderAttributeHost.contains(gender)
+                        : selectedGenderAttributeRecruit.contains(gender),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isHost) {
+                          //主催者の場合
+                          if (isChecked == true) {
+                            if (selectedGenderAttributeHost
+                                .contains('こだわらない')) {
+                              selectedGenderAttributeHost.remove('こだわらない');
+                            }
+                            selectedGenderAttributeHost.add(gender);
+                          } else {
+                            selectedGenderAttributeHost.remove(gender);
+                            if (selectedGenderAttributeHost.isEmpty) {
+                              selectedGenderAttributeHost.add('こだわらない');
+                            }
+                          }
+                          // ソート
+                          selectedGenderAttributeHost.sort((a, b) =>
+                              genders.indexOf(a).compareTo(genders.indexOf(b)));
+                          onGenderSelected(
+                              List.from(selectedGenderAttributeHost));
+                        } else {
+                          //参加者の場合
+                          if (isChecked == true) {
+                            if (selectedGenderAttributeRecruit
+                                .contains('こだわらない')) {
+                              selectedGenderAttributeRecruit.remove('こだわらない');
+                            }
+                            selectedGenderAttributeRecruit.add(gender);
+                          } else {
+                            selectedGenderAttributeRecruit.remove(gender);
+                            if (selectedGenderAttributeRecruit.isEmpty) {
+                              selectedGenderAttributeRecruit.add('こだわらない');
+                            }
+                          }
+                          // ソート
+                          selectedGenderAttributeRecruit.sort((a, b) =>
+                              genders.indexOf(a).compareTo(genders.indexOf(b)));
+                          onGenderSelected(
+                              List.from(selectedGenderAttributeRecruit));
+                        }
+                      });
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showPaymentMethodModal(
+      BuildContext context, Function(List<String>) onPaymentMethodSelected) {
+    List<String> paymentMethods = ['割り勘', '各自自腹', '主催者が多めに出す', '主催者が少な目に出す'];
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('お金の分け方',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 16),
+                for (var paymentMethod in paymentMethods)
+                  CheckboxListTile(
+                    title: Text(paymentMethod),
+                    value: selectedPaymentMethod.contains(paymentMethod),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isChecked == true) {
+                          if (selectedPaymentMethod.contains('こだわらない')) {
+                            selectedPaymentMethod.remove('こだわらない');
+                          }
+                          selectedPaymentMethod.add(paymentMethod);
+                        } else {
+                          selectedPaymentMethod.remove(paymentMethod);
+                          if (selectedPaymentMethod.isEmpty) {
+                            selectedPaymentMethod.add('こだわらない');
+                          }
+                        }
+                      });
+                      selectedPaymentMethod.sort((a, b) => paymentMethods
+                          .indexOf(a)
+                          .compareTo(paymentMethods.indexOf(b)));
+                      onPaymentMethodSelected(List.from(selectedPaymentMethod));
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showDepartureModal(BuildContext context, String region,
+      Function(List<String>) onDepartureSelected) {
+    List<String> destinations = destinationsByArea[region] ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            setState(() {
+                              selectedDestinations = selectedDestinations;
+                            });
+                          },
+                          icon: Icon(Icons.arrow_back)),
+                      Text('出発地',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  for (var destination in destinations)
+                    CheckboxListTile(
+                      title: Text(destination),
+                      value: selectedDeparture.contains(destination),
+                      onChanged: (bool? isChecked) {
+                        setState(() {
+                          if (isChecked == true) {
+                            if (selectedDeparture.contains('こだわらない')) {
+                              selectedDeparture.remove('こだわらない');
+                            }
+                            selectedDeparture.add(destination);
+                          } else {
+                            selectedDeparture.remove(destination);
+                            if (selectedDeparture.isEmpty) {
+                              selectedDeparture.add('こだわらない');
+                            }
+                          }
+                        });
+                        onDepartureSelected(List.from(selectedDeparture));
+                      },
+                    ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
     );
   }
 
@@ -564,118 +1090,12 @@ class _TravelSearchState extends State<TravelSearch> {
                   onTap: () {
                     setState(() {
                       selectedMeetingRegion = region;
-                      selectedDeparture = 'こだわらない';
+                      selectedDeparture = ['こだわらない'];
                     });
                     Navigator.pop(context);
+                    _onSearchChanged();
                   },
                 ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showDepartureModal(BuildContext context, String region) {
-    List<String> destinations = destinationsByArea[region] ?? [];
-
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text('出発地',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                for (var destination in destinations)
-                  ListTile(
-                    title: Text(destination),
-                    onTap: () {
-                      setState(() {
-                        selectedDestination = destination;
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showGenderAttributeModal(BuildContext context, bool isHost) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                '性別、属性',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              ListTile(
-                title: Text('男性'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = '男性';
-                    } else {
-                      selectedGenderAttributeRecruit = '男性';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('女性'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = '女性';
-                    } else {
-                      selectedGenderAttributeRecruit = '女性';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('家族'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = '家族';
-                    } else {
-                      selectedGenderAttributeRecruit = '家族';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('グループ'),
-                onTap: () {
-                  setState(() {
-                    if (isHost) {
-                      selectedGenderAttributeHost = 'グループ';
-                    } else {
-                      selectedGenderAttributeRecruit = 'グループ';
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              ),
             ],
           ),
         );
@@ -701,102 +1121,12 @@ class _TravelSearchState extends State<TravelSearch> {
                   onTap: () {
                     setState(() {
                       selectedRegion = region;
-                      selectedDestination = 'こだわらない';
+                      selectedDestinations = ['こだわらない'];
                     });
                     Navigator.pop(context);
+                    _onSearchChanged();
                   },
                 ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showDestinationModal(BuildContext context, String region) {
-    List<String> destinations = destinationsByArea[region] ?? [];
-
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text('行き先',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                for (var destination in destinations)
-                  ListTile(
-                    title: Text(destination),
-                    onTap: () {
-                      setState(() {
-                        selectedDestination = destination;
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showPaymentMethodModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                'お金の分け方',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              ListTile(
-                title: Text('割り勘'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '割り勘';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('各自自腹'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '各自自腹';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('主催者が多めに出す'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '主催者が多めに出す';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('主催者が少な目に出す'),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = '主催者が少な目に出す';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
             ],
           ),
         );
@@ -835,6 +1165,7 @@ class _TravelSearchState extends State<TravelSearch> {
           selectedEndDate = formattedDate;
         }
       });
+      _onSearchChanged();
     }
   }
 }

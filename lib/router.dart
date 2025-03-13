@@ -62,7 +62,7 @@ final GoRouter goRouter = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: CustomBottomNavigationBar(
-          child: RecruitmentListScreen(),
+          child: RecruitmentListScreen(userIds: state.extra! as List<String>),
         ),
       ),
     ),

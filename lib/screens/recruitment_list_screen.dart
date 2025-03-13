@@ -4,7 +4,8 @@ import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
 
 class RecruitmentListScreen extends StatefulWidget {
-  const RecruitmentListScreen({super.key});
+  final List<String> userIds;
+  RecruitmentListScreen({super.key, required this.userIds});
 
   @override
   State<RecruitmentListScreen> createState() => _RecruitmentListScreenState();
@@ -14,25 +15,18 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   List<String> recruitmentPostIdList = [];
   List<RecruitmentPost> recruitmentPosts = [];
 
-
   @override
   void initState() {
     super.initState();
   }
 
-
-
   void _getRecruitments() async {
-    // recruitmentPostIdList = await _getRecruitmentIds();
+    recruitmentPostIdList = widget.userIds;
     recruitmentPosts = await fetchRecruitmentLists(recruitmentPostIdList);
     setState(() {
       recruitmentPosts = recruitmentPosts;
     });
   }
-
-  // Future<List<String>> _getRecruitmentIds() async {
-  //   return
-  // }
 
   Future<List<RecruitmentPost>> fetchRecruitmentLists(
       List<String> recruitmentPostIdList) async {

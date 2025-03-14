@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/component/header.dart';
 import 'package:go_router/go_router.dart';
-import 'package:travel/colors/color.dart'; // colorsフォルダのcolor.dartをインポート
+import 'package:travel/colors/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AccountListScreen extends StatefulWidget {
-  final List<String>? userIds; // `userIds` をオプショナルに変更
+  final List<String>? userIds;
 
   AccountListScreen({this.userIds});
 
@@ -16,19 +16,21 @@ class AccountListScreen extends StatefulWidget {
 
 class _AccountListScreenState extends State<AccountListScreen> {
   int currentPage = 0;
-  final int itemsPerPage = 5; // 1ページに表示するアイテム数
+  final int itemsPerPage = 5;
 
   Future<List<DocumentSnapshot>> _fetchUserData() async {
     List<DocumentSnapshot> userDocs = [];
 
     if (widget.userIds == null || widget.userIds!.isEmpty) {
-      // `userIds` が渡されていない場合は全ユーザーを取得
-      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('users').get();
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('users').get();
       userDocs = snapshot.docs;
     } else {
-      // 指定された `userIds` に対応するユーザーを取得
       for (String userId in widget.userIds!) {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
         if (userDoc.exists) {
           userDocs.add(userDoc);
         }
@@ -75,34 +77,38 @@ class _AccountListScreenState extends State<AccountListScreen> {
                       return ListItem(
                         userId: paginatedDocs[index].id,
                         name: data['name'] ?? '名前',
-                        photoURL: (data['photoURLs'] as List<dynamic>?)?.isNotEmpty == true
-                            ? data['photoURLs'][0]
-                            : null,
+                        photoURL:
+                            (data['photoURLs'] as List<dynamic>?)?.isNotEmpty ==
+                                    true
+                                ? data['photoURLs'][0]
+                                : null,
                         birthday: data['birthday'] != null
                             ? (data['birthday'] as Timestamp).toDate()
                             : null,
                         gender: data['gender'] ?? '不明',
-                        hobby: data['hobbies'] != null && data['hobbies'].isNotEmpty
-                            ? data['hobbies'][0] // 最初の趣味を表示
-                            : '趣味なし',
+                        hobbies: data['hobbies'] is List
+                            ? List<String>.from(data['hobbies'])
+                            : (data['hobbies'] is String
+                                ? [data['hobbies']]
+                                : []),
                       );
                     },
                   );
                 },
               ),
             ),
-            // ページネーションボタン
             Container(
               padding: const EdgeInsets.all(16.0),
               child: FutureBuilder<List<DocumentSnapshot>>(
                 future: _fetchUserData(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return SizedBox(); // データがない場合はボタンを非表示
+                    return SizedBox();
                   }
 
-                  int totalPages = (snapshot.data!.length / itemsPerPage).ceil();
-                  totalPages = totalPages > 0 ? totalPages : 1; // 最低1ページは表示
+                  int totalPages =
+                      (snapshot.data!.length / itemsPerPage).ceil();
+                  totalPages = totalPages > 0 ? totalPages : 1;
 
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -118,8 +124,12 @@ class _AccountListScreenState extends State<AccountListScreen> {
                           child: Text(
                             (index + 1).toString(),
                             style: TextStyle(
-                              fontWeight: currentPage == index ? FontWeight.bold : FontWeight.normal,
-                              color: currentPage == index ? Colors.blue : Colors.black,
+                              fontWeight: currentPage == index
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: currentPage == index
+                                  ? Colors.blue
+                                  : Colors.black,
                             ),
                           ),
                         ),
@@ -140,7 +150,7 @@ class ListItem extends StatefulWidget {
   final String userId;
   final String name;
   final DateTime? birthday;
-  final String hobby;
+  final List<String>? hobbies;
   final String? photoURL;
   final String? gender;
 
@@ -148,7 +158,7 @@ class ListItem extends StatefulWidget {
     required this.userId,
     required this.name,
     required this.birthday,
-    required this.hobby,
+    required this.hobbies,
     this.photoURL,
     this.gender,
   });
@@ -167,57 +177,57 @@ class _ListItemState extends State<ListItem> {
     _getCurrentUser();
   }
 
-  // 現在のログインユーザーを取得
   void _getCurrentUser() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
         currentUserId = user.uid;
       });
-      _checkIfFollowing();
+      _checkIfFollowing(widget.userId);
     }
   }
 
-  // フォローしているか確認
-  Future<void> _checkIfFollowing() async {
+  Future<void> _checkIfFollowing(String targetId) async {
     if (currentUserId == null) return;
 
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+    final userSnapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUserId)
-        .collection('following')
-        .doc(widget.userId)
         .get();
 
+    List<String> following =
+        (userSnapshot.data()?['following'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+
     setState(() {
-      isFollowing = snapshot.exists;
+      isFollowing = following.contains(targetId);
     });
   }
 
-  // フォロー/フォロー解除の処理
   Future<void> _toggleFollow() async {
     if (currentUserId == null) return;
 
-    final followingRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserId)
-        .collection('following')
-        .doc(widget.userId);
-
-    final followersRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .collection('followers')
-        .doc(currentUserId);
+    final currentUserRef =
+        FirebaseFirestore.instance.collection('users').doc(currentUserId);
+    final targetUserRef =
+        FirebaseFirestore.instance.collection('users').doc(widget.userId);
 
     if (isFollowing) {
-      // フォロー解除
-      await followingRef.delete();
-      await followersRef.delete();
+      await currentUserRef.update({
+        'following': FieldValue.arrayRemove([widget.userId])
+      });
+      await targetUserRef.update({
+        'followers': FieldValue.arrayRemove([currentUserId])
+      });
     } else {
-      // フォロー
-      await followingRef.set({'followedAt': FieldValue.serverTimestamp()});
-      await followersRef.set({'followedAt': FieldValue.serverTimestamp()});
+      await currentUserRef.update({
+        'following': FieldValue.arrayUnion([widget.userId])
+      });
+      await targetUserRef.update({
+        'followers': FieldValue.arrayUnion([currentUserId])
+      });
     }
 
     setState(() {
@@ -230,11 +240,20 @@ class _ListItemState extends State<ListItem> {
     DateTime now = DateTime.now();
     int age = now.year - widget.birthday!.year;
     if (now.month < widget.birthday!.month ||
-        (now.month == widget.birthday!.month &&
-            now.day < widget.birthday!.day)) {
+        (now.month == widget.birthday!.month && now.day < widget.birthday!.day)) {
       age--;
     }
     return age;
+  }
+
+  String getHobbiesText() {
+    if (widget.hobbies == null || widget.hobbies!.isEmpty) {
+      return '趣味なし';
+    }
+    if (widget.hobbies!.length > 2) {
+      return '${widget.hobbies!.take(2).join(", ")} ……';
+    }
+    return widget.hobbies!.join(", ");
   }
 
   @override
@@ -259,7 +278,7 @@ class _ListItemState extends State<ListItem> {
                   ? NetworkImage(widget.photoURL!)
                   : null,
               child: widget.photoURL == null
-                  ? Icon(Icons.person, color: Colors.white)
+              ? Icon(Icons.person, color: Colors.white)
                   : null,
             ),
             SizedBox(width: 16),
@@ -292,7 +311,7 @@ class _ListItemState extends State<ListItem> {
                     children: [
                       Icon(Icons.sports_baseball, size: 16, color: Colors.blue),
                       SizedBox(width: 4),
-                      Text(widget.hobby, style: TextStyle(fontSize: 14)),
+                      Text(getHobbiesText(), style: TextStyle(fontSize: 14)),
                     ],
                   ),
                 ],
@@ -301,7 +320,8 @@ class _ListItemState extends State<ListItem> {
             ElevatedButton(
               onPressed: _toggleFollow,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isFollowing ? Colors.grey : AppColor.mainButtonColor,
+                backgroundColor:
+                    isFollowing ? Colors.grey : AppColor.mainButtonColor,
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RecruitmentListScreen extends StatefulWidget {
-  final List<String> userIds;
-  RecruitmentListScreen({super.key, required this.userIds});
+  List<String> postIds;
+  RecruitmentListScreen({super.key, required this.postIds});
 
   @override
   State<RecruitmentListScreen> createState() => _RecruitmentListScreenState();
@@ -18,10 +19,12 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   @override
   void initState() {
     super.initState();
+    _getRecruitments();
   }
 
   void _getRecruitments() async {
-    recruitmentPostIdList = widget.userIds;
+    recruitmentPostIdList = widget.postIds;
+    print(recruitmentPostIdList[0]);
     recruitmentPosts = await fetchRecruitmentLists(recruitmentPostIdList);
     setState(() {
       recruitmentPosts = recruitmentPosts;

@@ -23,10 +23,12 @@ Future<List<RecruitmentPost>> getRecruitmentList(
     await recruitmentRef.get().then((recruitment) {
       if (recruitment.exists) {
         // 'post' をここで初期化
+        print(recruitment['title']);
+        print(i);
         RecruitmentPost post = RecruitmentPost(
           postId: recruitmentPostIdList[i],
           title: recruitment['title'],
-          organizerPhotoURL: recruitment['organizer']['photoURL'],
+          organizerPhotoURL: recruitment['organizer']['photoURL'] ?? "",
           organizerGroup: recruitment['organizer']['organizerGroup'],
           targetGroups: List<String>.from(recruitment['target']['targetGroups']
               .map((group) => group.toString())

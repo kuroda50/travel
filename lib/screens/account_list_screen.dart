@@ -6,6 +6,10 @@ import 'package:travel/colors/color.dart'; // colorsフォルダのcolor.dartを
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AccountListScreen extends StatefulWidget {
+  final List<String>? userIds; // `userIds` をオプショナルに変更
+
+  AccountListScreen({this.userIds});
+
   @override
   _AccountListScreenState createState() => _AccountListScreenState();
 }
@@ -13,6 +17,25 @@ class AccountListScreen extends StatefulWidget {
 class _AccountListScreenState extends State<AccountListScreen> {
   int currentPage = 0;
   final int itemsPerPage = 5; // 1ページに表示するアイテム数
+
+  Future<List<DocumentSnapshot>> _fetchUserData() async {
+    List<DocumentSnapshot> userDocs = [];
+
+    if (widget.userIds == null || widget.userIds!.isEmpty) {
+      // `userIds` が渡されていない場合は全ユーザーを取得
+      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('users').get();
+      userDocs = snapshot.docs;
+    } else {
+      // 指定された `userIds` に対応するユーザーを取得
+      for (String userId in widget.userIds!) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+          userDocs.add(userDoc);
+        }
+      }
+    }
+    return userDocs;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,21 +45,20 @@ class _AccountListScreenState extends State<AccountListScreen> {
         child: Column(
           children: [
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance.collection('users').snapshots(),
+              child: FutureBuilder<List<DocumentSnapshot>>(
+                future: _fetchUserData(),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(child: Text('エラーが発生しました'));
-                  }
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
-                  if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('エラーが発生しました'));
+                  }
+                  if (snapshot.data == null || snapshot.data!.isEmpty) {
                     return Center(child: Text('データがありません'));
                   }
 
-                  List<DocumentSnapshot> allDocs = snapshot.data!.docs;
+                  List<DocumentSnapshot> allDocs = snapshot.data!;
                   int totalPages = (allDocs.length / itemsPerPage).ceil();
 
                   List<DocumentSnapshot> paginatedDocs = allDocs
@@ -53,17 +75,14 @@ class _AccountListScreenState extends State<AccountListScreen> {
                       return ListItem(
                         userId: paginatedDocs[index].id,
                         name: data['name'] ?? '名前',
-                        photoURL:
-                            (data['photoURLs'] as List<dynamic>?)?.isNotEmpty ==
-                                    true
-                                ? data['photoURLs'][0]
-                                : null,
+                        photoURL: (data['photoURLs'] as List<dynamic>?)?.isNotEmpty == true
+                            ? data['photoURLs'][0]
+                            : null,
                         birthday: data['birthday'] != null
                             ? (data['birthday'] as Timestamp).toDate()
                             : null,
                         gender: data['gender'] ?? '不明',
-                        hobby: data['hobbies'] != null &&
-                                data['hobbies'].isNotEmpty
+                        hobby: data['hobbies'] != null && data['hobbies'].isNotEmpty
                             ? data['hobbies'][0] // 最初の趣味を表示
                             : '趣味なし',
                       );
@@ -75,16 +94,14 @@ class _AccountListScreenState extends State<AccountListScreen> {
             // ページネーションボタン
             Container(
               padding: const EdgeInsets.all(16.0),
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance.collection('users').snapshots(),
+              child: FutureBuilder<List<DocumentSnapshot>>(
+                future: _fetchUserData(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return SizedBox(); // データがない場合はボタンを非表示
                   }
 
-                  int totalPages =
-                      (snapshot.data!.docs.length / itemsPerPage).ceil();
+                  int totalPages = (snapshot.data!.length / itemsPerPage).ceil();
                   totalPages = totalPages > 0 ? totalPages : 1; // 最低1ページは表示
 
                   return Row(
@@ -101,12 +118,8 @@ class _AccountListScreenState extends State<AccountListScreen> {
                           child: Text(
                             (index + 1).toString(),
                             style: TextStyle(
-                              fontWeight: currentPage == index
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: currentPage == index
-                                  ? Colors.blue
-                                  : Colors.black,
+                              fontWeight: currentPage == index ? FontWeight.bold : FontWeight.normal,
+                              color: currentPage == index ? Colors.blue : Colors.black,
                             ),
                           ),
                         ),

@@ -89,7 +89,6 @@ class _TravelSearchState extends State<TravelSearch> {
           final departure = data["meetingPlace"]["departure"];
           final tagsData = data["tags"];
           final expire = data["expire"];
-          print("エラーはないよ");
 
           final checkFilter = (selectedRegion == area ||
                   selectedRegion == "こだわらない") &&
@@ -123,7 +122,6 @@ class _TravelSearchState extends State<TravelSearch> {
         }).toList();
         filteredPostsCount = _filteredPosts.length;
       });
-      print("PostId:${_filteredPosts[0].id}");
     });
   }
 
@@ -209,6 +207,16 @@ class _TravelSearchState extends State<TravelSearch> {
       selectedBudgetMax = '';
 
       tags = [];
+    });
+  }
+
+  void _resetDate(bool isStart) {
+    setState(() {
+      if (isStart) {
+        selectedStartDate = "こだわらない";
+      } else {
+        selectedEndDate = "こだわらない";
+      }
     });
   }
 
@@ -381,8 +389,11 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                         ElevatedButton.icon(
                           onPressed: () {
-                            context.push('/recruitment-list',
-                                extra: _filteredPosts);
+                            List<String> postIds = [];
+                            for (int i = 0; i < filteredPostsCount; i++) {
+                              postIds.add(_filteredPosts[i].id);
+                            }
+                            context.push('/recruitment-list', extra: postIds);
                           },
                           icon: Icon(Icons.search, color: Colors.white),
                           label: Text('この条件で検索',
@@ -1135,27 +1146,57 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   Future<void> _selectDate(BuildContext context, String label) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Colors.blueAccent, // アクセントカラー
-            colorScheme: ColorScheme.light(primary: Colors.blueAccent),
-            dialogBackgroundColor: Colors.white,
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueAccent, // ボタンの色
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
+    DateTime initialTime = DateTime.now();
+    if (label == 'いつから' && selectedStartDate != 'こだわらない') {
+      initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
+    } else if (label == 'いつまで' && selectedEndDate != 'こだわらない') {
+      initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
+    }
+    DateTime? picked = await showCustomDatePicker(context, initialTime);
+    // showDatePicker(
+    //   context: context,
+    //   initialDate: DateTime.now(),
+    //   firstDate: DateTime.now(),
+    //   lastDate: DateTime(2101),
+    //   builder: (context, child) {
+    //     return Theme(
+    //       data: ThemeData.light().copyWith(
+    //         primaryColor: Colors.blueAccent, // アクセントカラー
+    //         colorScheme: ColorScheme.light(primary: Colors.blueAccent),
+    //         dialogBackgroundColor: Colors.white,
+    //         textButtonTheme: TextButtonThemeData(
+    //           style: TextButton.styleFrom(
+    //             foregroundColor: Colors.blueAccent, // ボタンの色
+    //           ),
+    //         ),
+    //       ),
+    //       child: child!,
+    //     );
+    //   },
+    // );
+    setState(() {
+      if (picked != null) {
+        String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
+        if (label == 'いつから') {
+          selectedStartDate = formattedDate;
+        } else if (label == 'いつまで') {
+          selectedEndDate = formattedDate;
+        }
+      } else {
+        if (label == 'いつから') {
+          selectedStartDate = 'こだわらない';
+        } else if (label == 'いつまで') {
+          selectedEndDate = 'こだわらない';
+        }
+      }
+    });
+    _onSearchChanged();
+  }
+
+  Future<void> _selectDate2(BuildContext context, String label) async {
+    final DateTime? picked =
+        await showCustomDatePicker(context, parseDate(selectedStartDate, true));
+
     if (picked != null) {
       setState(() {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
@@ -1170,6 +1211,60 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 }
 
+Future<DateTime?> showCustomDatePicker(
+    BuildContext context, DateTime? initialDate) async {
+  DateTime? selectedDate = initialDate ?? DateTime.now();
+  print("呼ばれたよ");
+
+  return showDialog<DateTime>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('日付を選択'),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Container(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 300, // 高さを指定
+                      child: CalendarDatePicker(
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2101),
+                        onDateChanged: (DateTime date) {
+                          setState(() {
+                            selectedDate = date;
+                            Navigator.of(context).pop(selectedDate);
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ));
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              selectedDate = null; // 💡 選択をリセット
+              Navigator.of(context).pop(selectedDate);
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: AppColor.mainButtonColor,
+            ),
+            child: const Text('リセット',
+                style: TextStyle(color: AppColor.subTextColor)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Widget _buildSectionTitle(String title) {
   return Padding(
     padding: const EdgeInsets.only(left: 0.0, bottom: 4.0),
@@ -1181,6 +1276,7 @@ Widget _buildSectionTitle(String title) {
 }
 
 const Map<String, List<String>> destinationsByArea = {
+  "こだわらない": ["こだわらない"],
   "ヨーロッパ": [
     "アイスランド",
     "アイルランド",

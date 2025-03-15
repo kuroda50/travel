@@ -240,7 +240,8 @@ class _ListItemState extends State<ListItem> {
     DateTime now = DateTime.now();
     int age = now.year - widget.birthday!.year;
     if (now.month < widget.birthday!.month ||
-        (now.month == widget.birthday!.month && now.day < widget.birthday!.day)) {
+        (now.month == widget.birthday!.month &&
+            now.day < widget.birthday!.day)) {
       age--;
     }
     return age;
@@ -258,9 +259,11 @@ class _ListItemState extends State<ListItem> {
 
   @override
   Widget build(BuildContext context) {
+    bool isCurrentUser = currentUserId == widget.userId; // 自分自身かどうか判定
+
     return GestureDetector(
       onTap: () {
-        context.go('/profile', extra: widget.userId);
+        context.push('/profile', extra: widget.userId);
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 5.0),
@@ -278,7 +281,7 @@ class _ListItemState extends State<ListItem> {
                   ? NetworkImage(widget.photoURL!)
                   : null,
               child: widget.photoURL == null
-              ? Icon(Icons.person, color: Colors.white)
+                  ? Icon(Icons.person, color: Colors.white)
                   : null,
             ),
             SizedBox(width: 16),
@@ -293,12 +296,22 @@ class _ListItemState extends State<ListItem> {
                   SizedBox(height: 4),
                   Row(
                     children: [
-                      if (widget.gender == "男性")
-                        Icon(Icons.male, color: Colors.blue, size: 20)
-                      else if (widget.gender == "女性")
-                        Icon(Icons.female, color: Colors.red, size: 20)
+                      if (widget.gender == "male")
+                        Icon(Icons.male,
+                            color: Colors.blue, size: 20) // 男性アイコン（青）
+                      else if (widget.gender == "female")
+                        Icon(Icons.female,
+                            color: Colors.red, size: 20) // 女性アイコン（赤）
+                      else if (widget.gender == "family")
+                        Icon(Icons.family_restroom,
+                            color: Colors.green, size: 20) // 家族アイコン（緑）
+                      else if (widget.gender == "group")
+                        Icon(Icons.groups,
+                            color: Colors.orange, size: 20) // グループアイコン（オレンジ）
                       else
-                        Icon(Icons.help_outline, color: Colors.grey, size: 20),
+                        Icon(Icons.help_outline,
+                            color: Colors.grey, size: 20), // 不明な場合のアイコン
+
                       SizedBox(width: 8),
                       Text(
                         widget.gender ?? '不明',
@@ -317,25 +330,26 @@ class _ListItemState extends State<ListItem> {
                 ],
               ),
             ),
-            ElevatedButton(
-              onPressed: _toggleFollow,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isFollowing ? Colors.grey : AppColor.mainButtonColor,
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            if (!isCurrentUser) // 自分自身のアカウントでない場合のみフォローボタンを表示
+              ElevatedButton(
+                onPressed: _toggleFollow,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isFollowing ? Colors.grey : AppColor.mainButtonColor,
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  isFollowing ? 'フォロー解除' : 'フォロー',
+                  style: TextStyle(
+                    color: AppColor.subTextColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              child: Text(
-                isFollowing ? 'フォロー解除' : 'フォロー',
-                style: TextStyle(
-                  color: AppColor.subTextColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
           ],
         ),
       ),

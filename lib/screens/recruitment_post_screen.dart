@@ -1,5 +1,5 @@
 
-// ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, prefer_const_literals_to_create_immutables, sort_child_properties_last, deprecated_member_use, avoid_print
+// ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, prefer_const_literals_to_create_immutables, sort_child_properties_last, deprecated_member_use, avoid_print, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -1179,10 +1179,11 @@ Future<void> _postToFirestore() async {
   };
 
   try {
-    await FirebaseFirestore.instance.collection("posts").add(postData);
+    DocumentReference postRef = await FirebaseFirestore.instance.collection("posts").add(postData);
+    String postId = postRef.id;
 
     final chatRoomData = {
-      "postId": null, // postIdはnullでもOK
+      "postId": postId,
       "participants": [user.uid],
       "createdAt": Timestamp.now(),
       "latestMessage": {
@@ -1195,11 +1196,17 @@ Future<void> _postToFirestore() async {
 
     await chatRoomRef.set(chatRoomData);
 
+    // ユーザーのchatRoomsとparticipatedPostsを更新
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      "chatRooms": FieldValue.arrayUnion([roomId]),
+      "participatedPosts": FieldValue.arrayUnion([postId]),
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('投稿が完了しました')),
     );
 
-   // チャット画面に遷移
+    // チャット画面に遷移
     Navigator.push(
       context,
       MaterialPageRoute(

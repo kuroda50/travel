@@ -1,8 +1,16 @@
+
+// ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, prefer_const_literals_to_create_immutables, sort_child_properties_last, deprecated_member_use, avoid_print, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:travel/colors/color.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+import 'package:travel/places/places.dart';
+import 'package:travel/screens/message_room_screen.dart';
 
 class RecruitmentPostScreen extends StatefulWidget {
   const RecruitmentPostScreen({super.key});
@@ -12,843 +20,482 @@ class RecruitmentPostScreen extends StatefulWidget {
 }
 
 class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _tagsController = TextEditingController();
-  String? _selectedArea;
-  List<String> _selectedDestinations = [];
-  DateTime? _startDate;
-  DateTime? _endDate;
-  List<String> _selectedTargetGroups = []; // 複数選択可能に変更
-  int? _ageMin;
-  int? _ageMax;
-  bool _hasPhoto = false;
-  String? _selectedOrganizerGroup;
-  String? _selectedBudgetType;
-  int? _budgetMin;
-  int? _budgetMax;
-  String? _selectedMeetingRegion;
-  String? _selectedMeetingDeparture;
-  List<String> _tags = [];
-  String? _selectedTag;
+  String selectedRegion = '入力してください';
+  List<String> selectedDestinations = ['入力してください'];
+  String selectedStartDate = '入力してください';
+  String selectedEndDate = '入力してください';
+  List<String> selectedDays = ['入力してください'];
+  String selectedGenderAttributeHost = '入力してください';
+  List<String> selectedGenderAttributeRecruit = ['入力してください'];
+  String selectedPaymentMethod = 'こだわらない';
+  String selectedAgeHost = 'こだわらない～こだわらない';
+  String selectedAgeRecruit = 'こだわらない〜こだわらない';
+  String selectedMeetingRegion = 'こだわらない';
+  List<String> selectedDeparture = ['こだわらない'];//
 
-  final List<String> _areas = ['アジア', 'ヨーロッパ', '北中米', '南米', 'オセアニア・ハワイ', '日本', 'アフリカ・中東'];
-  final Map<String, List<String>> destinationsByArea = {
-    "ヨーロッパ": [
-      "アイスランド",
-      "アイルランド",
-      "アゼルバイジャン",
-      "アルバニア",
-      "アルメニア",
-      "アンドラ",
-      "イギリス",
-      "イタリア",
-      "ウクライナ",
-      "エストニア",
-      "オーストリア",
-      "オランダ",
-      "ギリシャ",
-      "クロアチア",
-      "コソボ",
-      "サンマリノ",
-      "ジョージア",
-      "スイス",
-      "スウェーデン",
-      "スペイン",
-      "スロバキア",
-      "スロベニア",
-      "セルビア",
-      "タジキスタン",
-      "チェコ",
-      "デンマーク",
-      "ドイツ",
-      "ノルウェー",
-      "ハンガリー",
-      "フィンランド",
-      "フランス",
-      "ブルガリア",
-      "ベラルーシ",
-      "ベルギー",
-      "ポーランド",
-      "ボスニア・ヘルツェゴビナ",
-      "ポルトガル",
-      "北マケドニア",
-      "モナコ",
-      "モルドバ",
-      "モンテネグロ",
-      "ラトビア",
-      "リトアニア",
-      "リヒテンシュタイン",
-      "ルーマニア",
-      "ルクセンブルク",
-      "ロシア",
-    ],
-    "アジア": [
-      "インド",
-      "インドネシア",
-      "ウズベキスタン",
-      "カザフスタン",
-      "カンボジア",
-      "キルギス",
-      "シンガポール",
-      "スリランカ",
-      "タイ",
-      "タジキスタン",
-      "トルクメニスタン",
-      "ネパール",
-      "パキスタン",
-      "バングラデシュ",
-      "フィリピン",
-      "ブータン",
-      "ブルネイ",
-      "ベトナム",
-      "マレーシア",
-      "ミャンマー",
-      "モルディブ",
-      "モンゴル",
-      "ラオス",
-      "韓国",
-      "中国",
-      "台湾",
-      "日本",
-      "香港",
-      "マカオ",
-    ],
-    "北中米": [
-      "アメリカ合衆国",
-      "アンティグア・バーブーダ",
-      "エルサルバドル",
-      "カナダ",
-      "キューバ",
-      "グアテマラ",
-      "グレナダ",
-      "コスタリカ",
-      "ジャマイカ",
-      "セントクリストファー・ネーヴィス",
-      "セントビンセント・グレナディーン",
-      "セントルシア",
-      "ドミニカ国",
-      "ドミニカ共和国",
-      "トリニダード・トバゴ",
-      "ニカラグア",
-      "ハイチ",
-      "バハマ",
-      "パナマ",
-      "バルバドス",
-      "ベリーズ",
-      "ホンジュラス",
-      "メキシコ",
-    ],
-    "南米": [
-      "アルゼンチン",
-      "ウルグアイ",
-      "エクアドル",
-      "ガイアナ",
-      "コロンビア",
-      "スリナム",
-      "チリ",
-      "パラグアイ",
-      "ブラジル",
-      "ベネズエラ",
-      "ペルー",
-      "ボリビア",
-    ],
-    "オセアニア・ハワイ": [
-      "オーストラリア",
-      "キリバス",
-      "クック諸島",
-      "サモア",
-      "ソロモン諸島",
-      "ツバル",
-      "トンガ",
-      "ナウル",
-      "ニュージーランド",
-      "バヌアツ",
-      "パラオ",
-      "パプアニューギニア",
-      "フィジー",
-      "マーシャル諸島",
-      "ミクロネシア",
-      "ハワイ",
-    ],
-    "日本": [
-      "北海道",
-      "青森県",
-      "岩手県",
-      "宮城県",
-      "秋田県",
-      "山形県",
-      "福島県",
-      "茨城県",
-      "栃木県",
-      "群馬県",
-      "埼玉県",
-      "千葉県",
-      "東京都",
-      "神奈川県",
-      "新潟県",
-      "富山県",
-      "石川県",
-      "福井県",
-      "山梨県",
-      "長野県",
-      "岐阜県",
-      "静岡県",
-      "愛知県",
-      "三重県",
-      "滋賀県",
-      "京都府",
-      "大阪府",
-      "兵庫県",
-      "奈良県",
-      "和歌山県",
-      "鳥取県",
-      "島根県",
-      "岡山県",
-      "広島県",
-      "山口県",
-      "徳島県",
-      "香川県",
-      "愛媛県",
-      "高知県",
-      "福岡県",
-      "佐賀県",
-      "長崎県",
-      "熊本県",
-      "大分県",
-      "宮崎県",
-      "鹿児島県",
-      "沖縄県",
-    ],
-    "アフリカ・中東": [
-      "アルジェリア",
-      "アラブ首長国連邦",
-      "イスラエル",
-      "イラク",
-      "イラン",
-      "ウガンダ",
-      "エジプト",
-      "エチオピア",
-      "ガーナ",
-      "カタール",
-      "カメルーン",
-      "ガボン",
-      "ガンビア",
-      "ギニア",
-      "ギニアビサウ",
-      "ケニア",
-      "コートジボワール",
-      "コンゴ共和国",
-      "コンゴ民主共和国",
-      "サウジアラビア",
-      "ザンビア",
-      "シエラレオネ",
-      "ジブチ",
-      "ジンバブエ",
-      "スーダン",
-      "スワジランド",
-      "セーシェル",
-      "セネガル",
-      "ソマリア",
-      "タンザニア",
-      "チャド",
-      "中央アフリカ共和国",
-      "チュニジア",
-      "トーゴ",
-      "ナイジェリア",
-      "ナミビア",
-      "ニジェール",
-      "ブルキナファソ",
-      "ブルンジ",
-      "ベナン",
-      "ボツワナ",
-      "マダガスカル",
-      "マラウイ",
-      "マリ",
-      "南アフリカ",
-      "南スーダン",
-      "モーリシャス",
-      "モーリタニア",
-      "モザンビーク",
-      "モロッコ",
-      "リビア",
-      "リベリア",
-      "ルワンダ",
-      "レソト",
-      "レバノン",
-      "アフガニスタン",
-      "イエメン",
-      "オマーン",
-      "クウェート",
-      "シリア",
-      "トルコ",
-      "バーレーン",
-      "ヨルダン",
-      "レバノン",
-    ],
-  };
-  final List<String> _targetGroups = ['男', '女', 'その他', 'グループ'];
-  final Map<String, String> _targetGroupMap = {
-    '男': 'male',
-    '女': 'female',
-    'その他': 'others',
-    'グループ': 'group',
-  };
-  final List<String> _budgetTypes = ['splitEvenly', 'individual'];
+  bool isPhotoCheckedHost = false;
+  bool isPhotoCheckedRecruit = false;
 
-  // 1. 曜日を選択するためのリストとマップを追加
-  final List<String> _daysOfWeek = ['月', '火', '水', '木', '金', '土', '日'];
-  final Map<String, String> _daysOfWeekMap = {
-    '月': 'Mon',
-    '火': 'Tue',
-    '水': 'Wed',
-    '木': 'Thu',
-    '金': 'Fri',
-    '土': 'Sat',
-    '日': 'Sun',
-  };
-  List<String> _selectedDaysOfWeek = [];
+  String selectedBudgetMin = '';
+  String selectedBudgetMax = '';
 
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // ユーザー情報を取得
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+  List<String> tags = [];
+  TextEditingController tagController = TextEditingController();
+  TextEditingController additionalTextController = TextEditingController();
 
-        final postData = {
-          'tags': _tagsController.text.split(','),
-          'where': {
-            'area': _selectedArea,
-            'destination': _selectedDestinations,
-          },
-          'when': {
-          'startDate': _startDate != null ? Timestamp.fromDate(_startDate!) : null,
-          'endDate': _endDate != null ? Timestamp.fromDate(_endDate!) : null,
-          'dayOfWeek': _selectedDaysOfWeek,
-          },
-          'target': {
-            'targetGroups': _selectedTargetGroups,
-            'ageMin': _ageMin,
-            'ageMax': _ageMax,
-            'hasPhoto': _hasPhoto,
-          },
-          'organizer': {
-            'organizerId': user.uid,
-            'organizerGroup': _selectedOrganizerGroup,
-            'organizerName': userData['name'],
-            'organizerBirthday': userData['birthday'],
-            'hasPhoto': userData['hasPhoto'],
-            'photoURL': userData['photoURL'],
-          },
-          'budget': {
-            'budgetMin': _budgetMin,
-            'budgetMax': _budgetMax,
-            'budgetType': _selectedBudgetType,
-          },
-          'meetingPlace': {
-            'region': _selectedMeetingRegion,
-            'departure': _selectedMeetingDeparture,
-          },
-          'title': _titleController.text,
-          'description': _descriptionController.text,
-          'createdAt': Timestamp.now(),
-          'expire': false,
-        };
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
 
-        await FirebaseFirestore.instance.collection('posts').add(postData);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('投稿が完了しました')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ユーザー情報が取得できませんでした')),
-        );
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
   }
 
-  void _showAreaModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text('方面',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                for (var area in _areas)
-                  ListTile(
-                    title: Text(area),
-                    onTap: () {
-                      setState(() {
-                        _selectedArea = area;
-                        _selectedDestinations = []; // エリア選択時に行き先をリセット
-                      });
-                    },
-                  ),
-              ],
+  void resetPost() {
+    setState(() {
+      selectedRegion = '入力してください';
+      selectedDestinations = ['入力してください'];
+      selectedStartDate = '入力してください';
+      selectedEndDate = '入力してください';
+      selectedDays = ['入力してください'];
+      selectedGenderAttributeHost = '入力してください';
+      selectedGenderAttributeRecruit = ['入力してください'];
+      selectedPaymentMethod = 'こだわらない';
+      selectedAgeHost = 'こだわらない～こだわらない';
+      selectedAgeRecruit = 'こだわらない～こだわらない';
+      selectedMeetingRegion = 'こだわらない';
+      selectedDeparture = ['こだわらない'];
+
+      isPhotoCheckedHost = false;
+      isPhotoCheckedRecruit = false;
+
+      selectedBudgetMin = '';
+      selectedBudgetMax = '';
+
+      tags = [];
+      titleController.clear();
+      descriptionController.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "募集投稿",
+            style: TextStyle(
+              fontSize: 20,
+              color: AppColor.subTextColor,
             ),
           ),
-        );
-      },
-    );
-  }
-
-  void _showDestinationModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('行き先',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              for (var destination in destinationsByArea[_selectedArea] ?? [])
-                CheckboxListTile(
-                  title: Text(destination),
-                  value: _selectedDestinations.contains(destination),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedDestinations.add(destination);
-                      } else {
-                        _selectedDestinations.remove(destination);
-                      }
-                    });
-                  },
-                ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                child: Text('OK'),
-                onPressed: () {
-                  setState(() {}); // 状態を更新して選択された行き先を表示
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-  void _showTargetGroupModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Container(
-              padding: EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text('性別、属性',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 16),
-                    for (var group in _targetGroups)
-                      CheckboxListTile(
-                        title: Text(group),
-                        value: _selectedTargetGroups.contains(_targetGroupMap[group]),
-                        onChanged: (bool? value) {
-                          setState(() {
-                            if (value == true) {
-                              _selectedTargetGroups.add(_targetGroupMap[group]!);
-                            } else {
-                              _selectedTargetGroups.remove(_targetGroupMap[group]);
-                            }
-                          });
-                        },
-                      ),
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      child: Text('OK'),
+          backgroundColor: AppColor.mainButtonColor,
+          actions: FirebaseAuth.instance.currentUser == null
+              ? [
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: TextButton(
                       onPressed: () {
-                        setState(() {}); // 状態を更新して選択された性別を表示
-                        Navigator.pop(context);
+                        context.push('/login');
                       },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                      ),
+                      child: Text("ログイン",
+                          style: TextStyle(color: AppColor.mainTextColor)),
+                    ),
+                  )
+                ]
+              : null,
+          leading: IconButton(
+              onPressed: () {
+                context.pop();
+              },
+              icon: Icon(Icons.arrow_back)),
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16.0),
+                  children: <Widget>[
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 145), // 左側のパディングを調整
+                          child: Text(
+                            '募集概要',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    // タグ
+                    _buildTaginput(),
+                    // どこへ
+                    _buildSectionTitle('どこへ'),
+                    _buildFilterItem(context, '方面', selectedRegion,
+                        isRegion: true),
+                    _buildListFilterItem(context, '行き先', selectedDestinations,
+                        isDestination: true),
+                    // いつ
+                    _buildSectionTitle('いつ'),
+                    _buildFilterItem(context, 'いつから', selectedStartDate,
+                        isDate: true),
+                    _buildFilterItem(context, 'いつまで', selectedEndDate,
+                        isDate: true),
+                    _buildListFilterItem(context, '曜日選択', selectedDays,
+                        isDay: true),
+                    // 主催者
+                    _buildSectionTitle('主催者'),
+                    _buildFilterItem(
+                        context, '性別、属性', selectedGenderAttributeHost,
+                        isGenderAttribute1: true),
+                    // 募集する人
+                    _buildSectionTitle('募集する人'),
+                    _buildListFilterItem(
+                        context, '性別、属性', selectedGenderAttributeRecruit,
+                        isGenderAttribute2: true),
+                    _buildFilterItem(context, '年齢', selectedAgeRecruit,
+                        isAge: true, isHost: false),
+                    _buildFilterItem(context, '写真付き', '',
+                        isCheckbox: true, isHost: false),
+                    // お金について
+                    _buildSectionTitle('お金について'),
+                    _buildBudgetFilterItem(context, '予算'),
+                    _buildFilterItem(
+                        context, 'お金の分け方', selectedPaymentMethod,
+                        isPaymentMethod: true),
+                    // 集合場所
+                    _buildSectionTitle('集合場所'),
+                    _buildFilterItem(context, '方面', selectedMeetingRegion,
+                        isMeetingRegion: true),
+                    _buildListFilterItem(context, '出発地', selectedDeparture,
+                        isDeparture: true),
+                    // タイトル
+                    _buildSectionTitle('タイトル'),
+                    _buildTitleInput(),
+                    // 本文
+                    _buildSectionTitle('本文'),
+                    _buildDescriptionInput(),
+                    SizedBox(height: 16),
+                    // ボタン
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        ElevatedButton(
+                          onPressed: () {
+                            resetPost();
+                          },
+                          child: Text('リセット',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                AppColor.mainButtonColor, // ボタンの色を緑に設定
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            await _postToFirestore();
+                          },
+                          icon: Icon(Icons.send, color: Colors.white),
+                          label:
+                              Text('投稿', style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColor.mainButtonColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showOrganizerGroupModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text('性別、属性',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                for (var group in _targetGroups)
-                  ListTile(
-                    title: Text(group),
-                    onTap: () {
-                      setState(() {
-                        _selectedOrganizerGroup = _targetGroupMap[group];
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showBudgetTypeModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text('お金の分け方',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                for (var type in _budgetTypes)
-                  ListTile(
-                    title: Text(type),
-                    onTap: () {
-                      setState(() {
-                        _selectedBudgetType = type;
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
- void _showMeetingRegionModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('方面',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              for (var area in _areas)
-                ListTile(
-                  title: Text(area),
-                  onTap: () {
-                    setState(() {
-                      _selectedMeetingRegion = area;
-                      _selectedMeetingDeparture = null; // エリア選択時に行き先をリセット
-                    });
-                    Navigator.pop(context);
-                    _showMeetingDepartureModal(context); // エリア選択後に行き先選択モーダルを表示
-                  },
-                ),
             ],
           ),
         ),
-      );
-    },
-  );
-}
-
-void _showMeetingDepartureModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('出発地',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              for (var destination in destinationsByArea[_selectedMeetingRegion] ?? [])
-                ListTile(
-                  title: Text(destination),
-                  onTap: () {
-                    setState(() {
-                      _selectedMeetingDeparture = destination;
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-  void _showAgeModal(BuildContext context, bool isTarget) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String ageMin = _ageMin?.toString() ?? '';
-        String ageMax = _ageMax?.toString() ?? '';
-
-        return AlertDialog(
-          title: Text('年齢設定'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '最低年齢'),
-                onChanged: (value) {
-                  ageMin = value;
-                },
-                controller: TextEditingController(text: ageMin),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
-              TextField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '最高年齢'),
-                onChanged: (value) {
-                  ageMax = value;
-                },
-                controller: TextEditingController(text: ageMax),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('キャンセル'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                setState(() {
-                  _ageMin = int.tryParse(ageMin);
-                  _ageMax = int.tryParse(ageMax);
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      ),
     );
   }
 
-  Future<void> _selectDate(BuildContext context, String label) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null) {
-      setState(() {
-        if (label == 'いつから') {
-          _startDate = picked;
-        } else if (label == 'いつまで') {
-          _endDate = picked;
-        }
-      });
-    }
-  }
-
-  // 2. 曜日を選択するためのモーダルを変更
-  void _showDayOfWeekModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Container(
-              padding: EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text('曜日',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 16),
-                    for (var day in _daysOfWeek)
-                      CheckboxListTile(
-                        title: Text(day),
-                        value: _selectedDaysOfWeek.contains(_daysOfWeekMap[day]),
-                        onChanged: (bool? value) {
-                          setState(() {
-                            if (value == true) {
-                              if (!_selectedDaysOfWeek.contains(_daysOfWeekMap[day])) {
-                                _selectedDaysOfWeek.add(_daysOfWeekMap[day]!);
-                              }
-                            } else {
-                              _selectedDaysOfWeek.remove(_daysOfWeekMap[day]);
-                            }
-                          });
-                        },
-                      ),
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      child: Text('OK'),
-                      onPressed: () {
-                        setState(() {}); // 状態を更新して選択された曜日を表示
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // 3. _buildFilterItem メソッド内の曜日選択を変更
-  Widget _buildFilterItem(
-    BuildContext context, String label, String? selectedValue,
-    {bool isRegion = false,
-    bool isDestination = false,
-    bool isDate = false,
-    bool isGenderAttribute = false,
-    bool isHost = false,
-    bool isAge = false,
-    bool isCheckbox = false,
-    bool isPaymentMethod = false,
-    bool isMeetingRegion = false,
-    bool isDeparture = false,
-    bool isDayOfWeek = false}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 0.0), // 上下に8.0の間隔を追加
-    child: InkWell(
+  Widget _buildFilterItem(BuildContext context, String label, String value,
+      {bool isRegion = false,
+      bool isDate = false,
+      bool isCheckbox = false,
+      bool isHost = true,
+      bool isAge = false,
+      bool isMeetingRegion = false,
+      bool isPaymentMethod = false,
+      bool isGenderAttribute1 = false,}) {
+    return InkWell(
       onTap: () {
         if (isRegion) {
-          _showAreaModal(context);
-        } else if (isDestination) {
-          _showDestinationModal(context);
+          _showRegionModal(context);
         } else if (isDate) {
           _selectDate(context, label);
-        } else if (isGenderAttribute) {
-          if (isHost) {
-            _showOrganizerGroupModal(context);
-          } else {
-            _showTargetGroupModal(context);
-          }
-        } else if (isAge) {
-          _showAgeModal(context, !isHost);
         } else if (isCheckbox) {
           setState(() {
-            _hasPhoto = !_hasPhoto;
+            if (isHost) {
+              isPhotoCheckedHost = !isPhotoCheckedHost;
+            } else {
+              isPhotoCheckedRecruit = !isPhotoCheckedRecruit;
+            }
           });
-        } else if (isPaymentMethod) {
-          _showBudgetTypeModal(context);
+        } else if (isAge) {
+          _showAgeModal(context, isHost);
         } else if (isMeetingRegion) {
           _showMeetingRegionModal(context);
-        } else if (isDeparture) {
-          _showMeetingDepartureModal(context);
-        } else if (isDayOfWeek) {
-          _showDayOfWeekModal(context);
+        } else if (isPaymentMethod) {
+          _showPaymentMethodModal(context, (updatedPaymentMethod) {
+            setState(() {
+              selectedPaymentMethod = updatedPaymentMethod;
+            });
+          });
+        } else if (isGenderAttribute1) {
+          _showGenderAttributeModal1(context, (updatedGender) {
+            setState(() {
+              selectedGenderAttributeHost = updatedGender;
+            });
+          });
         }
       },
-      child: Container(
-        width: double.infinity, // ボタンの判定領域を右端から左端まで広げる
-        padding: EdgeInsets.symmetric(vertical: 10.0), // 縦幅を小さくするためのパディング
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label),
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(label),
+            ),
             if (isCheckbox)
-              Checkbox(
-                value: _hasPhoto,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _hasPhoto = value ?? false;
-                  });
-                },
+              Icon(
+                isHost
+                    ? (isPhotoCheckedHost
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank)
+                    : (isPhotoCheckedRecruit
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank),
+                color: (isHost ? isPhotoCheckedHost : isPhotoCheckedRecruit)
+                    ? Colors.blue
+                    : Colors.grey,
               )
-            else if (isDayOfWeek)
-              Text(_selectedDaysOfWeek.isNotEmpty
-                  ? _selectedDaysOfWeek.map((day) => _daysOfWeek.firstWhere((key) => _daysOfWeekMap[key] == day)).join(', ')
-                  : '選択してください')
-            else if (isDestination)
-              Text(_selectedDestinations.isNotEmpty
-                  ? _selectedDestinations.join(', ')
-                  : '選択してください')
-            else if (isGenderAttribute && !isHost)
-              Text(_selectedTargetGroups.isNotEmpty
-                  ? _selectedTargetGroups.map((group) => _targetGroups.firstWhere((key) => _targetGroupMap[key] == group)).join(', ')
-                  : '選択してください')
             else
-              Text(selectedValue ?? '選択してください'),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Text(
+                      value,
+                    ),
+                    Icon(Icons.expand_more),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildBudgetFilterItem(BuildContext context, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0.0), // 上下に8.0の間隔を追加
-      child: InkWell(
-        onTap: () {
-          _showBudgetModal(context);
-        },
-        child: Container(
-          width: double.infinity, // ボタンの判定領域を右端から左端まで広げる
-          padding: EdgeInsets.symmetric(vertical: 10.0), // 縦幅を小さくするためのパディング
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label),
-              Row(
-                children: [
-                  Text(_budgetMin != null ? '$_budgetMin 万円' : 'こだわらない'),
-                  Text(' 〜 '),
-                  Text(_budgetMax != null ? '$_budgetMax 万円' : 'こだわらない'),
+  Widget _buildListFilterItem(
+    BuildContext context,
+    String label,
+    List<String> values, {
+    bool isDestination = false,
+    bool isDay = false,
+    bool isGenderAttribute2 = false,
+    bool isDeparture = false,
+  }) {
+    return InkWell(
+      onTap: () {
+        if (isDestination && selectedRegion != '入力してください') {
+          _showDestinationModal(context, selectedRegion, (updatedDestination) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDestination);
+            });
+          });
+        } else if (isDay) {
+          _showDaysModal(context, (updatedDays) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDays);
+            });
+          });
+          } else if (isGenderAttribute2) {
+          _showGenderAttributeModal2(context, (updatedGender) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedGender);
+            });
+          });
+        } else if (isDeparture && selectedMeetingRegion != 'こだわらない') {
+          _showDepartureModal(context, selectedMeetingRegion,
+              (updatedDeparture) {
+            setState(() {
+              values.clear();
+              values.addAll(updatedDeparture);
+            });
+          });
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(label),
+            ),
+            SizedBox(
+              width: 20,
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      values.join('、'),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                  Icon(Icons.expand_more),
                 ],
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaginput() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: tagController,
+                decoration: InputDecoration(
+                  hintText: 'タグを入力',
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                setState(() {
+                  tags.add(tagController.text);
+                  tagController.clear();
+                });
+              },
+            ),
+          ],
+        ),
+        SizedBox(height: 16),
+        Wrap(
+          spacing: 8.0,
+          children: tags
+              .map(
+                (tag) => Chip(
+                  label: Text(tag),
+                  onDeleted: () {
+                    setState(() {
+                      tags.remove(tag);
+                    });
+                  },
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitleInput() {
+    return Column(
+      children: [
+        TextField(
+          controller: titleController,
+          decoration: InputDecoration(
+            hintText: 'タイトルを入力',
           ),
+        ),
+        SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionInput() {
+    return Column(
+      children: [
+        TextField(
+          controller: descriptionController,
+          decoration: InputDecoration(
+            hintText: '本文を入力',
+          ),
+          maxLines: 5,
+        ),
+        SizedBox(height: 16),
+      ],
+    );
+  }
+  
+  Widget _buildBudgetFilterItem(BuildContext context, String label) {
+    return InkWell(
+      onTap: () {
+        _showBudgetModal(context);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(label),
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Container(
+                    width: 40,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: Center(
+                      child: Text(selectedBudgetMin),
+                    ),
+                  ),
+                  Text(' 万円〜 '),
+                  Container(
+                    width: 40,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: Center(
+                      child: Text(selectedBudgetMax),
+                    ),
+                  ),
+                  Text(' 万円'),
+                  Icon(Icons.expand_more),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -858,8 +505,8 @@ void _showMeetingDepartureModal(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String budgetMin = _budgetMin?.toString() ?? '';
-        String budgetMax = _budgetMax?.toString() ?? '';
+        String budgetMin = selectedBudgetMin;
+        String budgetMax = selectedBudgetMax;
 
         return AlertDialog(
           title: Text('予算設定'),
@@ -872,7 +519,6 @@ void _showMeetingDepartureModal(BuildContext context) {
                 onChanged: (value) {
                   budgetMin = value;
                 },
-                controller: TextEditingController(text: budgetMin),
               ),
               TextField(
                 keyboardType: TextInputType.number,
@@ -880,7 +526,6 @@ void _showMeetingDepartureModal(BuildContext context) {
                 onChanged: (value) {
                   budgetMax = value;
                 },
-                controller: TextEditingController(text: budgetMax),
               ),
             ],
           ),
@@ -895,8 +540,8 @@ void _showMeetingDepartureModal(BuildContext context) {
               child: Text('OK'),
               onPressed: () {
                 setState(() {
-                  _budgetMin = int.tryParse(budgetMin);
-                  _budgetMax = int.tryParse(budgetMax);
+                  selectedBudgetMin = budgetMin;
+                  selectedBudgetMax = budgetMax;
                 });
                 Navigator.of(context).pop();
               },
@@ -907,213 +552,674 @@ void _showMeetingDepartureModal(BuildContext context) {
     );
   }
 
-  void _addTag() {
-    if (_tagsController.text.isNotEmpty) {
-      setState(() {
-        _tags.add(_tagsController.text);
-        _tagsController.clear();
-      });
-    }
-  }
+  void _showAgeModal(BuildContext context, bool isHost) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String ageMin = isHost
+            ? selectedAgeHost.split('〜')[0] == 'こだわらない'
+                ? ''
+                : selectedAgeHost.split('〜')[0]
+            : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+                ? ''
+                : selectedAgeRecruit.split('〜')[0];
+        String ageMax = isHost
+            ? selectedAgeHost.split('〜')[1] == 'こだわらない'
+                ? ''
+                : selectedAgeHost.split('〜')[1]
+            : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+                ? ''
+                : selectedAgeRecruit.split('〜')[1];
 
-  void _toggleTagSelection(String tag) {
-    setState(() {
-      if (_selectedTag == tag) {
-        _tags.remove(tag);
-        _selectedTag = null;
-      } else {
-        _selectedTag = tag;
-      }
-    });
-  }
-
-  // 4. build メソッド内に曜日選択の項目を追加
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('募集投稿'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _tagsController,
-                      decoration: const InputDecoration(
-                        labelText: 'タグ',
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: _addTag,
-                  ),
-                ],
-              ),
-              SizedBox(height: 8), // タグ入力欄とタグ表示の間に間隔を追加
-              Wrap(
-                children: _tags.map((tag) {
-                  final isSelected = _selectedTag == tag;
-                  return GestureDetector(
-                    onTap: () => _toggleTagSelection(tag),
-                    child: Chip(
-                      label: Text(tag),
-                      backgroundColor: isSelected ? Colors.blue.shade100 : null,
-                      shape: StadiumBorder(
-                        side: BorderSide(
-                          color: isSelected ? Colors.blue : Colors.grey,
-                          width: isSelected ? 2.0 : 1.0,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 16),
-              _buildSectionTitle('どこへ'),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0), // 字下げ10
-                child: Column(
-                  children: [
-                    _buildFilterItem(context, '方面', _selectedArea,
-                        isRegion: true),
-                    _buildFilterItem(context, '行き先', _selectedDestinations.join(', '),
-                        isDestination: true),
-                  ],
-                ),
-              ),
-              _buildSectionTitle('いつ'),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0), // 字下げ10
-                child: Column(
-                  children: [
-                    _buildFilterItem(
-                      context,
-                      'いつから',
-                      _startDate != null
-                          ? DateFormat('yyyy/MM/dd').format(_startDate!)
-                          : '',
-                      isDate: true,
-                    ),
-                    _buildFilterItem(
-                      context,
-                      'いつまで',
-                      _endDate != null
-                          ? DateFormat('yyyy/MM/dd').format(_endDate!)
-                          : '',
-                      isDate: true,
-                    ),
-                    _buildFilterItem(
-                      context,
-                      '曜日',
-                      null,
-                      isDayOfWeek: true,
-                    ),
-                  ],
-                ),
-              ),
-              _buildSectionTitle('主催者'),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0), // 字下げ10
-                child: _buildFilterItem(
-                    context, '性別、属性', _selectedOrganizerGroup,
-                    isGenderAttribute: true, isHost: true),
-              ),
-              _buildSectionTitle('募集する人'),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0), // 字下げ10
-                child: Column(
-                  children: [
-                    _buildFilterItem(context, '性別、属性', _selectedTargetGroups.join(', '),
-                        isGenderAttribute: true, isHost: false),
-                    _buildFilterItem(
-                      context,
-                      '年齢',
-                      _ageMin != null || _ageMax != null
-                          ? '${_ageMin != null ? '$_ageMin歳' : 'こだわらない'}〜${_ageMax != null ? '$_ageMax歳' : 'こだわらない'}'
-                          : 'こだわらない〜こだわらない',
-                      isAge: true,
-                      isHost: false,
-                    ),
-                    _buildFilterItem(context, '写真付き', '',
-                        isCheckbox: true, isHost: false),
-                  ],
-                ),
-              ),
-              _buildSectionTitle('お金について'),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0), // 字下げ10
-                child: Column(
-                  children: [
-                    _buildBudgetFilterItem(context, '予算'),
-                    _buildFilterItem(context, 'お金の分け方', _selectedBudgetType,
-                        isPaymentMethod: true),
-                  ],
-                ),
-              ),
-              _buildSectionTitle('集合場所'),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0), // 字下げ10
-                child: Column(
-                  children: [
-                    _buildFilterItem(context, '方面', _selectedMeetingRegion,
-                        isMeetingRegion: true),
-                    _buildFilterItem(context, '出発地', _selectedMeetingDeparture,
-                        isDeparture: true),
-                  ],
-                ),
-              ),
-              _buildSectionTitle('タイトル'),
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'タイトル',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'タイトルを入力してください';
-                  }
-                  return null;
+        return AlertDialog(
+          title: Text('年齢設定'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                decoration: InputDecoration(labelText: '最低年齢'),
+                onChanged: (value) {
+                  ageMin = value;
                 },
+                controller: TextEditingController(text: ageMin),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 追加
               ),
-              _buildSectionTitle('本文'),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: '本文',
-                ),
-                maxLines: 5,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '本文を入力してください';
-                  }
-                  return null;
+              TextField(
+                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                decoration: InputDecoration(labelText: '最高年齢'),
+                onChanged: (value) {
+                  ageMax = value;
                 },
-              ),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('投稿'),
+                controller: TextEditingController(text: ageMax),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 追加
               ),
             ],
           ),
-        ),
-      ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('キャンセル'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                setState(() {
+                  if (isHost) {
+                    selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
+                        ? 'こだわらない〜こだわらない'
+                        : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                  } else {
+                    selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
+                        ? 'こだわらない〜こだわらない'
+                        : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                  }
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
+
+  void _showDestinationModal(BuildContext context, String region,
+      Function(List<String>) onDestinationSelected) {
+    List<String> destinations = destinationsByArea[region] ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: Icon(Icons.arrow_back)),
+                      Text('行き先',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  for (var destination in destinations)
+                    CheckboxListTile(
+                      title: Text(destination),
+                      value: selectedDestinations.contains(destination),
+                      onChanged: (bool? isChecked) {
+                        setState(() {
+                          if (isChecked == true) {
+                            if (selectedDestinations.contains('入力してください')) {
+                              selectedDestinations.remove('入力してください');
+                            }
+                            selectedDestinations.add(destination);
+                          } else {
+                            selectedDestinations.remove(destination);
+                            if (selectedDestinations.isEmpty) {
+                              selectedDestinations.add('入力してください');
+                            }
+                          }
+                        });
+                        onDestinationSelected(List.from(selectedDestinations));
+                      },
+                    ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showDaysModal(
+      BuildContext context, Function(List<String>) onDaysSelected) {
+    // 曜日の並び順を定義
+    List<String> days = ['月', '火', '水', '木', '金', '土', '日'];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('曜日',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 16),
+                for (var day in days)
+                  CheckboxListTile(
+                    title: Text(day),
+                    value: selectedDays.contains(day),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isChecked == true) {
+                          if (selectedDays.contains('入力してください')) {
+                            selectedDays.remove('入力してください');
+                          }
+                          selectedDays.add(day);
+                        } else {
+                          selectedDays.remove(day);
+                          if (selectedDays.isEmpty) {
+                            selectedDays.add('入力してください');
+                          }
+                        }
+                      });
+                      // days のインデックスを基準にソート
+                      selectedDays.sort(
+                          (a, b) => days.indexOf(a).compareTo(days.indexOf(b)));
+                      onDaysSelected(List.from(selectedDays));
+                    },
+                  ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+void _showGenderAttributeModal1(BuildContext context, Function(String) onGenderSelected) {
+  List<String> genders = ['男性', '女性', '家族', 'グループ'];
+
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              children: [
+                IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.arrow_back)),
+                Text('主催者の性別、属性',
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            SizedBox(height: 16),
+            for (var gender in genders)
+              ListTile(
+                title: Text(gender),
+                onTap: () {
+                  setState(() {
+                    selectedGenderAttributeHost = gender;
+                  });
+                  onGenderSelected(gender);
+                  Navigator.pop(context);
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _showGenderAttributeModal2(BuildContext context, Function(List<String>) onGenderSelected) {
+  List<String> genders = ['男性', '女性', '家族', 'グループ'];
+
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(builder: (context, setState) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.arrow_back)),
+                  Text('募集する人の性別、属性',
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              SizedBox(height: 16),
+              for (var gender in genders)
+                CheckboxListTile(
+                  title: Text(gender),
+                  value: selectedGenderAttributeRecruit.contains(gender),
+                  onChanged: (bool? isChecked) {
+                    setState(() {
+                      if (isChecked == true) {
+                        if (selectedGenderAttributeRecruit
+                            .contains('入力してください')) {
+                          selectedGenderAttributeRecruit.remove('入力してください');
+                        }
+                        selectedGenderAttributeRecruit.add(gender);
+                      } else {
+                        selectedGenderAttributeRecruit.remove(gender);
+                        if (selectedGenderAttributeRecruit.isEmpty) {
+                          selectedGenderAttributeRecruit.add('入力してください');
+                        }
+                      }
+                      selectedGenderAttributeRecruit.sort((a, b) =>
+                          genders.indexOf(a).compareTo(genders.indexOf(b)));
+                      onGenderSelected(
+                          List.from(selectedGenderAttributeRecruit));
+                    });
+                  },
+                ),
+            ],
+          ),
+        );
+      });
+    },
+  );
+}
+
+void _showPaymentMethodModal(BuildContext context, Function(String) onPaymentMethodSelected) {
+  List<String> paymentMethods = ['こだわらない', '割り勘', '各自自腹', '主催者が多めに出す', '主催者が少な目に出す'];
+
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              children: [
+                IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.arrow_back)),
+                Text('お金の分け方',
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            SizedBox(height: 16),
+            for (var paymentMethod in paymentMethods)
+              ListTile(
+                title: Text(paymentMethod),
+                onTap: () {
+                  setState(() {
+                    selectedPaymentMethod = paymentMethod;
+                  });
+                  onPaymentMethodSelected(paymentMethod);
+                  Navigator.pop(context);
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
+      
+  void _showDepartureModal(BuildContext context, String region,
+      Function(List<String>) onDepartureSelected) {
+    List<String> destinations = destinationsByArea[region] ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            setState(() {
+                              selectedDestinations = selectedDestinations;
+                            });
+                          },
+                          icon: Icon(Icons.arrow_back)),
+                      Text('出発地',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  for (var destination in destinations)
+                    CheckboxListTile(
+                      title: Text(destination),
+                      value: selectedDeparture.contains(destination),
+                      onChanged: (bool? isChecked) {
+                        setState(() {
+                          if (isChecked == true) {
+                            if (selectedDeparture.contains('こだわらない')) {
+                              selectedDeparture.remove('こだわらない');
+                            }
+                            selectedDeparture.add(destination);
+                          } else {
+                            selectedDeparture.remove(destination);
+                            if (selectedDeparture.isEmpty) {
+                              selectedDeparture.add('こだわらない');
+                            }
+                          }
+                        });
+                        onDepartureSelected(List.from(selectedDeparture));
+                      },
+                    ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showMeetingRegionModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('方面',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              for (var region in destinationsByArea.keys)
+                ListTile(
+                  title: Text(region),
+                  onTap: () {
+                    setState(() {
+                      selectedMeetingRegion = region;
+                      selectedDeparture = ['こだわらない'];
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showRegionModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('方面',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              for (var region in destinationsByArea.keys)
+                ListTile(
+                  title: Text(region),
+                  onTap: () {
+                    setState(() {
+                      selectedRegion = region;
+                      selectedDestinations = ['入力してください'];
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _selectDate(BuildContext context, String label) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Colors.blueAccent, // アクセントカラー
+            colorScheme: ColorScheme.light(primary: Colors.blueAccent),
+            dialogBackgroundColor: Colors.white,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blueAccent, // ボタンの色
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
+        if (label == 'いつから') {
+          selectedStartDate = formattedDate;
+        } else if (label == 'いつまで') {
+          selectedEndDate = formattedDate;
+        }
+      });
+    }
+  }
+
+Future<void> _postToFirestore() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    context.push('/login');
+    return;
+  }
+
+  DocumentSnapshot userDoc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .get();
+
+  if (!userDoc.exists) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('ユーザー情報が取得できませんでした')),
+    );
+    return;
+  }
+
+  final userData = userDoc.data() as Map<String, dynamic>;
+
+  Map<String, String> genderMap = {
+    '男性': 'male',
+    '女性': 'female',
+    '家族': 'family',
+    'グループ': 'group'
+  };
+
+  Map<String, String> dayMap = {
+    '月': 'Mon',
+    '火': 'Tue',
+    '水': 'Wed',
+    '木': 'Thu',
+    '金': 'Fri',
+    '土': 'Sat',
+    '日': 'Sun'
+  };
+
+  Map<String, String> paymentMethodMap = {
+    'こだわらない': 'null',
+    '割り勘': 'splitEvenly',
+    '各自自腹': 'eachPays',
+    '主催者が多めに出す': 'hostPaysMore',
+    '主催者が少な目に出す': 'hostPaysLess'
+  };
+
+  // 入力チェック
+  if (selectedRegion == '入力してください' ||
+      selectedDestinations.contains('入力してください') ||
+      selectedStartDate == '入力してください' ||
+      selectedEndDate == '入力してください' ||
+      selectedDays.contains('入力してください') ||
+      selectedGenderAttributeRecruit.contains('入力してください') ||
+      selectedGenderAttributeHost.contains('入力してください') ||
+      selectedPaymentMethod == '入力してください' ||
+      titleController.text.isEmpty ||
+      descriptionController.text.isEmpty ||
+      tags.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("すべての必須項目を入力してください"),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  // ユニークなroomIdを生成
+  DocumentReference chatRoomRef = FirebaseFirestore.instance.collection("chatRooms").doc();
+  String roomId = chatRoomRef.id;
+
+  final postData = {
+    "groupChatRoomId": roomId, // ユニークなroomIdを設定
+    "participants": [user.uid],
+    "where": {
+      "area": selectedRegion,
+      "destination": selectedDestinations,
+    },
+    "when": {
+      "startDate": Timestamp.fromDate(DateFormat('yyyy/MM/dd').parse(selectedStartDate)),
+      "endDate": Timestamp.fromDate(DateFormat('yyyy/MM/dd').parse(selectedEndDate)),
+      "dayOfWeek": selectedDays.map((day) => dayMap[day]!).toList(),
+    },
+    "target": {
+      "targetGroups": selectedGenderAttributeRecruit
+          .where((gender) => gender != 'こだわらない')
+          .map((gender) => genderMap[gender]!)
+          .toList(),
+      "ageMax": selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+          ? null
+          : int.parse(selectedAgeRecruit.split('〜')[1]),
+      "ageMin": selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+          ? null
+          : int.parse(selectedAgeRecruit.split('〜')[0]),
+      "hasPhoto": isPhotoCheckedRecruit,
+    },
+    "organizer": {
+      "organizerId": user.uid,
+      "organizerGroup": selectedGenderAttributeHost != 'こだわらない'
+          ? genderMap[selectedGenderAttributeHost]!
+          : null,
+      "organizerName": userData['name'],
+      "organizerBirthday": userData['birthday'].toDate(),
+      "hasPhoto": userData['hasPhoto'],
+      "photoURL": (userData['photoURLs'] != null && userData['photoURLs'].isNotEmpty)
+          ? userData['photoURLs'][0]
+          : '',
+    },
+    "budget": {
+      "budgetMin":
+          selectedBudgetMin.isEmpty ? null : int.parse(selectedBudgetMin),
+      "budgetMax":
+          selectedBudgetMax.isEmpty ? null : int.parse(selectedBudgetMax),
+      "budgetType": selectedPaymentMethod != 'こだわらない'
+          ? paymentMethodMap[selectedPaymentMethod]
+          : null,
+    },
+    "meetingPlace": {
+      "region": selectedMeetingRegion,
+      "departure": selectedDeparture.isNotEmpty && selectedDeparture[0] != 'こだわらない'
+          ? selectedDeparture[0]
+          : null,
+    },
+    "title": titleController.text,
+    "tags": tags,
+    "description": descriptionController.text,
+    "createdAt": Timestamp.now(),
+    "expire": false,
+  };
+
+  try {
+    DocumentReference postRef = await FirebaseFirestore.instance.collection("posts").add(postData);
+    String postId = postRef.id;
+
+    final chatRoomData = {
+      "postId": postId,
+      "participants": [user.uid],
+      "createdAt": Timestamp.now(),
+      "latestMessage": {
+        "text": "",
+        "sender": "",
+        "timeStamp": Timestamp.now(),
+        "readBy": [],
+      }
+    };
+
+    await chatRoomRef.set(chatRoomData);
+
+    // ユーザーのchatRoomsとparticipatedPostsを更新
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      "chatRooms": FieldValue.arrayUnion([roomId]),
+      "participatedPosts": FieldValue.arrayUnion([postId]),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('投稿が完了しました')),
+    );
+
+    // チャット画面に遷移
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MessageRoomScreen(
+          roomId: roomId,
+          currentUserId: user.uid,
+        ),
+      ),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('投稿に失敗しました')),
+    );
+  }
+}
 }

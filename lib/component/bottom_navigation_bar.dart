@@ -16,7 +16,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex == -1 ? 0 : selectedIndex,
         onTap: (index) => _onItemTapped(context, index),
-        selectedItemColor: selectedIndex == -1 ? AppColor.nonActiveColor : AppColor.mainButtonColor, // 選択中のアイコン・テキストの色
+        selectedItemColor: selectedIndex == -1
+            ? AppColor.nonActiveColor
+            : AppColor.mainButtonColor, // 選択中のアイコン・テキストの色
         unselectedItemColor: AppColor.nonActiveColor, // 非選択時のアイコン・テキストの色
         showUnselectedLabels: true, // 非選択時のラベルも表示
         type: BottomNavigationBarType.fixed,
@@ -25,7 +27,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.group), label: '同じ趣味'),
           BottomNavigationBarItem(icon: Icon(Icons.message), label: 'メッセージ'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'お気に入り'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'アカウント'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'マイページ'),
         ],
       ),
     );
@@ -94,13 +96,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
                     style: TextButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18.0),
-                        side: BorderSide(color: Colors.black), 
+                        side: BorderSide(color: Colors.black),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0), 
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
                     ),
                     child: const Text(
                       'キャンセル',
-                      style: TextStyle(color: AppColor.mainTextColor), 
+                      style: TextStyle(color: AppColor.mainTextColor),
                     ),
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -113,7 +116,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18.0),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0), 
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
                     ),
                     child: const Text(
                       'ログイン',
@@ -133,5 +137,3 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 }
-
-

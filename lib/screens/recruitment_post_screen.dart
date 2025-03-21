@@ -1,6 +1,4 @@
-
 // ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, prefer_const_literals_to_create_immutables, sort_child_properties_last, deprecated_member_use, avoid_print, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -31,7 +29,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   String selectedAgeHost = 'こだわらない～こだわらない';
   String selectedAgeRecruit = 'こだわらない〜こだわらない';
   String selectedMeetingRegion = 'こだわらない';
-  List<String> selectedDeparture = ['こだわらない'];//
+  List<String> selectedDeparture = ['こだわらない']; //
 
   bool isPhotoCheckedHost = false;
   bool isPhotoCheckedRecruit = false;
@@ -168,8 +166,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     // お金について
                     _buildSectionTitle('お金について'),
                     _buildBudgetFilterItem(context, '予算'),
-                    _buildFilterItem(
-                        context, 'お金の分け方', selectedPaymentMethod,
+                    _buildFilterItem(context, 'お金の分け方', selectedPaymentMethod,
                         isPaymentMethod: true),
                     // 集合場所
                     _buildSectionTitle('集合場所'),
@@ -222,15 +219,19 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     );
   }
 
-  Widget _buildFilterItem(BuildContext context, String label, String value,
-      {bool isRegion = false,
-      bool isDate = false,
-      bool isCheckbox = false,
-      bool isHost = true,
-      bool isAge = false,
-      bool isMeetingRegion = false,
-      bool isPaymentMethod = false,
-      bool isGenderAttribute1 = false,}) {
+  Widget _buildFilterItem(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isRegion = false,
+    bool isDate = false,
+    bool isCheckbox = false,
+    bool isHost = true,
+    bool isAge = false,
+    bool isMeetingRegion = false,
+    bool isPaymentMethod = false,
+    bool isGenderAttribute1 = false,
+  }) {
     return InkWell(
       onTap: () {
         if (isRegion) {
@@ -328,7 +329,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               values.addAll(updatedDays);
             });
           });
-          } else if (isGenderAttribute2) {
+        } else if (isGenderAttribute2) {
           _showGenderAttributeModal2(context, (updatedGender) {
             setState(() {
               values.clear();
@@ -389,6 +390,12 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                 decoration: InputDecoration(
                   hintText: 'タグを入力',
                 ),
+                onSubmitted: (value) {
+                  setState(() {
+                    tags.add(value);
+                    tagController.clear();
+                  });
+                },
               ),
             ),
             IconButton(
@@ -450,7 +457,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       ],
     );
   }
-  
+
   Widget _buildBudgetFilterItem(BuildContext context, String label) {
     return InkWell(
       onTap: () {
@@ -752,55 +759,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     );
   }
 
-void _showGenderAttributeModal1(BuildContext context, Function(String) onGenderSelected) {
-  List<String> genders = ['男性', '女性', '家族', 'グループ'];
+  void _showGenderAttributeModal1(
+      BuildContext context, Function(String) onGenderSelected) {
+    List<String> genders = ['男性', '女性', '家族', 'グループ'];
 
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(Icons.arrow_back)),
-                Text('主催者の性別、属性',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            SizedBox(height: 16),
-            for (var gender in genders)
-              ListTile(
-                title: Text(gender),
-                onTap: () {
-                  setState(() {
-                    selectedGenderAttributeHost = gender;
-                  });
-                  onGenderSelected(gender);
-                  Navigator.pop(context);
-                },
-              ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-void _showGenderAttributeModal2(BuildContext context, Function(List<String>) onGenderSelected) {
-  List<String> genders = ['男性', '女性', '家族', 'グループ'];
-
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(builder: (context, setState) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
         return Container(
           padding: EdgeInsets.all(16.0),
           child: Column(
@@ -813,87 +778,138 @@ void _showGenderAttributeModal2(BuildContext context, Function(List<String>) onG
                         Navigator.pop(context);
                       },
                       icon: Icon(Icons.arrow_back)),
-                  Text('募集する人の性別、属性',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text('主催者の性別、属性',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
               SizedBox(height: 16),
               for (var gender in genders)
-                CheckboxListTile(
+                ListTile(
                   title: Text(gender),
-                  value: selectedGenderAttributeRecruit.contains(gender),
-                  onChanged: (bool? isChecked) {
+                  onTap: () {
                     setState(() {
-                      if (isChecked == true) {
-                        if (selectedGenderAttributeRecruit
-                            .contains('入力してください')) {
-                          selectedGenderAttributeRecruit.remove('入力してください');
-                        }
-                        selectedGenderAttributeRecruit.add(gender);
-                      } else {
-                        selectedGenderAttributeRecruit.remove(gender);
-                        if (selectedGenderAttributeRecruit.isEmpty) {
-                          selectedGenderAttributeRecruit.add('入力してください');
-                        }
-                      }
-                      selectedGenderAttributeRecruit.sort((a, b) =>
-                          genders.indexOf(a).compareTo(genders.indexOf(b)));
-                      onGenderSelected(
-                          List.from(selectedGenderAttributeRecruit));
+                      selectedGenderAttributeHost = gender;
                     });
+                    onGenderSelected(gender);
+                    Navigator.pop(context);
                   },
                 ),
             ],
           ),
         );
-      });
-    },
-  );
-}
+      },
+    );
+  }
 
-void _showPaymentMethodModal(BuildContext context, Function(String) onPaymentMethodSelected) {
-  List<String> paymentMethods = ['こだわらない', '割り勘', '各自自腹', '主催者が多めに出す', '主催者が少な目に出す'];
+  void _showGenderAttributeModal2(
+      BuildContext context, Function(List<String>) onGenderSelected) {
+    List<String> genders = ['男性', '女性', '家族', 'グループ'];
 
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.arrow_back)),
+                    Text('募集する人の性別、属性',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 16),
+                for (var gender in genders)
+                  CheckboxListTile(
+                    title: Text(gender),
+                    value: selectedGenderAttributeRecruit.contains(gender),
+                    onChanged: (bool? isChecked) {
+                      setState(() {
+                        if (isChecked == true) {
+                          if (selectedGenderAttributeRecruit
+                              .contains('入力してください')) {
+                            selectedGenderAttributeRecruit.remove('入力してください');
+                          }
+                          selectedGenderAttributeRecruit.add(gender);
+                        } else {
+                          selectedGenderAttributeRecruit.remove(gender);
+                          if (selectedGenderAttributeRecruit.isEmpty) {
+                            selectedGenderAttributeRecruit.add('入力してください');
+                          }
+                        }
+                        selectedGenderAttributeRecruit.sort((a, b) =>
+                            genders.indexOf(a).compareTo(genders.indexOf(b)));
+                        onGenderSelected(
+                            List.from(selectedGenderAttributeRecruit));
+                      });
                     },
-                    icon: Icon(Icons.arrow_back)),
-                Text('お金の分け方',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
               ],
             ),
-            SizedBox(height: 16),
-            for (var paymentMethod in paymentMethods)
-              ListTile(
-                title: Text(paymentMethod),
-                onTap: () {
-                  setState(() {
-                    selectedPaymentMethod = paymentMethod;
-                  });
-                  onPaymentMethodSelected(paymentMethod);
-                  Navigator.pop(context);
-                },
+          );
+        });
+      },
+    );
+  }
+
+  void _showPaymentMethodModal(
+      BuildContext context, Function(String) onPaymentMethodSelected) {
+    List<String> paymentMethods = [
+      'こだわらない',
+      '割り勘',
+      '各自自腹',
+      '主催者が多めに出す',
+      '主催者が少な目に出す'
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.arrow_back)),
+                  Text('お金の分け方',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
               ),
-          ],
-        ),
-      );
-    },
-  );
-}
-      
+              SizedBox(height: 16),
+              for (var paymentMethod in paymentMethods)
+                ListTile(
+                  title: Text(paymentMethod),
+                  onTap: () {
+                    setState(() {
+                      selectedPaymentMethod = paymentMethod;
+                    });
+                    onPaymentMethodSelected(paymentMethod);
+                    Navigator.pop(context);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showDepartureModal(BuildContext context, String region,
       Function(List<String>) onDepartureSelected) {
     List<String> destinations = destinationsByArea[region] ?? [];
@@ -1048,178 +1064,187 @@ void _showPaymentMethodModal(BuildContext context, Function(String) onPaymentMet
     }
   }
 
-Future<void> _postToFirestore() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    context.push('/login');
-    return;
-  }
+  Future<void> _postToFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      context.push('/login');
+      return;
+    }
 
-  DocumentSnapshot userDoc = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .get();
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
 
-  if (!userDoc.exists) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ユーザー情報が取得できませんでした')),
-    );
-    return;
-  }
+    if (!userDoc.exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ユーザー情報が取得できませんでした')),
+      );
+      return;
+    }
 
-  final userData = userDoc.data() as Map<String, dynamic>;
+    final userData = userDoc.data() as Map<String, dynamic>;
 
-  Map<String, String> genderMap = {
-    '男性': 'male',
-    '女性': 'female',
-    '家族': 'family',
-    'グループ': 'group'
-  };
-
-  Map<String, String> dayMap = {
-    '月': 'Mon',
-    '火': 'Tue',
-    '水': 'Wed',
-    '木': 'Thu',
-    '金': 'Fri',
-    '土': 'Sat',
-    '日': 'Sun'
-  };
-
-  Map<String, String> paymentMethodMap = {
-    'こだわらない': 'null',
-    '割り勘': 'splitEvenly',
-    '各自自腹': 'eachPays',
-    '主催者が多めに出す': 'hostPaysMore',
-    '主催者が少な目に出す': 'hostPaysLess'
-  };
-
-  // 入力チェック
-  if (selectedRegion == '入力してください' ||
-      selectedDestinations.contains('入力してください') ||
-      selectedStartDate == '入力してください' ||
-      selectedEndDate == '入力してください' ||
-      selectedDays.contains('入力してください') ||
-      selectedGenderAttributeRecruit.contains('入力してください') ||
-      selectedGenderAttributeHost.contains('入力してください') ||
-      selectedPaymentMethod == '入力してください' ||
-      titleController.text.isEmpty ||
-      descriptionController.text.isEmpty ||
-      tags.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("すべての必須項目を入力してください"),
-        backgroundColor: Colors.red,
-      ),
-    );
-    return;
-  }
-
-  // ユニークなroomIdを生成
-  DocumentReference chatRoomRef = FirebaseFirestore.instance.collection("chatRooms").doc();
-  String roomId = chatRoomRef.id;
-
-  final postData = {
-    "groupChatRoomId": roomId, // ユニークなroomIdを設定
-    "participants": [user.uid],
-    "where": {
-      "area": selectedRegion,
-      "destination": selectedDestinations,
-    },
-    "when": {
-      "startDate": Timestamp.fromDate(DateFormat('yyyy/MM/dd').parse(selectedStartDate)),
-      "endDate": Timestamp.fromDate(DateFormat('yyyy/MM/dd').parse(selectedEndDate)),
-      "dayOfWeek": selectedDays.map((day) => dayMap[day]!).toList(),
-    },
-    "target": {
-      "targetGroups": selectedGenderAttributeRecruit
-          .where((gender) => gender != 'こだわらない')
-          .map((gender) => genderMap[gender]!)
-          .toList(),
-      "ageMax": selectedAgeRecruit.split('〜')[1] == 'こだわらない'
-          ? null
-          : int.parse(selectedAgeRecruit.split('〜')[1]),
-      "ageMin": selectedAgeRecruit.split('〜')[0] == 'こだわらない'
-          ? null
-          : int.parse(selectedAgeRecruit.split('〜')[0]),
-      "hasPhoto": isPhotoCheckedRecruit,
-    },
-    "organizer": {
-      "organizerId": user.uid,
-      "organizerGroup": selectedGenderAttributeHost != 'こだわらない'
-          ? genderMap[selectedGenderAttributeHost]!
-          : null,
-      "organizerName": userData['name'],
-      "organizerBirthday": userData['birthday'].toDate(),
-      "hasPhoto": userData['hasPhoto'],
-      "photoURL": (userData['photoURLs'] != null && userData['photoURLs'].isNotEmpty)
-          ? userData['photoURLs'][0]
-          : '',
-    },
-    "budget": {
-      "budgetMin":
-          selectedBudgetMin.isEmpty ? null : int.parse(selectedBudgetMin),
-      "budgetMax":
-          selectedBudgetMax.isEmpty ? null : int.parse(selectedBudgetMax),
-      "budgetType": selectedPaymentMethod != 'こだわらない'
-          ? paymentMethodMap[selectedPaymentMethod]
-          : null,
-    },
-    "meetingPlace": {
-      "region": selectedMeetingRegion,
-      "departure": selectedDeparture.isNotEmpty && selectedDeparture[0] != 'こだわらない'
-          ? selectedDeparture[0]
-          : null,
-    },
-    "title": titleController.text,
-    "tags": tags,
-    "description": descriptionController.text,
-    "createdAt": Timestamp.now(),
-    "expire": false,
-  };
-
-  try {
-    DocumentReference postRef = await FirebaseFirestore.instance.collection("posts").add(postData);
-    String postId = postRef.id;
-
-    final chatRoomData = {
-      "postId": postId,
-      "participants": [user.uid],
-      "createdAt": Timestamp.now(),
-      "latestMessage": {
-        "text": "",
-        "sender": "",
-        "timeStamp": Timestamp.now(),
-        "readBy": [],
-      }
+    Map<String, String> genderMap = {
+      '男性': 'male',
+      '女性': 'female',
+      '家族': 'family',
+      'グループ': 'group'
     };
 
-    await chatRoomRef.set(chatRoomData);
+    Map<String, String> dayMap = {
+      '月': 'Mon',
+      '火': 'Tue',
+      '水': 'Wed',
+      '木': 'Thu',
+      '金': 'Fri',
+      '土': 'Sat',
+      '日': 'Sun'
+    };
 
-    // ユーザーのchatRoomsとparticipatedPostsを更新
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-      "chatRooms": FieldValue.arrayUnion([roomId]),
-      "participatedPosts": FieldValue.arrayUnion([postId]),
-    });
+    Map<String, String> paymentMethodMap = {
+      'こだわらない': 'null',
+      '割り勘': 'splitEvenly',
+      '各自自腹': 'eachPays',
+      '主催者が多めに出す': 'hostPaysMore',
+      '主催者が少な目に出す': 'hostPaysLess'
+    };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('投稿が完了しました')),
-    );
-
-    // チャット画面に遷移
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MessageRoomScreen(
-          roomId: roomId,
-          currentUserId: user.uid,
+    // 入力チェック
+    if (selectedRegion == '入力してください' ||
+        selectedDestinations.contains('入力してください') ||
+        selectedStartDate == '入力してください' ||
+        selectedEndDate == '入力してください' ||
+        selectedDays.contains('入力してください') ||
+        selectedGenderAttributeRecruit.contains('入力してください') ||
+        selectedGenderAttributeHost.contains('入力してください') ||
+        selectedPaymentMethod == '入力してください' ||
+        titleController.text.isEmpty ||
+        descriptionController.text.isEmpty ||
+        tags.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("すべての必須項目を入力してください"),
+          backgroundColor: Colors.red,
         ),
-      ),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('投稿に失敗しました')),
-    );
+      );
+      return;
+    }
+
+    // ユニークなroomIdを生成
+    DocumentReference chatRoomRef =
+        FirebaseFirestore.instance.collection("chatRooms").doc();
+    String roomId = chatRoomRef.id;
+
+    final postData = {
+      "groupChatRoomId": roomId, // ユニークなroomIdを設定
+      "participants": [user.uid],
+      "where": {
+        "area": selectedRegion,
+        "destination": selectedDestinations,
+      },
+      "when": {
+        "startDate": Timestamp.fromDate(
+            DateFormat('yyyy/MM/dd').parse(selectedStartDate)),
+        "endDate":
+            Timestamp.fromDate(DateFormat('yyyy/MM/dd').parse(selectedEndDate)),
+        "dayOfWeek": selectedDays.map((day) => dayMap[day]!).toList(),
+      },
+      "target": {
+        "targetGroups": selectedGenderAttributeRecruit
+            .where((gender) => gender != 'こだわらない')
+            .map((gender) => genderMap[gender]!)
+            .toList(),
+        "ageMax": selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+            ? null
+            : int.parse(selectedAgeRecruit.split('〜')[1]),
+        "ageMin": selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+            ? null
+            : int.parse(selectedAgeRecruit.split('〜')[0]),
+        "hasPhoto": isPhotoCheckedRecruit,
+      },
+      "organizer": {
+        "organizerId": user.uid,
+        "organizerGroup": selectedGenderAttributeHost != 'こだわらない'
+            ? genderMap[selectedGenderAttributeHost]!
+            : null,
+        "organizerName": userData['name'],
+        "organizerBirthday": userData['birthday'].toDate(),
+        "hasPhoto": userData['hasPhoto'],
+        "photoURL":
+            (userData['photoURLs'] != null && userData['photoURLs'].isNotEmpty)
+                ? userData['photoURLs'][0]
+                : '',
+      },
+      "budget": {
+        "budgetMin":
+            selectedBudgetMin.isEmpty ? null : int.parse(selectedBudgetMin),
+        "budgetMax":
+            selectedBudgetMax.isEmpty ? null : int.parse(selectedBudgetMax),
+        "budgetType": selectedPaymentMethod != 'こだわらない'
+            ? paymentMethodMap[selectedPaymentMethod]
+            : null,
+      },
+      "meetingPlace": {
+        "region": selectedMeetingRegion,
+        "departure":
+            selectedDeparture.isNotEmpty && selectedDeparture[0] != 'こだわらない'
+                ? selectedDeparture[0]
+                : null,
+      },
+      "title": titleController.text,
+      "tags": tags,
+      "description": descriptionController.text,
+      "createdAt": Timestamp.now(),
+      "expire": false,
+    };
+
+    try {
+      DocumentReference postRef =
+          await FirebaseFirestore.instance.collection("posts").add(postData);
+      String postId = postRef.id;
+
+      final chatRoomData = {
+        "postId": postId,
+        "participants": [user.uid],
+        "createdAt": Timestamp.now(),
+        "latestMessage": {
+          "text": "",
+          "sender": "",
+          "timeStamp": Timestamp.now(),
+          "readBy": [],
+        }
+      };
+
+      await chatRoomRef.set(chatRoomData);
+
+      // ユーザーのchatRoomsとparticipatedPostsを更新
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        "chatRooms": FieldValue.arrayUnion([roomId]),
+        "participatedPosts": FieldValue.arrayUnion([postId]),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('投稿が完了しました')),
+      );
+
+      // チャット画面に遷移
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MessageRoomScreen(
+            roomId: roomId,
+            currentUserId: user.uid,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('投稿に失敗しました')),
+      );
+    }
   }
-}
 }

@@ -179,7 +179,9 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                context.push('/password-change'); // ここで遷移
+              },
               child: Text(
                 text,
                 style: TextStyle(color: Colors.grey, fontSize: 16),

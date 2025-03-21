@@ -158,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-   // 「パスワードをお忘れですか？」の下にテキストと同じ長さの横線を配置
+  // 「パスワードをお忘れですか？」の下にテキストと同じ長さの横線を配置
   Widget _buildForgotPassword(BuildContext context) {
     String text = 'パスワードをお忘れですか？';
 

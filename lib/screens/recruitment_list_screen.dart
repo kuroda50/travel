@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/header.dart';
 import 'package:travel/functions/function.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RecruitmentListScreen extends StatefulWidget {
-  List<String> postIds;
+  final List<String> postIds;
   RecruitmentListScreen({super.key, required this.postIds});
 
   @override
@@ -47,7 +46,7 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   }
 
   Widget _buildRecruitmentList(BuildContext context) {
-    return Column(
+    return ListView(
       children: recruitmentPosts.map((post) {
         return Card(
           shape:

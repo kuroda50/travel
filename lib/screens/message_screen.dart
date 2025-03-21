@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/component/header.dart';
@@ -14,7 +16,9 @@ class MessageScreen extends StatelessWidget {
         FirebaseFirestore.instance.collection('users');
 
     return Scaffold(
-      appBar: Header(title: "メッセージ一覧",),
+      appBar: Header(
+        title: "メッセージ一覧",
+      ),
       body: FutureBuilder<DocumentSnapshot>(
         future: usersCollection.doc(currentUserId).get(),
         builder: (context, snapshot) {
@@ -28,7 +32,7 @@ class MessageScreen extends StatelessWidget {
           final userMap = userData.data() as Map<String, dynamic>?;
 
           if (userMap == null || !userMap.containsKey('chatRooms')) {
-            return Center(child: Text('チャットルームが見つかりません'));
+            return Center(child: Text('メッセージルームがありません'));
           }
 
           final List<dynamic> chatRooms = userMap['chatRooms'];

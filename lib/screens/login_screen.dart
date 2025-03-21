@@ -13,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isObscured = true; // パスワードの表示状態を管理
 
   Future<void> _login() async {
     String email = emailController.text.trim();
@@ -31,6 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("ログイン成功！")),
       );
+      // ログイン成功時に '/travel' に遷移
+      context.go('/travel'); // ここを変更
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("ログイン失敗: ${e.message}")),
@@ -63,7 +66,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 // パスワード入力
                 _buildLabel('パスワード'),
                 _buildTextField(
-                    controller: passwordController, obscureText: true),
+                    controller: passwordController,
+                    obscureText: _isObscured), // 変更
                 SizedBox(height: 15),
 
                 // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
@@ -137,6 +141,19 @@ class _LoginScreenState extends State<LoginScreen> {
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
+        suffixIcon: controller == passwordController // パスワードフィールドのみアイコンを表示
+            ? IconButton(
+                icon: Icon(
+                  _isObscured ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isObscured = !_isObscured;
+                  });
+                },
+              )
+            : null,
       ),
     );
   }
@@ -163,7 +180,9 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                context.push('/password-change'); // ここで遷移
+              },
               child: Text(
                 text,
                 style: TextStyle(color: Colors.grey, fontSize: 16),

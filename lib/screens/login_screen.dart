@@ -66,7 +66,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 // パスワード入力
                 _buildLabel('パスワード'),
                 _buildTextField(
-                    controller: passwordController, obscureText: _isObscured), // 変更
+                    controller: passwordController,
+                    obscureText: _isObscured), // 変更
                 SizedBox(height: 15),
 
                 // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
@@ -157,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // 「パスワードをお忘れですか？」の下にテキストと同じ長さの横線を配置
+   // 「パスワードをお忘れですか？」の下にテキストと同じ長さの横線を配置
   Widget _buildForgotPassword(BuildContext context) {
     String text = 'パスワードをお忘れですか？';
 

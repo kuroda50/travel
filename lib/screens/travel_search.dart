@@ -357,21 +357,48 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                       ],
                     ),
+                    //Wrap(
+                    //spacing: 8.0,
+                    //children:
+                    //  tags.map((tag) => Chip(label: Text(tag))).toList(),
+                    //),
                     Wrap(
                       spacing: 8.0,
-                      children:
-                          tags.map((tag) => Chip(label: Text(tag))).toList(),
+                      children: tags
+                          .map((tag) => Chip(
+                                label: Text(tag),
+                                deleteIcon: Icon(Icons.cancel), // バツマークのアイコン
+                                onDeleted: () {
+                                  setState(() {
+                                    tags.remove(tag); // タップされたタグをリストから削除
+                                  });
+                                  _onSearchChanged();
+                                },
+                              ))
+                          .toList(),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Icon(Icons.search),
                         Text(
-                          '$filteredPostsCount個に絞り込み中',
+                          tags.isEmpty
+                              ? '${_allPosts.length}件の投稿があります'
+                              : '$filteredPostsCount件に絞り込み中',
                           textAlign: TextAlign.center,
                         ),
                       ],
                     ),
+                    //Row(
+                    //mainAxisAlignment: MainAxisAlignment.center,
+                    //children: <Widget>[
+                    //Icon(Icons.search),
+                    //Text(
+                    //'$filteredPostsCount個に絞り込み中',
+                    //textAlign: TextAlign.center,
+                    //),
+                    //],
+                    //),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -623,6 +650,10 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   void _showBudgetModal(BuildContext context) {
+    TextEditingController minController = TextEditingController();
+    TextEditingController maxController = TextEditingController();
+    String? errorText;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -707,23 +738,20 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   void _showAgeModal(BuildContext context, bool isHost) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String ageMin = isHost
-            ? selectedAgeHost.split('〜')[0] == 'こだわらない'
-                ? ''
-                : selectedAgeHost.split('〜')[0]
-            : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
-                ? ''
-                : selectedAgeRecruit.split('〜')[0];
-        String ageMax = isHost
-            ? selectedAgeHost.split('〜')[1] == 'こだわらない'
-                ? ''
-                : selectedAgeHost.split('〜')[1]
-            : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
-                ? ''
-                : selectedAgeRecruit.split('〜')[1];
+    String ageMin = isHost
+        ? selectedAgeHost.split('〜')[0] == 'こだわらない'
+            ? ''
+            : selectedAgeHost.split('〜')[0]
+        : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+            ? ''
+            : selectedAgeRecruit.split('〜')[0];
+    String ageMax = isHost
+        ? selectedAgeHost.split('〜')[1] == 'こだわらない'
+            ? ''
+            : selectedAgeHost.split('〜')[1]
+        : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+            ? ''
+            : selectedAgeRecruit.split('〜')[1];
 
         String errorMessage = ''; // エラーメッセージを格納する変数
 
@@ -904,50 +932,52 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
+              padding: EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                // ← ここを追加
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(Icons.arrow_back)),
+                        Text('曜日',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    for (var day in days)
+                      CheckboxListTile(
+                        title: Text(day),
+                        value: selectedDays.contains(day),
+                        onChanged: (bool? isChecked) {
+                          setState(() {
+                            if (isChecked == true) {
+                              if (selectedDays.contains('こだわらない')) {
+                                selectedDays.remove('こだわらない');
+                              }
+                              selectedDays.add(day);
+                            } else {
+                              selectedDays.remove(day);
+                              if (selectedDays.isEmpty) {
+                                selectedDays.add('こだわらない');
+                              }
+                            }
+                          });
+                          // days のインデックスを基準にソート
+                          selectedDays.sort((a, b) =>
+                              days.indexOf(a).compareTo(days.indexOf(b)));
+                          onDaysSelected(List.from(selectedDays));
                         },
-                        icon: Icon(Icons.arrow_back)),
-                    Text('曜日',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
                   ],
                 ),
-                SizedBox(height: 16),
-                for (var day in days)
-                  CheckboxListTile(
-                    title: Text(day),
-                    value: selectedDays.contains(day),
-                    onChanged: (bool? isChecked) {
-                      setState(() {
-                        if (isChecked == true) {
-                          if (selectedDays.contains('こだわらない')) {
-                            selectedDays.remove('こだわらない');
-                          }
-                          selectedDays.add(day);
-                        } else {
-                          selectedDays.remove(day);
-                          if (selectedDays.isEmpty) {
-                            selectedDays.add('こだわらない');
-                          }
-                        }
-                      });
-                      // days のインデックスを基準にソート
-                      selectedDays.sort(
-                          (a, b) => days.indexOf(a).compareTo(days.indexOf(b)));
-                      onDaysSelected(List.from(selectedDays));
-                    },
-                  ),
-              ],
-            ),
-          );
+              ));
         });
       },
     );

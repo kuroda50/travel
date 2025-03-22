@@ -454,7 +454,7 @@ class _TravelSearchState extends State<TravelSearch> {
         if (isRegion) {
           _showRegionModal(context);
         } else if (isDate) {
-          _selectDate(context, label);
+          selectDate(context, label);
         } else if (isCheckbox) {
           setState(() {
             if (isHost) {
@@ -1234,35 +1234,15 @@ class _TravelSearchState extends State<TravelSearch> {
     );
   }
 
-  Future<void> _selectDate(BuildContext context, String label) async {
+  Future<void> selectDate(BuildContext context, String label) async {
     DateTime initialTime = DateTime.now();
     if (label == 'いつから' && selectedStartDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
     } else if (label == 'いつまで' && selectedEndDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
     }
-    DateTime? picked = await showCustomDatePicker(context, initialTime);
-    // showDatePicker(
-    //   context: context,
-    //   initialDate: DateTime.now(),
-    //   firstDate: DateTime.now(),
-    //   lastDate: DateTime(2101),
-    //   builder: (context, child) {
-    //     return Theme(
-    //       data: ThemeData.light().copyWith(
-    //         primaryColor: Colors.blueAccent, // アクセントカラー
-    //         colorScheme: ColorScheme.light(primary: Colors.blueAccent),
-    //         dialogBackgroundColor: Colors.white,
-    //         textButtonTheme: TextButtonThemeData(
-    //           style: TextButton.styleFrom(
-    //             foregroundColor: Colors.blueAccent, // ボタンの色
-    //           ),
-    //         ),
-    //       ),
-    //       child: child!,
-    //     );
-    //   },
-    // );
+    DateTime? picked = await showCustomDatePicker(
+        context, initialTime, label, selectedStartDate, selectedEndDate);
     setState(() {
       if (picked != null) {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
@@ -1282,28 +1262,43 @@ class _TravelSearchState extends State<TravelSearch> {
     _onSearchChanged();
   }
 
-  Future<void> _selectDate2(BuildContext context, String label) async {
-    final DateTime? picked =
-        await showCustomDatePicker(context, parseDate(selectedStartDate, true));
+  // Future<void> _selectDate2(BuildContext context, String label) async {
+  //   final DateTime? picked =
+  //       await showCustomDatePicker(context, parseDate(selectedStartDate, true));
 
-    if (picked != null) {
-      setState(() {
-        String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
-        if (label == 'いつから') {
-          selectedStartDate = formattedDate;
-        } else if (label == 'いつまで') {
-          selectedEndDate = formattedDate;
-        }
-      });
-      _onSearchChanged();
-    }
-  }
+  //   if (picked != null) {
+  //     setState(() {
+  //       String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
+  //       if (label == 'いつから') {
+  //         selectedStartDate = formattedDate;
+  //       } else if (label == 'いつまで') {
+  //         selectedEndDate = formattedDate;
+  //       }
+  //     });
+  //     _onSearchChanged();
+  //   }
+  // }
 }
 
 Future<DateTime?> showCustomDatePicker(
-    BuildContext context, DateTime? initialDate) async {
+    BuildContext context,
+    DateTime? initialDate,
+    String label,
+    String selectedStartDate,
+    String selectedEndDate) async {
   DateTime? selectedDate = initialDate ?? DateTime.now();
-  print("呼ばれたよ");
+  DateTime? startTime, endTime;
+  if (label == "いつから") {
+    startTime = DateTime.now();
+    endTime = selectedEndDate == "入力してください"
+        ? DateTime(2101)
+        : DateFormat("yyyy/MM/dd").parse(selectedEndDate);
+  } else if (label == "いつまで") {
+    endTime = DateTime(2101);
+    startTime = selectedStartDate == "入力してください"
+        ? DateTime.now()
+        : DateFormat("yyyy/MM/dd").parse(selectedStartDate);
+  }
 
   return showDialog<DateTime>(
     context: context,
@@ -1321,8 +1316,8 @@ Future<DateTime?> showCustomDatePicker(
                       height: 300, // 高さを指定
                       child: CalendarDatePicker(
                         initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2101),
+                        firstDate: startTime!,
+                        lastDate: endTime!,
                         onDateChanged: (DateTime date) {
                           setState(() {
                             selectedDate = date;

@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'package:travel/places/places.dart';
 import 'package:travel/screens/message_room_screen.dart';
+import 'travel_search.dart';
 
 class RecruitmentPostScreen extends StatefulWidget {
   const RecruitmentPostScreen({super.key});
@@ -44,6 +45,8 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
 
+  TravelSearch travelSearch = TravelSearch();
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +76,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       tags = [];
       titleController.clear();
       descriptionController.clear();
+    });
+  }
+
+  void addTag() {
+    setState(() {
+      tags.add(tagController.text);
+      tagController.clear();
     });
   }
 
@@ -237,7 +247,8 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         if (isRegion) {
           _showRegionModal(context);
         } else if (isDate) {
-          _selectDate(context, label);
+          // _selectDate(context, label);
+          selectDate(context, label);
         } else if (isCheckbox) {
           setState(() {
             if (isHost) {
@@ -391,20 +402,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                   hintText: 'タグを入力',
                 ),
                 onSubmitted: (value) {
-                  setState(() {
-                    tags.add(value);
-                    tagController.clear();
-                  });
+                  addTag();
                 },
               ),
             ),
             IconButton(
               icon: Icon(Icons.add),
               onPressed: () {
-                setState(() {
-                  tags.add(tagController.text);
-                  tagController.clear();
-                });
+                addTag();
               },
             ),
           ],
@@ -1030,6 +1035,33 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     );
   }
 
+  Future<void> selectDate(BuildContext context, String label) async {
+    DateTime initialTime = DateTime.now();
+    if (label == 'いつから' && selectedStartDate != '入力してください') {
+      initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
+    } else if (label == 'いつまで' && selectedEndDate != '入力してください') {
+      initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
+    }
+    DateTime? picked = await showCustomDatePicker(
+        context, initialTime, label, selectedStartDate, selectedEndDate);
+    setState(() {
+      if (picked != null) {
+        String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
+        if (label == 'いつから') {
+          selectedStartDate = formattedDate;
+        } else if (label == 'いつまで') {
+          selectedEndDate = formattedDate;
+        }
+      } else {
+        if (label == 'いつから') {
+          selectedStartDate = '入力してください';
+        } else if (label == 'いつまで') {
+          selectedEndDate = '入力してください';
+        }
+      }
+    });
+  }
+
   Future<void> _selectDate(BuildContext context, String label) async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -1226,11 +1258,9 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         "chatRooms": FieldValue.arrayUnion([roomId]),
         "participatedPosts": FieldValue.arrayUnion([postId]),
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('投稿が完了しました')),
       );
-
       // チャット画面に遷移
       Navigator.push(
         context,

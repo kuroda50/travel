@@ -357,21 +357,48 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                       ],
                     ),
+                    //Wrap(
+                    //spacing: 8.0,
+                    //children:
+                    //  tags.map((tag) => Chip(label: Text(tag))).toList(),
+                    //),
                     Wrap(
                       spacing: 8.0,
-                      children:
-                          tags.map((tag) => Chip(label: Text(tag))).toList(),
+                      children: tags
+                          .map((tag) => Chip(
+                                label: Text(tag),
+                                deleteIcon: Icon(Icons.cancel), // バツマークのアイコン
+                                onDeleted: () {
+                                  setState(() {
+                                    tags.remove(tag); // タップされたタグをリストから削除
+                                  });
+                                  _onSearchChanged();
+                                },
+                              ))
+                          .toList(),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Icon(Icons.search),
                         Text(
-                          '$filteredPostsCount個に絞り込み中',
+                          tags.isEmpty
+                              ? '${_allPosts.length}件の投稿があります'
+                              : '$filteredPostsCount件に絞り込み中',
                           textAlign: TextAlign.center,
                         ),
                       ],
                     ),
+                    //Row(
+                    //mainAxisAlignment: MainAxisAlignment.center,
+                    //children: <Widget>[
+                    //Icon(Icons.search),
+                    //Text(
+                    //'$filteredPostsCount個に絞り込み中',
+                    //textAlign: TextAlign.center,
+                    //),
+                    //],
+                    //),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

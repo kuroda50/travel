@@ -90,7 +90,9 @@ class _SignupFormState extends State<AccountCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: "アカウント作成",),
+      appBar: Header(
+        title: "アカウント作成",
+      ),
       backgroundColor: AppColor.subBackgroundColor,
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -182,7 +184,8 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                   signUp();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF559900)),
+                                  backgroundColor: Color(0xFF559900),
+                                ),
                                 child: Text('会員になる',
                                     style: TextStyle(color: Colors.white)),
                               ),
@@ -223,65 +226,128 @@ class _SignupFormState extends State<AccountCreateScreen> {
     );
   }
 
-  Widget _buildLabeledTextField(String TextFieldType, double width) {
+  // 各フィールドのパスワード表示状態を管理
+  Map<String, bool> isObscuredMap = {
+    'password': true,
+    'passwordCheck': true,
+  };
+
+  Widget _buildLabeledTextField(String textFieldType, double width) {
     return SizedBox(
       width: width * 0.9,
-      child: TextFormField(
-        controller: TextFieldType == 'name'
-            ? _nameController
-            : TextFieldType == 'mail'
-                ? _emailController
-                : TextFieldType == 'password'
-                    ? _passwordController
-                    : _passwordCheckController,
-        obscureText:
-            (TextFieldType == 'password' || TextFieldType == 'passwordCheck')
-                ? true
-                : false,
-        keyboardType: TextFieldType == 'mail'
-            ? TextInputType.emailAddress
-            : TextInputType.text,
-        decoration: InputDecoration(
-          border: OutlineInputBorder(),
-          labelStyle: TextStyle(color: Color(0xFFE0E0E0)), //あな名、電メ、パス、パス確の色
-          contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        ),
-        validator: (value) {
-          switch (TextFieldType) {
-            case 'name':
-              if (value == null || value.isEmpty) {
-                return '名前を入力してください';
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          return TextFormField(
+            controller: textFieldType == 'name'
+                ? _nameController
+                : textFieldType == 'mail'
+                    ? _emailController
+                    : textFieldType == 'password'
+                        ? _passwordController
+                        : _passwordCheckController,
+            obscureText: isObscuredMap[textFieldType] ?? false,
+            keyboardType: textFieldType == 'mail'
+                ? TextInputType.emailAddress
+                : TextInputType.text,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelStyle: TextStyle(color: Color(0xFFE0E0E0)),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              suffixIcon: (textFieldType == 'password' ||
+                      textFieldType == 'passwordCheck')
+                  ? IconButton(
+                      icon: Icon(
+                        isObscuredMap[textFieldType]!
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isObscuredMap[textFieldType] =
+                              !isObscuredMap[textFieldType]!;
+                        });
+                      },
+                    )
+                  : null,
+            ),
+            validator: (value) {
+              switch (textFieldType) {
+                case 'name':
+                  if (value == null || value.isEmpty) {
+                    return '名前を入力してください';
+                  }
+                  break;
+                case 'mail':
+                  if (value == null || value.isEmpty) {
+                    return 'メールアドレスを入力してください';
+                  } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return '有効なメールアドレスを入力してください';
+                  } else if (isEmailUsed) {
+                    return 'このメールアドレスは既に使用されています';
+                  }
+                  break;
+                case 'password':
+                  if (value == null || value.isEmpty) {
+                    return 'パスワードを入力してください';
+                  } else if (value.length < 6 &&
+                      !RegExp(r'[a-z]').hasMatch(value) &&
+                      !RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、小文字・数字を含めてください';
+                  } else if (value.length < 6 &&
+                      !RegExp(r'[A-Z]').hasMatch(value) &&
+                      !RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、大文字・数字を含めてください';
+                  } else if (value.length < 6 &&
+                      !RegExp(r'[A-Z]').hasMatch(value) &&
+                      !RegExp(r'[a-z]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、大文字・小文字を含めてください';
+                  } else if (value.length < 6 &&
+                      !RegExp(r'[A-Z]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、大文字を含めてください';
+                  } else if (value.length < 6 &&
+                      !RegExp(r'[a-z]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、小文字を含めてください';
+                  } else if (value.length < 6 &&
+                      !RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、数字を含めてください';
+                  } else if (value.length < 6) {
+                    return 'パスワードは6文字以上にしてください';
+                  } else if (value.length < 6 &&
+                      (!RegExp(r'[A-Z]').hasMatch(value) ||
+                          !RegExp(r'[a-z]').hasMatch(value)) &&
+                      !RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは6文字以上で、大文字・小文字・数字を含めてください';
+                  } else if (!RegExp(r'[A-Z]').hasMatch(value) &&
+                      !RegExp(r'[a-z]').hasMatch(value)) {
+                    return 'パスワードは大文字・小文字を含めてください';
+                  } else if (!RegExp(r'[A-Z]').hasMatch(value) &&
+                      !RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは大文字・数字を含めてください';
+                  } else if (!RegExp(r'[a-z]').hasMatch(value) &&
+                      !RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは小文字・数字を含めてください';
+                  } else if (!RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'パスワードは数字を含めてください';
+                  } else if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                    return 'パスワードは大文字を含めてください';
+                  } else if (!RegExp(r'[a-z]').hasMatch(value)) {
+                    return 'パスワードは小文字を含めてください';
+                  }
+
+                  break;
+                case 'passwordCheck':
+                  if (value == null || value.isEmpty) {
+                    return '確認用パスワードを入力してください';
+                  } else if (value != _passwordController.text) {
+                    return 'パスワードが一致しません';
+                  }
+                  break;
               }
-              break;
-            case 'mail':
-              if (value == null || value.isEmpty) {
-                return 'メールアドレスを入力してください';
-              } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                return "有効なメールアドレスを入力してください";
-              } else if (isEmailUsed) {
-                return "このメールアドレスは既に使用されています";
-              }
-              break;
-            case 'password':
-              if (value == null || value.isEmpty) {
-                return 'パスワードを入力してください';
-              } else if (value.length < 6) {
-                return "パスワードは6文字以上にしてください";
-              } else if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                return "パスワードには大文字を含めてください";
-              } else if (!RegExp(r'[a-z]').hasMatch(value)) {
-                return "パスワードには小文字を含めてください";
-              }
-              break;
-            case 'passwordCheck':
-              if (value == null || value.isEmpty) {
-                return '確認用パスワードを入力してください';
-              } else if (value != _passwordController.text) {
-                return "パスワードが一致しません";
-              }
-              break;
-          }
-          return null;
+              return null;
+            },
+          );
         },
       ),
     );
@@ -418,7 +484,6 @@ class _SignupFormState extends State<AccountCreateScreen> {
                     _selectedYear = newValue;
                     // 年が変わったら、日をリセット（うるう年を再計算するため）
                     _selectedDay = null;
-                    _birthdayError = '誕生日を選択してください';
                   });
                 },
               ),
@@ -446,7 +511,6 @@ class _SignupFormState extends State<AccountCreateScreen> {
                     _selectedMonth = newValue;
                     // 月が変わったら、日をリセット（日数を再計算するため）
                     _selectedDay = null;
-                    _birthdayError = '誕生日を選択してください';
                   });
                 },
               ),
@@ -490,7 +554,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
         SizedBox(height: 8),
         Text(
           '誕生日は年齢の計算に使用され、他のユーザーには表示されません',
-          style: TextStyle(fontSize: 12, color: Color(0xFFE0E0E0)),
+          style: TextStyle(fontSize: 12, color: Colors.black,),
         ),
       ],
     );

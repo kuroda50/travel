@@ -136,6 +136,27 @@ class _TravelScreenState extends State<TravelScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                GestureDetector(
+                  onTap: () {
+                    context.push('/travel_search');
+                  },
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('募集を検索する'),
+                        Icon(Icons.search),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
                 // 画像スライドショーを追加
                 Stack(
                   alignment: Alignment.topCenter,
@@ -164,58 +185,18 @@ class _TravelScreenState extends State<TravelScreen> {
                 SizedBox(height: 16), // 余白追加
                 // 他のウィジェット
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          context.go('/travel');
-                        },
-                        child: Text(
-                          '旅行仲間と\n集まる',
-                          textAlign: TextAlign.center,
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          backgroundColor: AppColor.mainButtonColor,
-                          foregroundColor: AppColor.subTextColor,
-                        ),
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push('/same-hobby');
+                      },
+                      child: Text('同じ趣味の人をさがす'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.mainButtonColor,
+                        foregroundColor: AppColor.subTextColor,
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.go('/same-hobby');
-                        },
-                        child: Text(
-                          '同じ趣味の人と\n集まる',
-                          textAlign: TextAlign.center,
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          backgroundColor: AppColor.mainButtonColor,
-                          foregroundColor: AppColor.subTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    context.push('/travel_search');
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('検索条件を設定する'),
-                        Icon(Icons.search),
-                      ],
                     ),
                   ),
                 ),
@@ -226,24 +207,22 @@ class _TravelScreenState extends State<TravelScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      Text('全て表示する >'),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.push('/recruitment-post');
-                      },
-                      child: Text('人を募集する'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.mainButtonColor,
-                        foregroundColor: AppColor.subTextColor,
+                      GestureDetector(
+                        onTap: () async {
+                          // 全ての投稿のIDを取得
+                          QuerySnapshot querySnapshot = await FirebaseFirestore
+                              .instance
+                              .collection('posts')
+                              .get();
+                          List<String> allPostIds =
+                              querySnapshot.docs.map((doc) => doc.id).toList();
+
+                          // 次の画面に全ての投稿のIDを渡す
+                          context.push('/recruitment-list', extra: allPostIds);
+                        },
+                        child: Text('全て表示する >'),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],

@@ -357,21 +357,48 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                       ],
                     ),
+                    //Wrap(
+                    //spacing: 8.0,
+                    //children:
+                    //  tags.map((tag) => Chip(label: Text(tag))).toList(),
+                    //),
                     Wrap(
                       spacing: 8.0,
-                      children:
-                          tags.map((tag) => Chip(label: Text(tag))).toList(),
+                      children: tags
+                          .map((tag) => Chip(
+                                label: Text(tag),
+                                deleteIcon: Icon(Icons.cancel), // バツマークのアイコン
+                                onDeleted: () {
+                                  setState(() {
+                                    tags.remove(tag); // タップされたタグをリストから削除
+                                  });
+                                  _onSearchChanged();
+                                },
+                              ))
+                          .toList(),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Icon(Icons.search),
                         Text(
-                          '$filteredPostsCount個に絞り込み中',
+                          tags.isEmpty
+                              ? '${_allPosts.length}件の投稿があります'
+                              : '$filteredPostsCount件に絞り込み中',
                           textAlign: TextAlign.center,
                         ),
                       ],
                     ),
+                    //Row(
+                    //mainAxisAlignment: MainAxisAlignment.center,
+                    //children: <Widget>[
+                    //Icon(Icons.search),
+                    //Text(
+                    //'$filteredPostsCount個に絞り込み中',
+                    //textAlign: TextAlign.center,
+                    //),
+                    //],
+                    //),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -623,112 +650,210 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   void _showBudgetModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String budgetMin = selectedBudgetMin;
-        String budgetMax = selectedBudgetMax;
-        String errorMessage = ''; // エラーメッセージを格納する変数
+    TextEditingController minController = TextEditingController();
+    TextEditingController maxController = TextEditingController();
+    String? errorText;
 
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('予算設定'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextField(
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(labelText: '最低予算（万円）'),
-                    onChanged: (value) {
-                      budgetMin = value;
-                    },
-                  ),
-                  TextField(
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(labelText: '最高予算（万円）'),
-                    onChanged: (value) {
-                      budgetMax = value;
-                    },
-                  ),
-                  if (errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        errorMessage,
-                        style: TextStyle(color: Colors.red),
-                      ),
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          String budgetMin = selectedBudgetMin;
+          String budgetMax = selectedBudgetMax;
+          String errorMessage = ''; // エラーメッセージを格納する変数
+
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text('予算設定'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(labelText: '最低予算（万円）'),
+                      onChanged: (value) {
+                        budgetMin = value;
+                      },
                     ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('キャンセル'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(labelText: '最高予算（万円）'),
+                      onChanged: (value) {
+                        budgetMax = value;
+                      },
+                    ),
+                    if (errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          errorMessage,
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ],
                 ),
-                TextButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    if (int.tryParse(budgetMin) != null &&
-                        int.tryParse(budgetMax) != null) {
-                      if (int.parse(budgetMin) <= int.parse(budgetMax)) {
-                        setState(() {
-                          selectedBudgetMin = budgetMin;
-                          selectedBudgetMax = budgetMax;
-                        });
-                        Navigator.of(context).pop();
-                        _onSearchChanged();
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('キャンセル'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      if (int.tryParse(budgetMin) != null &&
+                          int.tryParse(budgetMax) != null) {
+                        if (int.parse(budgetMin) <= int.parse(budgetMax)) {
+                          setState(() {
+                            selectedBudgetMin = budgetMin;
+                            selectedBudgetMax = budgetMax;
+                          });
+                          Navigator.of(context).pop();
+                          _onSearchChanged();
+                        } else {
+                          print("よばれたよ");
+                          setState(() {
+                            errorMessage =
+                                '最低予算は最高予算以下に設定してください。'; // エラーメッセージを設定
+                          });
+                        }
                       } else {
-                        print("よばれたよ");
-                        setState(() {
-                          errorMessage = '最低予算は最高予算以下に設定してください。'; // エラーメッセージを設定
-                        });
+                        errorMessage = '予算には数値を入力してください。'; // エラーメッセージを設定
                       }
-                    } else {
-                      errorMessage = '予算には数値を入力してください。'; // エラーメッセージを設定
-                    }
-                    // if (errorMessage.isNotEmpty) {
-                    //   // エラーメッセージがある場合は再描画
-                    //   print('再描画したよ');
-                    //   (context as Element).markNeedsBuild();
-                    // }
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        });
   }
 
   void _showAgeModal(BuildContext context, bool isHost) {
+    String ageMin = isHost
+        ? selectedAgeHost.split('〜')[0] == 'こだわらない'
+            ? ''
+            : selectedAgeHost.split('〜')[0]
+        : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+            ? ''
+            : selectedAgeRecruit.split('〜')[0];
+    String ageMax = isHost
+        ? selectedAgeHost.split('〜')[1] == 'こだわらない'
+            ? ''
+            : selectedAgeHost.split('〜')[1]
+        : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+            ? ''
+            : selectedAgeRecruit.split('〜')[1];
+
+    String errorMessage = ''; // エラーメッセージを格納する変数
+
+    //     return StatefulBuilder(
+    //       builder: (context, setState) {
+    //         return AlertDialog(
+    //           title: Text('年齢設定'),
+    //           content: Column(
+    //             mainAxisSize: MainAxisSize.min,
+    //             children: <Widget>[
+    //               TextField(
+    //                 keyboardType:
+    //                     TextInputType.numberWithOptions(decimal: false),
+    //                 decoration: InputDecoration(labelText: '最低年齢'),
+    //                 onChanged: (value) {
+    //                   ageMin = value;
+    //                 },
+    //                 controller: TextEditingController(text: ageMin),
+    //                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+    //               ),
+    //               TextField(
+    //                 keyboardType:
+    //                     TextInputType.numberWithOptions(decimal: false),
+    //                 decoration: InputDecoration(labelText: '最高年齢'),
+    //                 onChanged: (value) {
+    //                   ageMax = value;
+    //                 },
+    //                 controller: TextEditingController(text: ageMax),
+    //                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+    //               ),
+    //               if (errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
+    //                 Padding(
+    //                   padding: const EdgeInsets.only(top: 8.0),
+    //                   child: Text(
+    //                     errorMessage,
+    //                     style: TextStyle(color: Colors.red),
+    //                   ),
+    //                 ),
+    //             ],
+    //           ),
+    //           actions: <Widget>[
+    //             TextButton(
+    //               child: Text('キャンセル'),
+    //               onPressed: () {
+    //                 Navigator.of(context).pop();
+    //               },
+    //             ),
+    //             TextButton(
+    //               child: Text('OK'),
+    //               onPressed: () {
+    //                 if (ageMin.isNotEmpty &&
+    //                     ageMax.isNotEmpty &&
+    //                     int.tryParse(ageMin) != null &&
+    //                     int.tryParse(ageMax) != null) {
+    //                   if (int.parse(ageMin) <= int.parse(ageMax)) {
+    //                     setState(() {
+    //                       if (isHost) {
+    //                         selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
+    //                             ? 'こだわらない〜こだわらない'
+    //                             : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+    //                       } else {
+    //                         selectedAgeRecruit = ageMin.isEmpty &&
+    //                                 ageMax.isEmpty
+    //                             ? 'こだわらない〜こだわらない'
+    //                             : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+    //                       }
+    //                     });
+    //                     Navigator.of(context).pop();
+    //                     _onSearchChanged();
+    //                   } else {
+    //                     setState(() {
+    //                       errorMessage = '最低年齢は最高年齢以下に設定してください。';
+    //                     });
+    //                   }
+    //                 } else if (ageMin.isNotEmpty && ageMax.isNotEmpty) {
+    //                   setState(() {
+    //                     errorMessage = '年齢には数値を入力してください。';
+    //                   });
+    //                 } else {
+    //                   setState(() {
+    //                     if (isHost) {
+    //                       selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
+    //                           ? 'こだわらない〜こだわらない'
+    //                           : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+    //                     } else {
+    //                       selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
+    //                           ? 'こだわらない〜こだわらない'
+    //                           : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+    //                     }
+    //                     Navigator.of(context).pop();
+    //                     _onSearchChanged();
+    //                   });
+    //                 }
+    //               },
+    //             ),
+    //           ],
+    //         );
+    //       },
+    // String errorMessage = ''; // エラーメッセージを保持する変数
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String ageMin = isHost
-            ? selectedAgeHost.split('〜')[0] == 'こだわらない'
-                ? ''
-                : selectedAgeHost.split('〜')[0]
-            : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
-                ? ''
-                : selectedAgeRecruit.split('〜')[0];
-        String ageMax = isHost
-            ? selectedAgeHost.split('〜')[1] == 'こだわらない'
-                ? ''
-                : selectedAgeHost.split('〜')[1]
-            : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
-                ? ''
-                : selectedAgeRecruit.split('〜')[1];
-
-        String errorMessage = ''; // エラーメッセージを格納する変数
-
         return StatefulBuilder(
-          builder: (context, setState) {
+          // StatefulBuilderを追加
+          builder: (BuildContext context, StateSetter setState) {
+            // setStateを追加
             return AlertDialog(
               title: Text('年齢設定'),
               content: Column(
@@ -754,8 +879,9 @@ class _TravelSearchState extends State<TravelSearch> {
                     controller: TextEditingController(text: ageMax),
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
-                  if (errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
+                  if (errorMessage.isNotEmpty) // エラーメッセージがあれば表示
                     Padding(
+                      // PaddingでTextFieldとの間隔を調整
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         errorMessage,
@@ -776,47 +902,26 @@ class _TravelSearchState extends State<TravelSearch> {
                   onPressed: () {
                     if (ageMin.isNotEmpty &&
                         ageMax.isNotEmpty &&
-                        int.tryParse(ageMin) != null &&
-                        int.tryParse(ageMax) != null) {
-                      if (int.parse(ageMin) <= int.parse(ageMax)) {
-                        setState(() {
-                          if (isHost) {
-                            selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
-                                ? 'こだわらない〜こだわらない'
-                                : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
-                          } else {
-                            selectedAgeRecruit = ageMin.isEmpty &&
-                                    ageMax.isEmpty
-                                ? 'こだわらない〜こだわらない'
-                                : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
-                          }
-                        });
-                        Navigator.of(context).pop();
-                        _onSearchChanged();
-                      } else {
-                        setState(() {
-                          errorMessage = '最低年齢は最高年齢以下に設定してください。';
-                        });
-                      }
-                    } else if (ageMin.isNotEmpty && ageMax.isNotEmpty) {
+                        int.parse(ageMin) > int.parse(ageMax)) {
                       setState(() {
-                        errorMessage = '年齢には数値を入力してください。';
+                        errorMessage = '最低年齢は最高年齢より低く設定してください';
                       });
-                    } else {
-                      setState(() {
-                        if (isHost) {
-                          selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
-                              ? 'こだわらない〜こだわらない'
-                              : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
-                        } else {
-                          selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
-                              ? 'こだわらない〜こだわらない'
-                              : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
-                        }
-                        Navigator.of(context).pop();
-                        _onSearchChanged();
-                      });
+                      return; // エラーがある場合は処理を中断
                     }
+
+                    setState(() {
+                      if (isHost) {
+                        selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
+                            ? 'こだわらない〜こだわらない'
+                            : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                      } else {
+                        selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
+                            ? 'こだわらない〜こだわらない'
+                            : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
+                      }
+                    });
+                    Navigator.of(context).pop();
+                    _onSearchChanged();
                   },
                 ),
               ],
@@ -904,50 +1009,52 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
+              padding: EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                // ← ここを追加
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(Icons.arrow_back)),
+                        Text('曜日',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    for (var day in days)
+                      CheckboxListTile(
+                        title: Text(day),
+                        value: selectedDays.contains(day),
+                        onChanged: (bool? isChecked) {
+                          setState(() {
+                            if (isChecked == true) {
+                              if (selectedDays.contains('こだわらない')) {
+                                selectedDays.remove('こだわらない');
+                              }
+                              selectedDays.add(day);
+                            } else {
+                              selectedDays.remove(day);
+                              if (selectedDays.isEmpty) {
+                                selectedDays.add('こだわらない');
+                              }
+                            }
+                          });
+                          // days のインデックスを基準にソート
+                          selectedDays.sort((a, b) =>
+                              days.indexOf(a).compareTo(days.indexOf(b)));
+                          onDaysSelected(List.from(selectedDays));
                         },
-                        icon: Icon(Icons.arrow_back)),
-                    Text('曜日',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
                   ],
                 ),
-                SizedBox(height: 16),
-                for (var day in days)
-                  CheckboxListTile(
-                    title: Text(day),
-                    value: selectedDays.contains(day),
-                    onChanged: (bool? isChecked) {
-                      setState(() {
-                        if (isChecked == true) {
-                          if (selectedDays.contains('こだわらない')) {
-                            selectedDays.remove('こだわらない');
-                          }
-                          selectedDays.add(day);
-                        } else {
-                          selectedDays.remove(day);
-                          if (selectedDays.isEmpty) {
-                            selectedDays.add('こだわらない');
-                          }
-                        }
-                      });
-                      // days のインデックスを基準にソート
-                      selectedDays.sort(
-                          (a, b) => days.indexOf(a).compareTo(days.indexOf(b)));
-                      onDaysSelected(List.from(selectedDays));
-                    },
-                  ),
-              ],
-            ),
-          );
+              ));
         });
       },
     );

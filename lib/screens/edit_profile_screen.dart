@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:go_router/go_router.dart'; // go_routerをインポート
+import 'package:travel/component/header.dart'; // Headerウィジェットをインポート
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,6 +11,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  static const Color mainButtonColor = Color(0xFF559900); // 保存ボタンのカラー
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _hobbiesController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
@@ -38,6 +41,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('プロフィールが保存されました')),
       );
+
+      // /profileに遷移
+      context.go('/profile', extra: 'ユーザーID'); // ユーザーIDは適切なものに置き換えてください
     } catch (e) {
       // 保存失敗のエラーメッセージ
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,9 +71,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("プロフィール編集"),
-      ),
+      appBar: Header(title: "プロフィール編集"), // ヘッダーを追加
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -82,7 +86,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             SizedBox(height: 16),
-
             Text('性別:', style: TextStyle(fontSize: 18)),
             SizedBox(height: 8),
             Row(
@@ -113,7 +116,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ],
             ),
             SizedBox(height: 16),
-
             Text('誕生日:', style: TextStyle(fontSize: 18)),
             SizedBox(height: 8),
             GestureDetector(
@@ -131,7 +133,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             SizedBox(height: 16),
-
             Text('趣味:', style: TextStyle(fontSize: 18)),
             SizedBox(height: 8),
             TextField(
@@ -142,7 +143,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             SizedBox(height: 16),
-
             Text('自己紹介:', style: TextStyle(fontSize: 18)),
             SizedBox(height: 8),
             TextField(
@@ -154,11 +154,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             SizedBox(height: 24),
-
             ElevatedButton(
-              onPressed: _saveProfile,
-              child: Text('保存'),
-            ),
+                onPressed: _saveProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: mainButtonColor,
+                ),
+                child: Text(
+                  '保存',
+                  style: TextStyle(color: Colors.white), // テキストの色を白に変更
+                )),
           ],
         ),
       ),

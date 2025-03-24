@@ -19,18 +19,18 @@ class RecruitmentPostScreen extends StatefulWidget {
 }
 
 class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
-  String selectedRegion = '入力してください';
-  List<String> selectedDestinations = ['入力してください'];
-  String selectedStartDate = '入力してください';
-  String selectedEndDate = '入力してください';
-  List<String> selectedDays = ['入力してください'];
-  String selectedGenderAttributeHost = '入力してください';
-  List<String> selectedGenderAttributeRecruit = ['入力してください'];
-  String selectedPaymentMethod = 'こだわらない';
-  String selectedAgeHost = 'こだわらない～こだわらない';
-  String selectedAgeRecruit = 'こだわらない〜こだわらない';
-  String selectedMeetingRegion = 'こだわらない';
-  List<String> selectedDeparture = ['こだわらない']; //
+  String selectedRegion = '未定';
+  List<String> selectedDestinations = ['未定'];
+  String selectedStartDate = '未定';
+  String selectedEndDate = '未定';
+  List<String> selectedDays = ['未定'];
+  String selectedGenderAttributeHost = '未定';
+  List<String> selectedGenderAttributeRecruit = ['未定'];
+  String selectedPaymentMethod = '未定';
+  String selectedAgeHost = '未定～未定';
+  String selectedAgeRecruit = '未定〜未定';
+  String selectedMeetingRegion = '未定';
+  List<String> selectedDeparture = ['未定']; //
 
   bool isPhotoCheckedHost = false;
   bool isPhotoCheckedRecruit = false;
@@ -54,18 +54,18 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
 
   void resetPost() {
     setState(() {
-      selectedRegion = '入力してください';
-      selectedDestinations = ['入力してください'];
-      selectedStartDate = '入力してください';
-      selectedEndDate = '入力してください';
-      selectedDays = ['入力してください'];
-      selectedGenderAttributeHost = '入力してください';
-      selectedGenderAttributeRecruit = ['入力してください'];
-      selectedPaymentMethod = 'こだわらない';
-      selectedAgeHost = 'こだわらない～こだわらない';
-      selectedAgeRecruit = 'こだわらない～こだわらない';
-      selectedMeetingRegion = 'こだわらない';
-      selectedDeparture = ['こだわらない'];
+      selectedRegion = '未定';
+      selectedDestinations = ['未定'];
+      selectedStartDate = '未定';
+      selectedEndDate = '未定';
+      selectedDays = ['未定'];
+      selectedGenderAttributeHost = '未定';
+      selectedGenderAttributeRecruit = ['未定'];
+      selectedPaymentMethod = '未定';
+      selectedAgeHost = '未定～未定';
+      selectedAgeRecruit = '未定～未定';
+      selectedMeetingRegion = '未定';
+      selectedDeparture = ['未定'];
 
       isPhotoCheckedHost = false;
       isPhotoCheckedRecruit = false;
@@ -160,7 +160,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     _buildListFilterItem(context, '曜日選択', selectedDays,
                         isDay: true),
                     // 主催者
-                    _buildSectionTitle('主催者'),
+                    _buildSectionTitle('主催者(必須)'),
                     _buildFilterItem(
                         context, '性別、属性', selectedGenderAttributeHost,
                         isGenderAttribute1: true),
@@ -185,10 +185,10 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     _buildListFilterItem(context, '出発地', selectedDeparture,
                         isDeparture: true),
                     // タイトル
-                    _buildSectionTitle('タイトル'),
+                    _buildSectionTitle('タイトル(必須)'),
                     _buildTitleInput(),
                     // 本文
-                    _buildSectionTitle('本文'),
+                    _buildSectionTitle('本文(必須)'),
                     _buildDescriptionInput(),
                     SizedBox(height: 16),
                     // ボタン
@@ -258,7 +258,11 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
             }
           });
         } else if (isAge) {
-          _showAgeModal(context, isHost);
+          _showAgeModal(context, isHost, (updatedAge) {
+            setState(() {
+              selectedAgeRecruit = updatedAge;
+            });
+          });
         } else if (isMeetingRegion) {
           _showMeetingRegionModal(context);
         } else if (isPaymentMethod) {
@@ -326,7 +330,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   }) {
     return InkWell(
       onTap: () {
-        if (isDestination && selectedRegion != '入力してください') {
+        if (isDestination && selectedRegion != '未定') {
           _showDestinationModal(context, selectedRegion, (updatedDestination) {
             setState(() {
               values.clear();
@@ -347,7 +351,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               values.addAll(updatedGender);
             });
           });
-        } else if (isDeparture && selectedMeetingRegion != 'こだわらない') {
+        } else if (isDeparture && selectedMeetingRegion != '未定') {
           _showDepartureModal(context, selectedMeetingRegion,
               (updatedDeparture) {
             setState(() {
@@ -399,7 +403,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               child: TextField(
                 controller: tagController,
                 decoration: InputDecoration(
-                  hintText: 'タグを入力',
+                  hintText: 'タグを入力(必須)',
                 ),
                 onSubmitted: (value) {
                   addTag();
@@ -564,76 +568,104 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     );
   }
 
-  void _showAgeModal(BuildContext context, bool isHost) {
+  void _showAgeModal(
+      BuildContext context, bool isHost, Function(String) onAgeSelected) {
+    String ageMin = isHost
+        ? selectedAgeHost.split('〜')[0] == '未定'
+            ? ''
+            : selectedAgeHost.split('〜')[0]
+        : selectedAgeRecruit.split('〜')[0] == '未定'
+            ? ''
+            : selectedAgeRecruit.split('〜')[0];
+    String ageMax = isHost
+        ? selectedAgeHost.split('〜')[1] == '未定'
+            ? ''
+            : selectedAgeHost.split('〜')[1]
+        : selectedAgeRecruit.split('〜')[1] == '未定'
+            ? ''
+            : selectedAgeRecruit.split('〜')[1];
+    String errorMessage = '';
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String ageMin = isHost
-            ? selectedAgeHost.split('〜')[0] == 'こだわらない'
-                ? ''
-                : selectedAgeHost.split('〜')[0]
-            : selectedAgeRecruit.split('〜')[0] == 'こだわらない'
-                ? ''
-                : selectedAgeRecruit.split('〜')[0];
-        String ageMax = isHost
-            ? selectedAgeHost.split('〜')[1] == 'こだわらない'
-                ? ''
-                : selectedAgeHost.split('〜')[1]
-            : selectedAgeRecruit.split('〜')[1] == 'こだわらない'
-                ? ''
-                : selectedAgeRecruit.split('〜')[1];
-
-        return AlertDialog(
-          title: Text('年齢設定'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                keyboardType: TextInputType.numberWithOptions(decimal: false),
-                decoration: InputDecoration(labelText: '最低年齢'),
-                onChanged: (value) {
-                  ageMin = value;
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            title: Text('年齢設定'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  keyboardType: TextInputType.numberWithOptions(decimal: false),
+                  decoration: InputDecoration(labelText: '最低年齢'),
+                  maxLength: 3,
+                  onChanged: (value) {
+                    ageMin = value;
+                  },
+                  controller: TextEditingController(text: ageMin),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly
+                  ], // 追加
+                ),
+                TextField(
+                  keyboardType: TextInputType.numberWithOptions(decimal: false),
+                  decoration: InputDecoration(labelText: '最高年齢'),
+                  maxLength: 3,
+                  onChanged: (value) {
+                    ageMax = value;
+                  },
+                  controller: TextEditingController(text: ageMax),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly
+                  ], // 追加
+                ),
+                if (errorMessage.isNotEmpty) // エラーメッセージがあれば表示
+                  Padding(
+                    // PaddingでTextFieldとの間隔を調整
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      errorMessage,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('キャンセル'),
+                onPressed: () {
+                  Navigator.of(context).pop();
                 },
-                controller: TextEditingController(text: ageMin),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 追加
               ),
-              TextField(
-                keyboardType: TextInputType.numberWithOptions(decimal: false),
-                decoration: InputDecoration(labelText: '最高年齢'),
-                onChanged: (value) {
-                  ageMax = value;
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  if (ageMin.isNotEmpty &&
+                      ageMax.isNotEmpty &&
+                      int.parse(ageMin) > int.parse(ageMax)) {
+                    setState(() {
+                      errorMessage = '最低年齢は最高年齢より低く設定してください';
+                    });
+                    return; // エラーがある場合は処理を中断
+                  }
+                  setState(() {
+                    if (isHost) {
+                      selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
+                          ? '未定〜未定'
+                          : '${ageMin.isEmpty ? '未定' : ageMin}〜${ageMax.isEmpty ? '未定' : ageMax}';
+                    } else {
+                      selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
+                          ? '未定〜未定'
+                          : '${ageMin.isEmpty ? '未定' : ageMin}〜${ageMax.isEmpty ? '未定' : ageMax}';
+                    }
+                  });
+                  onAgeSelected(selectedAgeRecruit);
+                  Navigator.of(context).pop();
                 },
-                controller: TextEditingController(text: ageMax),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 追加
               ),
             ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('キャンセル'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                setState(() {
-                  if (isHost) {
-                    selectedAgeHost = ageMin.isEmpty && ageMax.isEmpty
-                        ? 'こだわらない〜こだわらない'
-                        : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
-                  } else {
-                    selectedAgeRecruit = ageMin.isEmpty && ageMax.isEmpty
-                        ? 'こだわらない〜こだわらない'
-                        : '${ageMin.isEmpty ? 'こだわらない' : ageMin}〜${ageMax.isEmpty ? 'こだわらない' : ageMax}';
-                  }
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+          );
+        });
       },
     );
   }
@@ -682,14 +714,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       onChanged: (bool? isChecked) {
                         setState(() {
                           if (isChecked == true) {
-                            if (selectedDestinations.contains('入力してください')) {
-                              selectedDestinations.remove('入力してください');
+                            if (selectedDestinations.contains('未定')) {
+                              selectedDestinations.remove('未定');
                             }
                             selectedDestinations.add(destination);
                           } else {
                             selectedDestinations.remove(destination);
                             if (selectedDestinations.isEmpty) {
-                              selectedDestinations.add('入力してください');
+                              selectedDestinations.add('未定');
                             }
                           }
                         });
@@ -739,14 +771,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     onChanged: (bool? isChecked) {
                       setState(() {
                         if (isChecked == true) {
-                          if (selectedDays.contains('入力してください')) {
-                            selectedDays.remove('入力してください');
+                          if (selectedDays.contains('未定')) {
+                            selectedDays.remove('未定');
                           }
                           selectedDays.add(day);
                         } else {
                           selectedDays.remove(day);
                           if (selectedDays.isEmpty) {
-                            selectedDays.add('入力してください');
+                            selectedDays.add('未定');
                           }
                         }
                       });
@@ -841,14 +873,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       setState(() {
                         if (isChecked == true) {
                           if (selectedGenderAttributeRecruit
-                              .contains('入力してください')) {
-                            selectedGenderAttributeRecruit.remove('入力してください');
+                              .contains('未定')) {
+                            selectedGenderAttributeRecruit.remove('未定');
                           }
                           selectedGenderAttributeRecruit.add(gender);
                         } else {
                           selectedGenderAttributeRecruit.remove(gender);
                           if (selectedGenderAttributeRecruit.isEmpty) {
-                            selectedGenderAttributeRecruit.add('入力してください');
+                            selectedGenderAttributeRecruit.add('未定');
                           }
                         }
                         selectedGenderAttributeRecruit.sort((a, b) =>
@@ -869,11 +901,11 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   void _showPaymentMethodModal(
       BuildContext context, Function(String) onPaymentMethodSelected) {
     List<String> paymentMethods = [
-      'こだわらない',
+      '未定',
       '割り勘',
       '各自自腹',
       '主催者が多めに出す',
-      '主催者が少な目に出す'
+      '主催者が少なめに出す'
     ];
 
     showModalBottomSheet(
@@ -952,14 +984,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       onChanged: (bool? isChecked) {
                         setState(() {
                           if (isChecked == true) {
-                            if (selectedDeparture.contains('こだわらない')) {
-                              selectedDeparture.remove('こだわらない');
+                            if (selectedDeparture.contains('未定')) {
+                              selectedDeparture.remove('未定');
                             }
                             selectedDeparture.add(destination);
                           } else {
                             selectedDeparture.remove(destination);
                             if (selectedDeparture.isEmpty) {
-                              selectedDeparture.add('こだわらない');
+                              selectedDeparture.add('未定');
                             }
                           }
                         });
@@ -993,7 +1025,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                   onTap: () {
                     setState(() {
                       selectedMeetingRegion = region;
-                      selectedDeparture = ['こだわらない'];
+                      selectedDeparture = ['未定'];
                     });
                     Navigator.pop(context);
                   },
@@ -1023,7 +1055,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                   onTap: () {
                     setState(() {
                       selectedRegion = region;
-                      selectedDestinations = ['入力してください'];
+                      selectedDestinations = ['未定'];
                     });
                     Navigator.pop(context);
                   },
@@ -1037,9 +1069,9 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
 
   Future<void> selectDate(BuildContext context, String label) async {
     DateTime initialTime = DateTime.now();
-    if (label == 'いつから' && selectedStartDate != '入力してください') {
+    if (label == 'いつから' && selectedStartDate != '未定') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
-    } else if (label == 'いつまで' && selectedEndDate != '入力してください') {
+    } else if (label == 'いつまで' && selectedEndDate != '未定') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
     }
     DateTime? picked = await showCustomDatePicker(
@@ -1054,9 +1086,9 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         }
       } else {
         if (label == 'いつから') {
-          selectedStartDate = '入力してください';
+          selectedStartDate = '未定';
         } else if (label == 'いつまで') {
-          selectedEndDate = '入力してください';
+          selectedEndDate = '未定';
         }
       }
     });
@@ -1135,25 +1167,26 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     };
 
     Map<String, String> paymentMethodMap = {
-      'こだわらない': 'null',
+      '未定': 'null',
       '割り勘': 'splitEvenly',
       '各自自腹': 'eachPays',
       '主催者が多めに出す': 'hostPaysMore',
-      '主催者が少な目に出す': 'hostPaysLess'
+      '主催者が少なめに出す': 'hostPaysLess'
     };
 
     // 入力チェック
-    if (selectedRegion == '入力してください' ||
-        selectedDestinations.contains('入力してください') ||
-        selectedStartDate == '入力してください' ||
-        selectedEndDate == '入力してください' ||
-        selectedDays.contains('入力してください') ||
-        selectedGenderAttributeRecruit.contains('入力してください') ||
-        selectedGenderAttributeHost.contains('入力してください') ||
-        selectedPaymentMethod == '入力してください' ||
-        titleController.text.isEmpty ||
-        descriptionController.text.isEmpty ||
-        tags.isEmpty) {
+    if (
+        // selectedRegion == '未定' ||
+        // selectedDestinations.contains('未定') ||
+        selectedStartDate == '未定' ||
+        selectedEndDate == '未定' ||
+        // selectedDays.contains('未定') ||
+        // selectedGenderAttributeRecruit.contains('未定') ||
+        selectedGenderAttributeHost.contains('未定') ||
+            // selectedPaymentMethod == '未定' ||
+            titleController.text.isEmpty ||
+            descriptionController.text.isEmpty ||
+            tags.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("すべての必須項目を入力してください"),
@@ -1184,20 +1217,20 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       },
       "target": {
         "targetGroups": selectedGenderAttributeRecruit
-            .where((gender) => gender != 'こだわらない')
+            .where((gender) => gender != '未定')
             .map((gender) => genderMap[gender]!)
             .toList(),
-        "ageMax": selectedAgeRecruit.split('〜')[1] == 'こだわらない'
+        "ageMax": selectedAgeRecruit.split('〜')[1] == '未定'
             ? null
             : int.parse(selectedAgeRecruit.split('〜')[1]),
-        "ageMin": selectedAgeRecruit.split('〜')[0] == 'こだわらない'
+        "ageMin": selectedAgeRecruit.split('〜')[0] == '未定'
             ? null
             : int.parse(selectedAgeRecruit.split('〜')[0]),
         "hasPhoto": isPhotoCheckedRecruit,
       },
       "organizer": {
         "organizerId": user.uid,
-        "organizerGroup": selectedGenderAttributeHost != 'こだわらない'
+        "organizerGroup": selectedGenderAttributeHost != '未定'
             ? genderMap[selectedGenderAttributeHost]!
             : null,
         "organizerName": userData['name'],
@@ -1213,14 +1246,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
             selectedBudgetMin.isEmpty ? null : int.parse(selectedBudgetMin),
         "budgetMax":
             selectedBudgetMax.isEmpty ? null : int.parse(selectedBudgetMax),
-        "budgetType": selectedPaymentMethod != 'こだわらない'
+        "budgetType": selectedPaymentMethod != '未定'
             ? paymentMethodMap[selectedPaymentMethod]
             : null,
       },
       "meetingPlace": {
         "region": selectedMeetingRegion,
         "departure":
-            selectedDeparture.isNotEmpty && selectedDeparture[0] != 'こだわらない'
+            selectedDeparture.isNotEmpty && selectedDeparture[0] != '未定'
                 ? selectedDeparture[0]
                 : null,
       },

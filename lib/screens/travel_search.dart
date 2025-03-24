@@ -1236,13 +1236,14 @@ class _TravelSearchState extends State<TravelSearch> {
 
   Future<void> selectDate(BuildContext context, String label) async {
     DateTime initialTime = DateTime.now();
+    String firstMessage = "入力してください";
     if (label == 'いつから' && selectedStartDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
     } else if (label == 'いつまで' && selectedEndDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
     }
-    DateTime? picked = await showCustomDatePicker(
-        context, initialTime, label, selectedStartDate, selectedEndDate);
+    DateTime? picked = await showCustomDatePicker(context, initialTime, label,
+        firstMessage, selectedStartDate, selectedEndDate);
     setState(() {
       if (picked != null) {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
@@ -1284,6 +1285,7 @@ Future<DateTime?> showCustomDatePicker(
     BuildContext context,
     DateTime? initialDate,
     String label,
+    String firstMessage,
     String selectedStartDate,
     String selectedEndDate) async {
   DateTime? selectedDate = initialDate ?? DateTime.now();
@@ -1291,12 +1293,12 @@ Future<DateTime?> showCustomDatePicker(
   if (label == "いつから") {
     initialTime = initialDate ?? DateTime.now();
     startTime = DateTime.now();
-    endTime = selectedEndDate == "入力してください"
+    endTime = selectedEndDate == firstMessage
         ? DateTime(2101)
         : DateFormat("yyyy/MM/dd").parse(selectedEndDate);
   } else if (label == "いつまで") {
     endTime = DateTime(2101);
-    startTime = selectedStartDate == "入力してください"
+    startTime = selectedStartDate == firstMessage
         ? DateTime.now()
         : DateFormat("yyyy/MM/dd").parse(selectedStartDate);
     initialTime = startTime;

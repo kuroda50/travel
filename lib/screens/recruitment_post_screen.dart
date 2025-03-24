@@ -146,13 +146,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     // タグ
                     _buildTaginput(),
                     // どこへ
-                    _buildSectionTitle('どこへ'),
+                    _buildSectionTitle('どこへ(必須)'),
                     _buildFilterItem(context, '方面', selectedRegion,
                         isRegion: true),
                     _buildListFilterItem(context, '行き先', selectedDestinations,
                         isDestination: true),
                     // いつ
-                    _buildSectionTitle('いつ'),
+                    _buildSectionTitle('いつ(必須)'),
                     _buildFilterItem(context, 'いつから', selectedStartDate,
                         isDate: true),
                     _buildFilterItem(context, 'いつまで', selectedEndDate,
@@ -175,7 +175,8 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                         isCheckbox: true, isHost: false),
                     // お金について
                     _buildSectionTitle('お金について'),
-                    _buildBudgetFilterItem(context, '予算'),
+                    _buildBudgetFilterItem(
+                        context, '予算', selectedBudgetMin, selectedBudgetMax),
                     _buildFilterItem(context, 'お金の分け方', selectedPaymentMethod,
                         isPaymentMethod: true),
                     // 集合場所
@@ -403,7 +404,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               child: TextField(
                 controller: tagController,
                 decoration: InputDecoration(
-                  hintText: 'タグを入力(必須)',
+                  hintText: 'タグを入力',
                 ),
                 onSubmitted: (value) {
                   addTag();
@@ -467,10 +468,16 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     );
   }
 
-  Widget _buildBudgetFilterItem(BuildContext context, String label) {
+  Widget _buildBudgetFilterItem(BuildContext context, String label,
+      String selectedBudgetMin, String selectedBudgetMax) {
     return InkWell(
       onTap: () {
-        _showBudgetModal(context);
+        _showBudgetModal(context, (updatedBudgetMin, updatedBudgetMax) {
+          setState(() {
+            selectedBudgetMin = updatedBudgetMin;
+            selectedBudgetMax = updatedBudgetMax;
+          });
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -517,53 +524,79 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     );
   }
 
-  void _showBudgetModal(BuildContext context) {
+  void _showBudgetModal(
+      BuildContext context, Function(String, String) onBudgetSelected) {
+    String budgetMin = selectedBudgetMin;
+    String budgetMax = selectedBudgetMax;
+    String errorMessage = '';
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String budgetMin = selectedBudgetMin;
-        String budgetMax = selectedBudgetMax;
-
-        return AlertDialog(
-          title: Text('予算設定'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '最低予算（万円）'),
-                onChanged: (value) {
-                  budgetMin = value;
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            title: Text('予算設定'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: '最低予算（万円）'),
+                  onChanged: (value) {
+                    budgetMin = value;
+                  },
+                  controller: TextEditingController(text: budgetMin),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: '最高予算（万円）'),
+                  onChanged: (value) {
+                    budgetMax = value;
+                  },
+                  controller: TextEditingController(text: budgetMax),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                if (errorMessage.isNotEmpty) // エラーメッセージがあれば表示
+                  Padding(
+                    // PaddingでTextFieldとの間隔を調整
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      errorMessage,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('キャンセル'),
+                onPressed: () {
+                  Navigator.of(context).pop();
                 },
               ),
-              TextField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '最高予算（万円）'),
-                onChanged: (value) {
-                  budgetMax = value;
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  if (budgetMin.isNotEmpty &&
+                      budgetMax.isNotEmpty &&
+                      int.parse(budgetMin) > int.parse(budgetMax)) {
+                    setState(() {
+                      errorMessage = '最低予算は最高予算より低く設定してください';
+                    });
+                    return; // エラーがある場合は処理を中断
+                  }
+                  setState(() {
+                    selectedBudgetMin = budgetMin;
+                    selectedBudgetMax = budgetMax;
+                  });
+                  onBudgetSelected(selectedBudgetMin, selectedBudgetMax);
+                  Navigator.of(context).pop();
                 },
               ),
             ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('キャンセル'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                setState(() {
-                  selectedBudgetMin = budgetMin;
-                  selectedBudgetMax = budgetMax;
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+          );
+        });
       },
     );
   }
@@ -872,8 +905,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     onChanged: (bool? isChecked) {
                       setState(() {
                         if (isChecked == true) {
-                          if (selectedGenderAttributeRecruit
-                              .contains('未定')) {
+                          if (selectedGenderAttributeRecruit.contains('未定')) {
                             selectedGenderAttributeRecruit.remove('未定');
                           }
                           selectedGenderAttributeRecruit.add(gender);
@@ -1069,13 +1101,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
 
   Future<void> selectDate(BuildContext context, String label) async {
     DateTime initialTime = DateTime.now();
+    String firstMessage = "未定";
     if (label == 'いつから' && selectedStartDate != '未定') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
     } else if (label == 'いつまで' && selectedEndDate != '未定') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
     }
-    DateTime? picked = await showCustomDatePicker(
-        context, initialTime, label, selectedStartDate, selectedEndDate);
+    DateTime? picked = await showCustomDatePicker(context, initialTime, label,
+        firstMessage, selectedStartDate, selectedEndDate);
     setState(() {
       if (picked != null) {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
@@ -1175,18 +1208,18 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     };
 
     // 入力チェック
-    if (
-        // selectedRegion == '未定' ||
-        // selectedDestinations.contains('未定') ||
-        selectedStartDate == '未定' ||
-        selectedEndDate == '未定' ||
-        // selectedDays.contains('未定') ||
-        // selectedGenderAttributeRecruit.contains('未定') ||
-        selectedGenderAttributeHost.contains('未定') ||
+    if (selectedRegion == '未定' ||
+            selectedDestinations.contains('未定') ||
+            selectedStartDate == '未定' ||
+            selectedEndDate == '未定' ||
+            selectedDays.contains('未定') ||
+            // selectedGenderAttributeRecruit.contains('未定') ||
+            selectedGenderAttributeHost.contains('未定') ||
             // selectedPaymentMethod == '未定' ||
             titleController.text.isEmpty ||
-            descriptionController.text.isEmpty ||
-            tags.isEmpty) {
+            descriptionController.text.isEmpty
+        // ||tags.isEmpty
+        ) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("すべての必須項目を入力してください"),

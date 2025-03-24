@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'screens/travel_search.dart';
 import 'screens/travel_screen.dart';
@@ -31,226 +32,116 @@ final GoRouter goRouter = GoRouter(
     GoRoute(
       path: '/login',
       name: 'login',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: LoginScreen(),
-        ),
-      ),
+      builder: (context, state) => const LoginScreen(),
     ),
-    GoRoute(
-      path: '/account-create',
-      name: 'accountCreate',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: AccountCreateScreen(),
-      ),
-    ),
+    // GoRoute(
+    //   path: '/account-create',
+    //   name: 'accountCreate',
+    //   builder: (context, state) => const AccountCreateScreen(),
+    // ),
     GoRoute(
       path: '/travel',
       name: 'travel',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: TravelScreen(),
-        ),
-      ),
+      builder: (context, state) => const TravelScreen(),
     ),
-    GoRoute(
-      path: '/recruitment-list',
-      name: 'recruitmentList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: RecruitmentListScreen(postIds: state.extra! as List<String>),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/travel_search',
-      name: 'travel_search',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child:  CustomBottomNavigationBar(
-          child: TravelSearch(),
-        ),
-      ),
-    ),
+    // GoRoute(
+    //   path: '/recruitment-list',
+    //   name: 'recruitmentList',
+    //   builder: (context, state) => const RecruitmentListScreen(),
+    // ),
     GoRoute(
       path: '/recruitment-post',
       name: 'recruitmentPost',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: RecruitmentPostScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/recruitment',
-      name: 'recruitment',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: RecruitmentScreen(postId: state.extra! as String),
-        ),
-      ),
+      builder: (context, state) => const RecruitmentPostScreen(),
     ),
     GoRoute(
       path: '/same-hobby',
       name: 'sameHobby',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: SameHobbyScreen(),
-        ),
-      ),
+      builder: (context, state) => const SameHobbyScreen(),
     ),
     GoRoute(
       path: '/account-list',
       name: 'accountList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child:  CustomBottomNavigationBar(
-          child: AccountListScreen(),
-        ),
-      ),
+      builder: (context, state) {
+        final Map<String, dynamic>? extra = state.extra as Map<String, dynamic>?;
+        final hobby = extra?['hobby'];
+        final gender = extra?['gender'];
+        final startAge = extra?['startAge'];
+        final endAge = extra?['endAge'];
+
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: fetchUsers(hobby, gender, startAge, endAge),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasError) {
+              return Scaffold(
+                body: Center(child: Text('エラー: ${snapshot.error}')),
+              );
+            }
+            final users = snapshot.data ?? [];
+            return AccountListScreen(users: users);
+          },
+        );
+      },
     ),
     GoRoute(
       path: '/message',
       name: 'message',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: MessageScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/message-send',
-      name: 'messageSend',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: MessageSendScreen(),
-        ),
-      ),
+      builder: (context, state) => const MessageScreen(),
     ),
     GoRoute(
       path: '/message-room',
       name: 'messageRoom',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: MessageRoomScreen(),
-        ),
-      ),
+      builder: (context, state) => const MessageRoomScreen(),
     ),
     GoRoute(
       path: '/follow-list',
       name: 'followList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child:  CustomBottomNavigationBar(
-          child: FollowListScreen(),
-        ),
-      ),
+      builder: (context, state) => const FollowListScreen(),
     ),
-    GoRoute(
-      path: '/follower-list',
-      name: 'followerList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child:  CustomBottomNavigationBar(
-          child: FollowerListScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/follow-recruitmnts-list',
-      name: 'followRecruitmentsList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child:  CustomBottomNavigationBar(
-          child: FollowRecruitmentsScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/profile',
-      name: 'profile',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: ProfileScreen(userId: state.extra! as String),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/past-recruitment',
-      name: 'pastRecruitment',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: PastRecruitmentScreen(),
-        ),
-      ),
-    ),
+    // GoRoute(
+    //   path: '/profile',
+    //   name: 'profile',
+    //   builder: (context, state) => const ProfileScreen(),
+    // ),
     GoRoute(
       path: '/settings',
       name: 'settings',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: SettingsScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/password-change',
-      name: 'passwordChange',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: PasswordChangeScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/password-change-2',
-      name: 'passwordChange2',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: PasswordChangeScreen2(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/terms-of-use',
-      name: 'termsOfUse',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: TermsOfUseScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/edit-profile',
-      name: 'editProfile',
-      pageBuilder: (context, state) => MaterialPage(
-        key: state.pageKey,
-        child: const EditProfileScreen(),
-      ),
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
-  errorPageBuilder: (context, state) => NoTransitionPage(
-    key: state.pageKey,
-    child: Scaffold(
-      body: Center(
-        child: Text('ページが見つかりません: ${state.uri.toString()}'),
-      ),
+  errorBuilder: (context, state) => Scaffold(
+    body: Center(
+      child: Text('ページが見つかりません: ${state.uri.toString()}'),
     ),
   ),
 );
+
+Future<List<Map<String, dynamic>>> fetchUsers(String? hobby, String? gender, int? startAge, int? endAge) async {
+  try {
+    Query query = FirebaseFirestore.instance.collection('users');
+
+    if (hobby != null && hobby.isNotEmpty) {
+      query = query.where('hobby', isEqualTo: hobby);
+    }
+    if (gender != null && gender != 'どちらでも') {
+      query = query.where('gender', isEqualTo: gender);
+    }
+    if (startAge != null) {
+      query = query.where('age', isGreaterThanOrEqualTo: startAge);
+    }
+    if (endAge != null) {
+      query = query.where('age', isLessThanOrEqualTo: endAge);
+    }
+
+    QuerySnapshot querySnapshot = await query.get();
+    return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+  } catch (e) {
+    print('Firestore取得エラー: $e');
+    return [];
+  }
+}

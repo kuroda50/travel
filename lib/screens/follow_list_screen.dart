@@ -196,12 +196,11 @@ class _FollowListScreenState extends State<FollowListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (userId.isEmpty ||
-        followingUserList.isEmpty &&
-            followerUserList.isEmpty &&
-            followerPostsList.isEmpty) {
+    if (userId.isEmpty) {
       return Scaffold(
-        appBar: Header(title: "お気に入り",),
+        appBar: Header(
+          title: "お気に入り",
+        ),
         body: Center(child: CircularProgressIndicator()), // ローディング中の表示
       );
     }

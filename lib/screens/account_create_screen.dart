@@ -56,7 +56,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
         );
         String uid = credential.user!.uid;
         await FirebaseFirestore.instance.collection("users").doc(uid).set({
-          "photoURL": "",
+          "photoURLs": [],
           "hasPhoto": false,
           "name": _nameController.text,
           "gender": _selectedGender,
@@ -554,7 +554,10 @@ class _SignupFormState extends State<AccountCreateScreen> {
         SizedBox(height: 8),
         Text(
           '誕生日は年齢の計算に使用され、他のユーザーには表示されません',
-          style: TextStyle(fontSize: 12, color: Colors.black,),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black,
+          ),
         ),
       ],
     );

@@ -1243,7 +1243,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         "latestMessage": {
           "text": "",
           "sender": "",
-          "timeStamp": Timestamp.now(),
+          "timeStamp": "",
           "readBy": [],
         }
       };

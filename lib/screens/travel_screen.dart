@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api, prefer_const_constructors, duplicate_ignore, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, sort_child_properties_last, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // go_router をインポート
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -42,6 +44,7 @@ class _TravelScreenState extends State<TravelScreen> {
     fetchLatestPosts();
 
     // 3秒ごとに次のページへ移動する
+    // ignore: prefer_const_constructors
     _timer = Timer.periodic(Duration(seconds: 3), (Timer timer) {
       if (_currentPage < _imageUrls.length - 1) {
         _currentPage++;
@@ -78,7 +81,7 @@ class _TravelScreenState extends State<TravelScreen> {
           targetHasPhoto: doc['target']['hasPhoto'] == true
               ? 'はい'
               : 'いいえ', // bool を String に変換
-          destinations: List<String>.from(doc['where']['destinations'] ?? []),
+          destination: List<String>.from(doc['where']['destination'] ?? []),
           organizerName: doc['organizer']['organizerName'] ?? '主催者不明',
           organizerAge: doc['organizer']['organizerBirthday'] != null
               ? DateTime.now().year -
@@ -234,8 +237,34 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Widget _buildLatestPostsSection() {
+    Map<String, String> reverseGenderMap = {
+      'male': '男性',
+      'female': '女性',
+      'family': '家族',
+      'group': 'グループ'
+    };
+
+    Map<String, String> reverseDayMap = {
+      'Mon': '月',
+      'Tue': '火',
+      'Wed': '水',
+      'Thu': '木',
+      'Fri': '金',
+      'Sat': '土',
+      'Sun': '日'
+    };
+
     return Column(
       children: latestPosts.map((post) {
+        String organizerGroup = reverseGenderMap[post.organizerGroup] ?? '不明';
+        String days =
+            post.days?.map((day) => reverseDayMap[day] ?? day).join(', ') ??
+                '日程不明';
+        String targetGroups = post.targetGroups
+                ?.map((group) => reverseGenderMap[group] ?? group)
+                .join(', ') ??
+            '対象不明';
+
         return Card(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -254,12 +283,13 @@ class _TravelScreenState extends State<TravelScreen> {
               children: <Widget>[
                 Text(post.title ?? 'タイトルなし'),
                 Text(
-                    '${post.organizerGroup ?? 'グループ不明'} > ${post.targetGroups ?? '対象不明'} ${post.targetAgeMin ?? '年齢不明'}歳~${post.targetAgeMax ?? '年齢不明'}歳 ${post.targetHasPhoto ?? '不明'}'),
-                Text(post.destinations?.join('、') ?? '目的地なし'),
+                    '${post.startDate != null ? post.startDate!.substring(0, 10) : '開始日不明'}~${post.endDate != null ? post.endDate!.substring(0, 10) : '終了日不明'} $days'),
+                Text(post.destination?.join('、') ?? '目的地なし'),
+                Text('$organizerGroup > $targetGroups'),
                 Text(
-                    '${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳'),
+                    '${post.targetAgeMin ?? '年齢不明'}歳以上 ${post.targetAgeMax ?? '年齢不明'}歳以下 '),
                 Text(
-                    '${post.startDate ?? '開始日不明'}~${post.endDate ?? '終了日不明'} ${post.days?.join('') ?? '日程不明'}')
+                    '${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳')
               ],
             ),
             onTap: () {
@@ -280,7 +310,7 @@ class Post {
   final int? targetAgeMin;
   final int? targetAgeMax;
   final String? targetHasPhoto;
-  final List<String>? destinations;
+  final List<String>? destination;
   final String? organizerName;
   final int? organizerAge;
   final String? startDate;
@@ -296,7 +326,7 @@ class Post {
     this.targetAgeMin,
     this.targetAgeMax,
     this.targetHasPhoto,
-    this.destinations,
+    this.destination,
     this.organizerName,
     this.organizerAge,
     this.startDate,

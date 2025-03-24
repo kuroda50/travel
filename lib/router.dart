@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/screens/email_change_screen.dart';
+import 'package:travel/screens/email_change_screen2.dart';
 
 import 'screens/travel_search.dart';
 import 'screens/travel_screen.dart';
@@ -224,6 +226,26 @@ final GoRouter goRouter = GoRouter(
         key: state.pageKey,
         child: const CustomBottomNavigationBar(
           child: PasswordChangeScreen2(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/email-change',
+      name: 'emailChange',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CustomBottomNavigationBar(
+          child: EmailChangeScreen(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/email-change-2',
+      name: 'emailChange2',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CustomBottomNavigationBar(
+          child: EmailChangeScreen2(),
         ),
       ),
     ),

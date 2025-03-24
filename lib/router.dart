@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'screens/travel_search.dart';
 import 'screens/travel_screen.dart';
@@ -254,3 +255,28 @@ final GoRouter goRouter = GoRouter(
     ),
   ),
 );
+
+Future<List<Map<String, dynamic>>> fetchUsers(String? hobby, String? gender, int? startAge, int? endAge) async {
+  try {
+    Query query = FirebaseFirestore.instance.collection('users');
+
+    if (hobby != null && hobby.isNotEmpty) {
+      query = query.where('hobby', isEqualTo: hobby);
+    }
+    if (gender != null && gender != 'どちらでも') {
+      query = query.where('gender', isEqualTo: gender);
+    }
+    if (startAge != null) {
+      query = query.where('age', isGreaterThanOrEqualTo: startAge);
+    }
+    if (endAge != null) {
+      query = query.where('age', isLessThanOrEqualTo: endAge);
+    }
+
+    QuerySnapshot querySnapshot = await query.get();
+    return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+  } catch (e) {
+    print('Firestore取得エラー: $e');
+    return [];
+  }
+}

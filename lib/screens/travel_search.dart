@@ -92,26 +92,26 @@ class _TravelSearchState extends State<TravelSearch> {
           final expire = data["expire"];
 
           final checkFilter = (selectedRegion == area ||
-                  selectedRegion == "こだわらない") &&
+                  selectedRegion == "未定") &&
               (matchesSearch(selectedDestinations, destinations) ||
-                  selectedDestinations[0] == "こだわらない") &&
+                  selectedDestinations[0] == "未定") &&
               (isOverlapping(parseDate(selectedStartDate, true),
                   parseDate(selectedEndDate, false), startDate, endDate)) &&
               (matchesSearch(selectedDays, dayOfWeek) ||
-                  selectedDays[0] == 'こだわらない') &&
+                  selectedDays[0] == '未定') &&
               (selectedGenderAttributeHost.contains(organizerGroup) ||
-                  selectedGenderAttributeHost[0] == 'こだわらない') &&
+                  selectedGenderAttributeHost[0] == '未定') &&
               (matchesSearch(selectedGenderAttributeRecruit, targetGroups) ||
-                  selectedGenderAttributeRecruit[0] == 'こだわらない') &&
+                  selectedGenderAttributeRecruit[0] == '未定') &&
               (selectedPaymentMethod.contains(budgetType) ||
-                  selectedPaymentMethod[0] == 'こだわらない') &&
+                  selectedPaymentMethod[0] == '未定') &&
               (isAgeHostInRange(selectedAgeHost, organizerAge)) &&
               (isAgeRecruitInRange(
                   selectedAgeRecruit, targetAgeMin, targetAgeMax)) &&
               (selectedMeetingRegion == region ||
-                  selectedMeetingRegion == "こだわらない") &&
+                  selectedMeetingRegion == "未定") &&
               (selectedDeparture.contains(departure) ||
-                  selectedDeparture[0] == "こだわらない") &&
+                  selectedDeparture[0] == "未定") &&
               (organizerHasPhoto || !isPhotoCheckedHost) &&
               (targetHasPhoto || isPhotoCheckedRecruit) &&
               (isBudgetInRange(selectedBudgetMin, selectedBudgetMax, budgetMin,
@@ -1236,13 +1236,14 @@ class _TravelSearchState extends State<TravelSearch> {
 
   Future<void> selectDate(BuildContext context, String label) async {
     DateTime initialTime = DateTime.now();
+    String firstMessage = "入力してください";
     if (label == 'いつから' && selectedStartDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
     } else if (label == 'いつまで' && selectedEndDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedEndDate);
     }
-    DateTime? picked = await showCustomDatePicker(
-        context, initialTime, label, selectedStartDate, selectedEndDate);
+    DateTime? picked = await showCustomDatePicker(context, initialTime, label,
+        firstMessage, selectedStartDate, selectedEndDate);
     setState(() {
       if (picked != null) {
         String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
@@ -1284,20 +1285,23 @@ Future<DateTime?> showCustomDatePicker(
     BuildContext context,
     DateTime? initialDate,
     String label,
+    String firstMessage,
     String selectedStartDate,
     String selectedEndDate) async {
   DateTime? selectedDate = initialDate ?? DateTime.now();
-  DateTime? startTime, endTime;
+  DateTime? initialTime, startTime, endTime;
   if (label == "いつから") {
+    initialTime = initialDate ?? DateTime.now();
     startTime = DateTime.now();
-    endTime = selectedEndDate == "入力してください"
+    endTime = selectedEndDate == firstMessage
         ? DateTime(2101)
         : DateFormat("yyyy/MM/dd").parse(selectedEndDate);
   } else if (label == "いつまで") {
     endTime = DateTime(2101);
-    startTime = selectedStartDate == "入力してください"
+    startTime = selectedStartDate == firstMessage
         ? DateTime.now()
         : DateFormat("yyyy/MM/dd").parse(selectedStartDate);
+    initialTime = startTime;
   }
 
   return showDialog<DateTime>(
@@ -1315,7 +1319,7 @@ Future<DateTime?> showCustomDatePicker(
                     SizedBox(
                       height: 300, // 高さを指定
                       child: CalendarDatePicker(
-                        initialDate: selectedDate,
+                        initialDate: initialTime,
                         firstDate: startTime!,
                         lastDate: endTime!,
                         onDateChanged: (DateTime date) {

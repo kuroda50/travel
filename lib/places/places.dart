@@ -104,6 +104,7 @@ const Map<String, List<String>> destinationsByArea = {
     "ブルネイ",
     "カンボジア",
     "中国",
+    "台湾",
     "インド",
     "インドネシア",
     "イラン",

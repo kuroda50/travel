@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel/component/header.dart';
+import 'package:go_router/go_router.dart'; // go_routerをインポート
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -13,14 +14,34 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 40),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(left: 50.0, bottom: 10.0),
+                child: Text(
+                  'アカウント設定',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
             buildButton(context, 'メールアドレスを変更する',
                 isFirst: true, showDialog: false),
-            buildButton(context, 'パスワードを変更する', showDialog: false),
+            buildButton(context, 'パスワードを変更する', showDialog: false, isPasswordChange: true), // 変更点
             buildButton(context, 'ログアウト', isLogout: true),
             buildButton(context, 'アカウントを削除する', isLast: true, isDelete: true),
             const SizedBox(height: 20),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(left: 50.0, bottom: 10.0),
+                child: Text(
+                  'サービス',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
             buildButton(context, '利用規約',
-                isTerms: true, isFirst: true,  isLast: true, showDialog: false),
+                isTerms: true, isFirst: true, isLast: true, showDialog: false),
           ],
         ),
       ),
@@ -33,7 +54,8 @@ class SettingsScreen extends StatelessWidget {
       bool isLogout = false,
       bool isDelete = false,
       bool showDialog = true,
-      bool isTerms = false}) {
+      bool isTerms = false,
+      bool isPasswordChange = false}) { // 変更点
     BorderRadius borderRadius = BorderRadius.only(
       topLeft: isFirst ? const Radius.circular(16) : Radius.zero,
       topRight: isFirst ? const Radius.circular(16) : Radius.zero,
@@ -55,6 +77,10 @@ class SettingsScreen extends StatelessWidget {
             if (showDialog)
               {
                 showConfirmationDialog(context, text, isLogout, isDelete, isTerms),
+              }
+            else if (isPasswordChange) // 変更点
+              {
+                context.go('/password-change'), // 変更点
               }
             else
               {
@@ -113,6 +139,7 @@ void showConfirmationDialog(
                   // ログアウト処理
                   try {
                     FirebaseAuth.instance.signOut();
+                    context.go('/travel'); // ログアウト後に/travelに遷移
                   } catch (e) {
                     print(e);
                   }
@@ -120,6 +147,7 @@ void showConfirmationDialog(
                   // アカウント削除処理
                   try {
                     FirebaseAuth.instance.currentUser?.delete();
+                    context.go('/travel'); // アカウント削除後に/travelに遷移
                   } catch (e) {
                     print(e);
                   }

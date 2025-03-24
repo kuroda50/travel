@@ -19,6 +19,7 @@ class MessageRoomScreen extends StatefulWidget {
 
 class _MessageRoomScreenState extends State<MessageRoomScreen> {
   final _textEditingController = TextEditingController();
+  final ScrollController _scrollController = ScrollController(); // 追加
   late final CollectionReference messagesCollection;
   late final CollectionReference chatRoomsCollection;
   late final CollectionReference usersCollection;
@@ -32,10 +33,25 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
     usersCollection = FirebaseFirestore.instance.collection('users');
   }
 
+  Future<Map<String, dynamic>?> _getUserData(String userId) async {
+    final userSnapshot = await usersCollection.doc(userId).get();
+    return userSnapshot.data() as Map<String, dynamic>?;
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: "メッセージ",),
+      appBar: Header(
+        title: "メッセージ",
+      ),
       backgroundColor: Colors.white,
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -50,6 +66,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                 final messages = snapshot.data!.docs;
                 String? lastDate;
                 return ListView.builder(
+                  controller: _scrollController, // 追加
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final messageData = messages[index];
@@ -63,6 +80,11 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                         : '';
                     final showDate = lastDate != currentDate;
                     lastDate = currentDate;
+
+                    final readBy =
+                        List<String>.from(messageData['readBy'] ?? []);
+                    final isGroup = readBy.length > 1;
+                    final readCount = readBy.length;
 
                     // メッセージを見たユーザーを更新
                     if (!isSentByMe) {
@@ -86,18 +108,19 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                           _SentMessageWidget(
                             message: messageText,
                             timeStamp: timeStamp ?? Timestamp.now(),
+                            readBy: readBy,
+                            isGroup: isGroup,
+                            readCount: readCount,
                           )
                         else
-                          FutureBuilder<DocumentSnapshot>(
-                            future: usersCollection.doc(senderId).get(),
+                          FutureBuilder<Map<String, dynamic>?>(
+                            future: _getUserData(senderId),
                             builder: (context, userSnapshot) {
                               if (!userSnapshot.hasData) {
                                 return Center(
                                     child: CircularProgressIndicator());
                               }
-                              final userData = userSnapshot.data!;
-                              final userDataMap =
-                                  userData.data() as Map<String, dynamic>?;
+                              final userDataMap = userSnapshot.data;
                               final photoURL = userDataMap != null &&
                                       userDataMap.containsKey('photoURL')
                                   ? userDataMap['photoURL']
@@ -106,6 +129,9 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                                 message: messageText,
                                 photoURL: photoURL,
                                 timeStamp: timeStamp ?? Timestamp.now(),
+                                isRead: false, // 自分のメッセージではないので既読は表示しない
+                                isGroup: isGroup,
+                                readCount: readCount,
                               );
                             },
                           ),
@@ -116,63 +142,54 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
               },
             ),
           ),
-          SingleChildScrollView(
-            child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _textEditingController,
-                      cursorColor: Colors.black,
-                      style: const TextStyle(
-                        color: Colors.black,
-                      ),
-                      decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                          ),
+          Material(
+            color: Colors.grey[200],
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        keyboardType: TextInputType.text,
+                        maxLines: null, // 複数行入力可能にする
+                        autofocus: true, // ページを開いた際に自動的にフォーカスする
+                        controller: _textEditingController,
+                        decoration: const InputDecoration(
+                          hintText: 'メッセージを入力',
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.all(8),
                         ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.send,
-                      size: 20,
+                    IconButton(
+                      icon: const Icon(
+                        Icons.send,
+                        size: 20,
+                      ),
+                      color: Colors.blue,
+                      onPressed: () async {
+                        var msg = _textEditingController.text.trim();
+                        if (msg.isEmpty) {
+                          return;
+                        }
+                        final newMessage = {
+                          'text': msg,
+                          'sender': widget.currentUserId,
+                          'timeStamp': FieldValue.serverTimestamp(),
+                          'readBy': [],
+                        };
+                        await messagesCollection.add(newMessage);
+                        await chatRoomsCollection.doc(widget.roomId).update({
+                          'latestMessage': newMessage,
+                        });
+                        _textEditingController.clear();
+                        _scrollToBottom(); // メッセージ送信後にスクロール
+                      },
                     ),
-                    color: Colors.blue,
-                    onPressed: () async {
-                      var msg = _textEditingController.text.trim();
-                      if (msg.isEmpty) {
-                        return;
-                      }
-                      final newMessage = {
-                        'text': msg,
-                        'sender': widget.currentUserId,
-                        'timeStamp': FieldValue.serverTimestamp(),
-                        'readBy': [],
-                      };
-                      await messagesCollection.add(newMessage);
-                      await chatRoomsCollection.doc(widget.roomId).update({
-                        'latestMessage': newMessage,
-                      });
-                      _textEditingController.clear();
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -180,17 +197,30 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    _scrollController.dispose(); // 追加
+    super.dispose();
+  }
 }
 
 class _ReceivedMessageWidget extends StatelessWidget {
   final String message;
   final String? photoURL;
   final Timestamp timeStamp;
+  final bool isRead;
+  final bool isGroup;
+  final int readCount;
 
   _ReceivedMessageWidget({
     required this.message,
     this.photoURL,
     required this.timeStamp,
+    required this.isRead,
+    required this.isGroup,
+    required this.readCount,
   });
 
   final _timeFormatter = DateFormat("HH:mm");
@@ -238,9 +268,18 @@ class _ReceivedMessageWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 5),
-              Text(
-                _timeFormatter.format(timeStamp.toDate()),
-                style: const TextStyle(fontSize: 10),
+              Row(
+                children: [
+                  Text(
+                    _timeFormatter.format(timeStamp.toDate()),
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                  if (isRead)
+                    Text(
+                      isGroup ? ' 既読$readCount' : ' 既読',
+                      style: const TextStyle(fontSize: 10, color: Colors.blue),
+                    ),
+                ],
               ),
             ],
           ),
@@ -253,10 +292,16 @@ class _ReceivedMessageWidget extends StatelessWidget {
 class _SentMessageWidget extends StatelessWidget {
   final String message;
   final Timestamp timeStamp;
+  final List<String> readBy;
+  final bool isGroup;
+  final int readCount;
 
   _SentMessageWidget({
     required this.message,
     required this.timeStamp,
+    required this.readBy,
+    required this.isGroup,
+    required this.readCount,
   });
 
   final _timeFormatter = DateFormat("HH:mm");
@@ -289,9 +334,18 @@ class _SentMessageWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 5),
-              Text(
-                _timeFormatter.format(timeStamp.toDate()),
-                style: const TextStyle(fontSize: 10),
+              Row(
+                children: [
+                  Text(
+                    _timeFormatter.format(timeStamp.toDate()),
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                  if (readBy.isNotEmpty)
+                    Text(
+                      isGroup ? ' 既読$readCount' : ' 既読',
+                      style: const TextStyle(fontSize: 10, color: Colors.blue),
+                    ),
+                ],
               ),
             ],
           ),

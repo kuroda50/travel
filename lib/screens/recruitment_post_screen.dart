@@ -1304,8 +1304,10 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
 
       final chatRoomData = {
         "postId": postId,
+        "postTitle": titleController.text,
         "participants": [user.uid],
         "createdAt": Timestamp.now(),
+        "group": true,
         "latestMessage": {
           "text": "",
           "sender": "",

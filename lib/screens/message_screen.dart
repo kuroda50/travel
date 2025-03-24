@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/component/header.dart';
 import 'message_room_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class MessageScreen extends StatelessWidget {
   const MessageScreen({super.key});
@@ -54,68 +55,110 @@ class MessageScreen extends StatelessWidget {
                     return Center(
                         child: Text('エラーが発生しました: ${chatRoomSnapshot.error}'));
                   }
-                  final chatRoomData = chatRoomSnapshot.data!;
+                  final chatRoomData =
+                      chatRoomSnapshot.data!.data() as Map<String, dynamic>?;
+                  if (chatRoomData == null) {
+                    return Center(child: Text('チャットルームデータが見つかりません'));
+                  }
                   final Map<String, dynamic> latestMessage =
-                      Map<String, dynamic>.from(chatRoomData['latestMessage']);
-                  final String lastMessageText = latestMessage['text'];
+                      chatRoomData['latestMessage'] != null
+                          ? Map<String, dynamic>.from(
+                              chatRoomData['latestMessage'])
+                          : {};
+                  final String lastMessageText = latestMessage['text'] ?? '';
                   final Timestamp lastMessageTime =
                       latestMessage.containsKey('timeStamp')
                           ? (latestMessage['timeStamp'] as Timestamp)
                           : Timestamp.now();
-                  final String senderId = latestMessage['sender'];
+                  final bool isGroup = chatRoomData['group'] ?? false;
 
-                  return FutureBuilder<DocumentSnapshot>(
-                    future: usersCollection.doc(senderId).get(),
-                    builder: (context, partnerSnapshot) {
-                      if (!partnerSnapshot.hasData) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      if (partnerSnapshot.hasError) {
-                        return Center(
-                            child:
-                                Text('エラーが発生しました: ${partnerSnapshot.error}'));
-                      }
-                      final partnerData = partnerSnapshot.data!;
-                      final partnerDataMap =
-                          partnerData.data() as Map<String, dynamic>?;
-                      final String partnerName = partnerDataMap != null &&
-                              partnerDataMap.containsKey('name')
-                          ? partnerDataMap['name']
-                          : 'Unknown';
-                      final String partnerImageUrl = partnerDataMap != null &&
-                              partnerDataMap.containsKey('imageUrl')
-                          ? partnerDataMap['imageUrl']
-                          : '';
+                  // 自分ではない方のparticipant IDを取得
+                  final List<dynamic> participants =
+                      chatRoomData['participants'] ?? [];
+                  final String partnerId = participants.firstWhere(
+                      (id) => id != currentUserId,
+                      orElse: () => '');
 
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: partnerImageUrl.isNotEmpty
-                              ? NetworkImage(partnerImageUrl)
-                              : null,
-                          child: partnerImageUrl.isEmpty
-                              ? Icon(Icons.person)
-                              : null,
-                        ),
-                        title: Text(partnerName),
-                        subtitle: Text(lastMessageText),
-                        trailing: Text(
-                          lastMessageTime.toDate().toString(),
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MessageRoomScreen(
-                                roomId: chatRoomId,
-                                currentUserId: currentUserId,
-                              ),
+                  if (isGroup) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: null,
+                        child: Icon(Icons.group),
+                      ),
+                      title: Text(chatRoomData['postTitle'] ?? 'グループチャット'),
+                      subtitle: Text(lastMessageText),
+                      trailing: Text(
+                        DateFormat('yyyy/MM/dd HH:mm:ss')
+                            .format(lastMessageTime.toDate()),
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MessageRoomScreen(
+                              roomId: chatRoomId,
+                              currentUserId: currentUserId,
                             ),
-                          );
-                        },
-                      );
-                    },
-                  );
+                          ),
+                        );
+                      },
+                    );
+                  } else {
+                    return FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(partnerId)
+                          .get(),
+                      builder: (context, partnerSnapshot) {
+                        if (!partnerSnapshot.hasData) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (partnerSnapshot.hasError) {
+                          return Center(
+                              child:
+                                  Text('エラーが発生しました: ${partnerSnapshot.error}'));
+                        }
+                        final String partnerName = (partnerSnapshot.data?.data()
+                                as Map<String, dynamic>?)?['name'] ??
+                            'Unknown';
+                        final String partnerImageUrl =
+                            (partnerSnapshot.data?.data()
+                                        as Map<String, dynamic>?)?['photoURLs']
+                                    ?.first ??
+                                '';
+
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: partnerImageUrl.isNotEmpty
+                                ? NetworkImage(partnerImageUrl)
+                                : null,
+                            child: partnerImageUrl.isEmpty
+                                ? Icon(Icons.person)
+                                : null,
+                          ),
+                          title: Text(partnerName),
+                          subtitle: Text(lastMessageText),
+                          trailing: Text(
+                            DateFormat('yyyy/MM/dd HH:mm:ss')
+                                .format(lastMessageTime.toDate()),
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MessageRoomScreen(
+                                  roomId: chatRoomId,
+                                  currentUserId: currentUserId,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  }
                 },
               );
             },

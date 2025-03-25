@@ -3,9 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/component/header.dart';
-import 'message_room_screen.dart';
+// import 'message_room_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class MessageScreen extends StatelessWidget {
   const MessageScreen({super.key});
@@ -93,15 +94,19 @@ class MessageScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 12),
                       ),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MessageRoomScreen(
-                              roomId: chatRoomId,
-                              currentUserId: currentUserId,
-                            ),
-                          ),
-                        );
+                        context.push('/message-room', extra: {
+                          "roomId": chatRoomId,
+                          "currentUserId": currentUserId
+                        });
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => MessageRoomScreen(
+                        //       roomId: chatRoomId,
+                        //       currentUserId: currentUserId,
+                        //     ),
+                        //   ),
+                        // );
                       },
                     );
                   } else {
@@ -145,15 +150,19 @@ class MessageScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 12),
                           ),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MessageRoomScreen(
-                                  roomId: chatRoomId,
-                                  currentUserId: currentUserId,
-                                ),
-                              ),
-                            );
+                            context.push('/message-room', extra: {
+                              "roomId": chatRoomId,
+                              "currentUserId": currentUserId
+                            });
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => MessageRoomScreen(
+                            //       roomId: chatRoomId,
+                            //       currentUserId: currentUserId,
+                            //     ),
+                            //   ),
+                            // );
                           },
                         );
                       },

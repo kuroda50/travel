@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 int calculateAge(DateTime birth) {
   DateTime today = DateTime.now();
@@ -61,6 +62,11 @@ Future<List<RecruitmentPost>> getRecruitmentList(
     });
   }
   return recruitmentPosts;
+}
+
+String generateRoomKey(String userIdA, String userIdB) {
+  List<String> sortedUsers = [userIdA, userIdB]..sort(); // ソートして順序を統一
+  return "${sortedUsers[0]}_${sortedUsers[1]}";
 }
 
 class RecruitmentPost {

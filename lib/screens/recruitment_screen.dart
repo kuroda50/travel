@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel/colors/color.dart';
+import 'package:travel/functions/function.dart';
+import '../component/bottom_navigation_bar.dart';
 
 class RecruitmentScreen extends StatefulWidget {
   final String postId;
@@ -28,13 +30,14 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       budgetType = "未定",
       region = "未定",
       departure = "未定",
+      organizerId = "",
       organizerName = "",
       organizerAge = "",
       organizerGroup = "",
       description = "",
       organizerImageURL = "";
 
-  List<String> memberTextList = [], memberImageURLList = [];
+  List<String> memberTextList = [], memberImageURLList = [], memberIdList = [];
   bool isFavorited = false;
   List<String> favoritePosts = [];
 
@@ -58,9 +61,9 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   Map<String, String> reversePaymentMethodMap = {
     'null': 'こだわらない',
     'splitEvenly': '割り勘',
-    'eachPays': '各自自腹',
+    'individual': '各自自腹',
     'hostPaysMore': '主催者が多めに出す',
-    'hostPaysLess': '主催者が少な目に出す'
+    'hostPaysLess': '主催者が少なめに出す'
   };
 
   @override
@@ -71,7 +74,8 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   }
 
   Future<void> getPostData() async {
-    final docRef = FirebaseFirestore.instance.collection("posts").doc(widget.postId);
+    final docRef =
+        FirebaseFirestore.instance.collection("posts").doc(widget.postId);
     final doc = await docRef.get();
     if (!doc.exists) return;
 
@@ -82,41 +86,56 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       destination = _convertListToString(doc['where']['destination']);
       startDate = _formatDate(doc['when']['startDate']);
       endDate = _formatDate(doc['when']['endDate']);
-      daysOfWeek = _convertListToString(doc['when']['dayOfWeek'].map((day) => reverseDayMap[day] ?? day).toList());
-      targetGroups = _convertListToString(doc['target']['targetGroups'].map((group) => reverseGenderMap[group] ?? group).toList());
+      daysOfWeek = _convertListToString(doc['when']['dayOfWeek']
+          .map((day) => reverseDayMap[day] ?? day)
+          .toList());
+      targetGroups = _convertListToString(doc['target']['targetGroups']
+          .map((group) => reverseGenderMap[group] ?? group)
+          .toList());
       age = _formatAge(doc['target']['ageMin'], doc['target']['ageMax']);
       hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
-      budget = _formatBudget(doc['budget']['budgetMin'], doc['budget']['budgetMax']);
-      budgetType = reversePaymentMethodMap[doc['budget']['budgetType']] ?? doc['budget']['budgetType'];
+      budget =
+          _formatBudget(doc['budget']['budgetMin'], doc['budget']['budgetMax']);
+      budgetType = reversePaymentMethodMap[doc['budget']['budgetType']] ??
+          doc['budget']['budgetType'];
       region = doc['meetingPlace']['region'] ?? "未定";
       departure = doc['meetingPlace']['departure'] ?? "未定";
       description = doc['description'];
+      organizerId = doc["organizer"]["organizerId"];
       organizerName = doc['organizer']['organizerName'];
-      organizerGroup = reverseGenderMap[doc['organizer']['organizerGroup']] ?? doc['organizer']['organizerGroup'];
-      organizerAge = calculateAge(doc['organizer']['organizerBirthday'].toDate()).toString();
+      organizerGroup = reverseGenderMap[doc['organizer']['organizerGroup']] ??
+          doc['organizer']['organizerGroup'];
+      organizerAge =
+          calculateAge(doc['organizer']['organizerBirthday'].toDate())
+              .toString();
       organizerImageURL = doc['organizer']['photoURL'];
 
-      List<String> memberList = doc['participants'].cast<String>();
-      memberList.remove(doc['organizer']['organizerId']);
-      for (String memberId in memberList) {
+      memberIdList = doc['participants'].cast<String>();
+      memberIdList.remove(doc['organizer']['organizerId']);
+      for (String memberId in memberIdList) {
         _getMemberData(memberId);
       }
     });
   }
 
   Future<void> _getMemberData(String memberId) async {
-    final memberRef = FirebaseFirestore.instance.collection("users").doc(memberId);
+    final memberRef =
+        FirebaseFirestore.instance.collection("users").doc(memberId);
     final doc = await memberRef.get();
     if (doc.exists) {
       setState(() {
-        memberTextList.add('${doc['name']}、${calculateAge(doc['birthday'].toDate())}歳、${reverseGenderMap[doc['gender']] ?? doc['gender']}');
+        memberTextList.add(
+            '${doc['name']}、${calculateAge(doc['birthday'].toDate())}歳、${reverseGenderMap[doc['gender']] ?? doc['gender']}');
         memberImageURLList.add(doc['hasPhoto'] ? doc['photoURLs'][0] : '');
       });
     }
   }
 
   String _convertListToString(List<dynamic> list) {
-    return list.cast<String>().map<String>((String value) => value.toString()).join('、');
+    return list
+        .cast<String>()
+        .map<String>((String value) => value.toString())
+        .join('、');
   }
 
   String _formatDate(Timestamp timestamp) {
@@ -150,16 +169,102 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   int calculateAge(DateTime birth) {
     DateTime today = DateTime.now();
     int age = today.year - birth.year;
-    if (today.month < birth.month || (today.month == birth.month && today.day < birth.day)) {
+    if (today.month < birth.month ||
+        (today.month == birth.month && today.day < birth.day)) {
       age--;
     }
     return age;
   }
 
+  Future<String?> findExistingRoom(String userIdA, String userIdB) async {
+    String roomKey = generateRoomKey(userIdA, userIdB);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection("chatRooms")
+        .where("roomKey", isEqualTo: roomKey)
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first.id; // 既存の roomId を返す
+    }
+    return null; // 見つからなかった場合は null
+  }
+
+  Future<String> findOrCreateRoom(String participantId, String postId) async {
+    String organizerId = "", postTitle = "";
+    final postRef = FirebaseFirestore.instance.collection("posts").doc(postId);
+    final postSnapshot = await postRef.get();
+
+    organizerId = postSnapshot["organizer"]["organizerId"];
+    postTitle = postSnapshot["title"];
+
+    CollectionReference chatRooms =
+        FirebaseFirestore.instance.collection("chatRooms");
+    String? existingRoomId = await findExistingRoom(participantId, organizerId);
+    if (existingRoomId != null) {
+      return existingRoomId; // 既存のルームが見つかった場合はそれを返す
+    }
+
+    // ルームがなければ新規作成
+    String roomKey = generateRoomKey(participantId, organizerId);
+    DocumentReference newRoomRef = chatRooms.doc(); // 自動生成ID
+
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+    batch.set(newRoomRef, {
+      "createdAt": FieldValue.serverTimestamp(),
+      "group": false,
+      "postId": postId,
+      "postTitle": postTitle,
+      "participants": [participantId, organizerId],
+      "roomKey": roomKey,
+      "latestMessage": {
+        "readBy": [],
+        "sender": participantId,
+        "text": "この旅に興味があります！",
+        "timeStamp": FieldValue.serverTimestamp()
+      }
+    });
+    DocumentReference firstMessageRef = newRoomRef.collection("messages").doc();
+    batch.set(firstMessageRef, {
+      "text": "この旅に興味があります!",
+      "sender": participantId,
+      "timeStamp": FieldValue.serverTimestamp(),
+      "readBy": []
+    });
+    await batch.commit();
+
+    await updateUserChatRooms(participantId, newRoomRef.id);
+    await updateUserChatRooms(organizerId, newRoomRef.id);
+
+    return newRoomRef.id;
+  }
+
+  Future<void> updateUserChatRooms(String userId, String roomId) async {
+    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
+
+    await userRef.update({
+      "chatRooms": FieldValue.arrayUnion([roomId])
+    });
+
+    print("$userId の chatRooms に $roomId を追加");
+  }
+
+  Future<void> goMessageScreen() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      _showLoginPrompt(context);
+      return;
+    }
+    String participantId = FirebaseAuth.instance.currentUser!.uid;
+    String roomId = await findOrCreateRoom(participantId, widget.postId);
+
+    context.push('/message-room',
+        extra: {"roomId": roomId, "currentUserId": participantId});
+  }
+
   Future<void> _checkFavoriteStatus(String postId) async {
     if (FirebaseAuth.instance.currentUser == null) return;
     String userId = FirebaseAuth.instance.currentUser!.uid;
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    DocumentSnapshot doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
     favoritePosts = doc['favoritePosts'].cast<String>();
 
     setState(() {
@@ -167,15 +272,75 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
     });
   }
 
-  Future<void> _toggleFavorite() async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+  void _showLoginPrompt(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ログインが必要です'),
+          content: const Text('この機能を利用するにはログインが必要です。ログインしますか？'),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                        side: BorderSide(color: Colors.black),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                    ),
+                    child: const Text(
+                      'キャンセル',
+                      style: TextStyle(color: AppColor.mainTextColor),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  SizedBox(width: 16), // ボタン間のスペース
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColor.mainButtonColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                    ),
+                    child: const Text(
+                      'ログイン',
+                      style: TextStyle(color: AppColor.subTextColor),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.go('/login');
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  Future<void> _toggleFavorite() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      _showLoginPrompt(context);
+      return;
+    }
+    String userId = FirebaseAuth.instance.currentUser!.uid;
     setState(() {
       isFavorited = !isFavorited;
     });
 
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-    DocumentReference userRef = FirebaseFirestore.instance.collection("users").doc(userId);
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection("users").doc(userId);
 
     if (isFavorited) {
       favoritePosts.add(widget.postId);
@@ -216,7 +381,8 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.white,
                       ),
-                      child: Text("ログイン", style: TextStyle(color: AppColor.mainTextColor)),
+                      child: Text("ログイン",
+                          style: TextStyle(color: AppColor.mainTextColor)),
                     ),
                   )
                 ]
@@ -246,17 +412,24 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                     Text('タイトル: $title', style: TextStyle(fontSize: 18)),
                     Text('タグ: $tags', style: TextStyle(fontSize: 16)),
                     SizedBox(height: 20),
-                    Text('どこへ', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('どこへ',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     ListTile(title: Text('方面'), trailing: Text(area)),
                     ListTile(title: Text('行き先'), trailing: Text(destination)),
                     SizedBox(height: 20),
-                    Text('いつ', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('いつ',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     ListTile(title: Text('いつから'), trailing: Text(startDate)),
                     ListTile(title: Text('いつまで'), trailing: Text(endDate)),
                     ListTile(title: Text('曜日'), trailing: Text(daysOfWeek)),
                     SizedBox(height: 20),
-                    Text('募集する人', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(title: Text('性別、属性'), trailing: Text(targetGroups)),
+                    Text('募集する人',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    ListTile(
+                        title: Text('性別、属性'), trailing: Text(targetGroups)),
                     ListTile(title: Text('年齢'), trailing: Text(age)),
                     ListTile(title: Text('写真付き'), trailing: Text(hasPhoto)),
                   ],
@@ -264,7 +437,9 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("参加メンバー", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                child: Text("参加メンバー",
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
@@ -273,9 +448,15 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: organizerImageURL.isNotEmpty ? NetworkImage(organizerImageURL) : null,
+                  backgroundImage: organizerImageURL.isNotEmpty
+                      ? NetworkImage(organizerImageURL)
+                      : null,
                 ),
-                title: Text("$organizerName、$organizerAge歳、${reverseGenderMap[organizerGroup] ?? organizerGroup}"),
+                title: Text(
+                    "$organizerName、$organizerAge歳、${reverseGenderMap[organizerGroup] ?? organizerGroup}"),
+                onTap: () {
+                  context.push("/profile", extra: organizerId);
+                },
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
@@ -289,21 +470,33 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.grey[300],
-                      backgroundImage: memberImageURLList[index].isNotEmpty ? NetworkImage(memberImageURLList[index]) : null,
+                      backgroundImage: memberImageURLList[index].isNotEmpty
+                          ? NetworkImage(memberImageURLList[index])
+                          : null,
                     ),
                     title: Text(memberTextList[index]),
+                    onTap: () {
+                      context.push("/profile", extra: memberIdList[index]);
+                    },
                   );
                 },
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("お金について", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                child: Text("お金について",
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
               ListTile(title: Text('予算'), trailing: Text(budget)),
-              ListTile(title: Text('お金の分け方'), trailing: Text(reversePaymentMethodMap[budgetType] ?? budgetType)),
+              ListTile(
+                  title: Text('お金の分け方'),
+                  trailing:
+                      Text(reversePaymentMethodMap[budgetType] ?? budgetType)),
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("集合場所", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                child: Text("集合場所",
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
               ListTile(title: Text('方面'), trailing: Text(region)),
               ListTile(title: Text('出発地'), trailing: Text(departure)),
@@ -324,7 +517,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      context.push('/message');
+                      goMessageScreen();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
@@ -341,7 +534,9 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
           onPressed: () async {
             _toggleFavorite();
           },
-          backgroundColor: isFavorited ? Colors.red : Colors.grey,
+          shape: CircleBorder(),
+          backgroundColor: AppColor.backgroundColor,
+          foregroundColor: isFavorited ? Colors.pink : Colors.grey,
           child: Icon(isFavorited ? Icons.favorite : Icons.favorite_border),
         ),
       ),

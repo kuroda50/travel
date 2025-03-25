@@ -4,13 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/component/header.dart';
 
 class MessageRoomScreen extends StatefulWidget {
-  final String? roomId;
-  final String? currentUserId;
+  final Map<String, dynamic>? extraData;
 
   const MessageRoomScreen({
     super.key,
-    this.roomId,
-    this.currentUserId,
+    this.extraData,
   });
 
   @override
@@ -23,12 +21,15 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
   late final CollectionReference messagesCollection;
   late final CollectionReference chatRoomsCollection;
   late final CollectionReference usersCollection;
+  String roomId = "", currentUserId = "";
 
   @override
   void initState() {
     super.initState();
-    messagesCollection = FirebaseFirestore.instance
-        .collection('chatRooms/${widget.roomId}/messages');
+    roomId = widget.extraData!["roomId"];
+    currentUserId = widget.extraData!["currentUserId"];
+    messagesCollection =
+        FirebaseFirestore.instance.collection('chatRooms/$roomId/messages');
     chatRoomsCollection = FirebaseFirestore.instance.collection('chatRooms');
     usersCollection = FirebaseFirestore.instance.collection('users');
   }
@@ -74,7 +75,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                     final senderId = messageData['sender'];
                     final Timestamp? timeStamp =
                         messageData['timeStamp'] as Timestamp?;
-                    final isSentByMe = senderId == widget.currentUserId;
+                    final isSentByMe = senderId == currentUserId;
                     final currentDate = timeStamp != null
                         ? DateFormat("yyyy/MM/dd").format(timeStamp.toDate())
                         : '';
@@ -89,7 +90,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                     // メッセージを見たユーザーを更新
                     if (!isSentByMe) {
                       messagesCollection.doc(messageData.id).update({
-                        'readBy': FieldValue.arrayUnion([widget.currentUserId])
+                        'readBy': FieldValue.arrayUnion([currentUserId])
                       });
                     }
 
@@ -176,12 +177,12 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                         }
                         final newMessage = {
                           'text': msg,
-                          'sender': widget.currentUserId,
+                          'sender': currentUserId,
                           'timeStamp': FieldValue.serverTimestamp(),
                           'readBy': [],
                         };
                         await messagesCollection.add(newMessage);
-                        await chatRoomsCollection.doc(widget.roomId).update({
+                        await chatRoomsCollection.doc(roomId).update({
                           'latestMessage': newMessage,
                         });
                         _textEditingController.clear();

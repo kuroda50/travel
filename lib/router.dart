@@ -29,7 +29,7 @@ import 'component/bottom_navigation_bar.dart';
 import 'screens/follow_recruitments_screen.dart';
 
 final GoRouter goRouter = GoRouter(
-  initialLocation: '/account-list',
+  initialLocation: '/travel',
   routes: [
     GoRoute(
       path: '/login',
@@ -74,7 +74,7 @@ final GoRouter goRouter = GoRouter(
       name: 'travel_search',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child:  CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: TravelSearch(),
         ),
       ),
@@ -114,7 +114,7 @@ final GoRouter goRouter = GoRouter(
       name: 'accountList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child:  CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: AccountListScreen(),
         ),
       ),
@@ -140,21 +140,24 @@ final GoRouter goRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/message-room',
-      name: 'messageRoom',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: MessageRoomScreen(),
-        ),
-      ),
-    ),
+        path: '/message-room',
+        name: 'message-room',
+        pageBuilder: (context, state) {
+          return NoTransitionPage(
+            key: state.pageKey,
+            child: CustomBottomNavigationBar(
+              child: MessageRoomScreen(
+                extraData: state.extra! as Map<String, dynamic>,
+              ),
+            ),
+          );
+        }),
     GoRoute(
       path: '/follow-list',
       name: 'followList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child:  CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: FollowListScreen(),
         ),
       ),
@@ -164,7 +167,7 @@ final GoRouter goRouter = GoRouter(
       name: 'followerList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child:  CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: FollowerListScreen(),
         ),
       ),
@@ -174,7 +177,7 @@ final GoRouter goRouter = GoRouter(
       name: 'followRecruitmentsList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child:  CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: FollowRecruitmentsScreen(),
         ),
       ),
@@ -278,7 +281,8 @@ final GoRouter goRouter = GoRouter(
   ),
 );
 
-Future<List<Map<String, dynamic>>> fetchUsers(String? hobby, String? gender, int? startAge, int? endAge) async {
+Future<List<Map<String, dynamic>>> fetchUsers(
+    String? hobby, String? gender, int? startAge, int? endAge) async {
   try {
     Query query = FirebaseFirestore.instance.collection('users');
 
@@ -296,7 +300,9 @@ Future<List<Map<String, dynamic>>> fetchUsers(String? hobby, String? gender, int
     }
 
     QuerySnapshot querySnapshot = await query.get();
-    return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return querySnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
   } catch (e) {
     print('Firestore取得エラー: $e');
     return [];

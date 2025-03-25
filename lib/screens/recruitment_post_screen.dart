@@ -6,9 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:travel/colors/color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/component/header.dart';
 import 'dart:async';
 import 'package:travel/places/places.dart';
-import 'package:travel/screens/message_room_screen.dart';
+// import 'package:travel/screens/message_room_screen.dart';
 import 'travel_search.dart';
 
 class RecruitmentPostScreen extends StatefulWidget {
@@ -90,38 +91,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "募集投稿",
-            style: TextStyle(
-              fontSize: 20,
-              color: AppColor.subTextColor,
-            ),
-          ),
-          backgroundColor: AppColor.mainButtonColor,
-          actions: FirebaseAuth.instance.currentUser == null
-              ? [
-                  Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: TextButton(
-                      onPressed: () {
-                        context.push('/login');
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white,
-                      ),
-                      child: Text("ログイン",
-                          style: TextStyle(color: AppColor.mainTextColor)),
-                    ),
-                  )
-                ]
-              : null,
-          leading: IconButton(
-              onPressed: () {
-                context.pop();
-              },
-              icon: Icon(Icons.arrow_back)),
-        ),
+        appBar: Header(title: "募集投稿"),
         body: SafeArea(
           child: Column(
             children: [
@@ -1330,15 +1300,17 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         const SnackBar(content: Text('投稿が完了しました')),
       );
       // チャット画面に遷移
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MessageRoomScreen(
-            roomId: roomId,
-            currentUserId: user.uid,
-          ),
-        ),
-      );
+      context.push('/message-room',
+          extra: {"roomId": roomId, "currentUserId": user.uid});
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => MessageRoomScreen(
+      //       roomId: roomId,
+      //       currentUserId: user.uid,
+      //     ),
+      //   ),
+      // );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('投稿に失敗しました')),

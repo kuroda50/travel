@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel/colors/color.dart';
 import 'package:travel/functions/function.dart';
-import '../component/bottom_navigation_bar.dart';
 
 class RecruitmentScreen extends StatefulWidget {
   final String postId;
@@ -288,9 +287,9 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                     style: TextButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18.0),
-                        side: BorderSide(color: Colors.black),
+                        side: const BorderSide(color: Colors.black),
                       ),
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: 24.0, vertical: 12.0),
                     ),
                     child: const Text(
@@ -301,14 +300,14 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                       Navigator.of(context).pop();
                     },
                   ),
-                  SizedBox(width: 16), // ボタン間のスペース
+                  const SizedBox(width: 16), // ボタン間のスペース
                   TextButton(
                     style: TextButton.styleFrom(
                       backgroundColor: AppColor.mainButtonColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18.0),
                       ),
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: 24.0, vertical: 12.0),
                     ),
                     child: const Text(
@@ -373,7 +372,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
           actions: FirebaseAuth.instance.currentUser == null
               ? [
                   Padding(
-                    padding: EdgeInsets.only(right: 20),
+                    padding: const EdgeInsets.only(right: 20),
                     child: TextButton(
                       onPressed: () {
                         context.go('/login');
@@ -381,7 +380,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.white,
                       ),
-                      child: Text("ログイン",
+                      child: const Text("ログイン",
                           style: TextStyle(color: AppColor.mainTextColor)),
                     ),
                   )
@@ -409,40 +408,40 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('タイトル: $title', style: TextStyle(fontSize: 18)),
-                    Text('タグ: $tags', style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 20),
-                    Text('どこへ',
+                    Text('タイトル: $title', style: const TextStyle(fontSize: 18)),
+                    Text('タグ: $tags', style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 20),
+                    const Text('どこへ',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(title: Text('方面'), trailing: Text(area)),
-                    ListTile(title: Text('行き先'), trailing: Text(destination)),
-                    SizedBox(height: 20),
-                    Text('いつ',
+                    ListTile(title: const Text('方面'), trailing: Text(area)),
+                    ListTile(title: const Text('行き先'), trailing: Text(destination)),
+                    const SizedBox(height: 20),
+                    const Text('いつ',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(title: Text('いつから'), trailing: Text(startDate)),
-                    ListTile(title: Text('いつまで'), trailing: Text(endDate)),
-                    ListTile(title: Text('曜日'), trailing: Text(daysOfWeek)),
-                    SizedBox(height: 20),
-                    Text('募集する人',
+                    ListTile(title: const Text('いつから'), trailing: Text(startDate)),
+                    ListTile(title: const Text('いつまで'), trailing: Text(endDate)),
+                    ListTile(title: const Text('曜日'), trailing: Text(daysOfWeek)),
+                    const SizedBox(height: 20),
+                    const Text('募集する人',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                     ListTile(
-                        title: Text('性別、属性'), trailing: Text(targetGroups)),
-                    ListTile(title: Text('年齢'), trailing: Text(age)),
-                    ListTile(title: Text('写真付き'), trailing: Text(hasPhoto)),
+                        title: const Text('性別、属性'), trailing: Text(targetGroups)),
+                    ListTile(title: const Text('年齢'), trailing: Text(age)),
+                    ListTile(title: const Text('写真付き'), trailing: Text(hasPhoto)),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
                 child: Text("参加メンバー",
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
+              const Padding(
+                padding: EdgeInsets.only(top: 16, right: 16, left: 16),
                 child: Text("主催者"),
               ),
               ListTile(
@@ -458,13 +457,13 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                   context.push("/profile", extra: organizerId);
                 },
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 16, right: 16, left: 16),
+              const Padding(
+                padding: EdgeInsets.only(top: 16, right: 16, left: 16),
                 child: Text("参加者"),
               ),
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: memberTextList.length,
                 itemBuilder: (context, index) {
                   return ListTile(
@@ -481,52 +480,54 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                   );
                 },
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
                 child: Text("お金について",
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
-              ListTile(title: Text('予算'), trailing: Text(budget)),
+              ListTile(title: const Text('予算'), trailing: Text(budget)),
               ListTile(
-                  title: Text('お金の分け方'),
+                  title: const Text('お金の分け方'),
                   trailing:
                       Text(reversePaymentMethodMap[budgetType] ?? budgetType)),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
                 child: Text("集合場所",
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
-              ListTile(title: Text('方面'), trailing: Text(region)),
-              ListTile(title: Text('出発地'), trailing: Text(departure)),
+              ListTile(title: const Text('方面'), trailing: Text(region)),
+              ListTile(title: const Text('出発地'), trailing: Text(departure)),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Color(0xFFFBFAF6),
+                    color: const Color(0xFFFBFAF6),
                     border: Border.all(color: Colors.grey),
                   ),
                   padding: const EdgeInsets.all(16.0),
                   child: Text(description),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      goMessageScreen();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+              // 現在のログインユーザーのIDと投稿の作成者ID(organizerId)が異なる場合のみ表示する処理
+              if (FirebaseAuth.instance.currentUser!.uid != organizerId) // ログインユーザーが投稿作成者と違うかをチェック
+                Padding(
+                  padding: const EdgeInsets.all(16.0), // ボタン周りの余白設定
+                  child: SizedBox(
+                    width: double.infinity, // ボタンの横幅を画面いっぱいに広げる
+                    child: ElevatedButton(
+                      onPressed: () { // ボタンタップ時の処理
+                        goMessageScreen(); // チャット画面に遷移する関数を呼ぶ
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green, 
+                        foregroundColor: Colors.white, 
+                      ),
+                      child: const Text("話を聞きたい"), 
                     ),
-                    child: Text("話を聞きたい"),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -534,7 +535,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
           onPressed: () async {
             _toggleFavorite();
           },
-          shape: CircleBorder(),
+          shape: const CircleBorder(),
           backgroundColor: AppColor.backgroundColor,
           foregroundColor: isFavorited ? Colors.pink : Colors.grey,
           child: Icon(isFavorited ? Icons.favorite : Icons.favorite_border),

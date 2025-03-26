@@ -59,7 +59,6 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
   }
 
   void _onSearchChanged() {
-    print("検索を呼び出したよ");
     // 既存のタイマーがあればキャンセル
     _debounce?.cancel();
 
@@ -72,16 +71,25 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
           final age = calculateAge(data["birthday"].toDate());
           final hobbiesData = List<String>.from(data["hobbies"]);
 
-          final checkFilter = (genderValue == gender || genderValue == "誰でも") &&
-              (isAgeInRange(ageValue, age)) &&
-              (matchesSearch(hobbies, hobbiesData) || hobbies.isEmpty);
+          final checkFilter =
+              (convertGender(genderValue) == gender || genderValue == "誰でも") &&
+                  (isAgeInRange(ageValue, age)) &&
+                  (matchesSearch(hobbies, hobbiesData) || hobbies.isEmpty);
 
           return checkFilter;
         }).toList();
         filteredUsersCount = _filteredUsers.length;
-        print("filteredUsersCount:$filteredUsersCount");
       });
     });
+  }
+
+  String convertGender(String gender) {
+    Map<String, String> genderMap = {
+      '男性': 'male',
+      '女性': 'female',
+      '誰でも': 'unknown'
+    };
+    return genderMap[gender]!;
   }
 
   //二つのリストの要素に同じものが一つでも含まれていたらtrueを返す

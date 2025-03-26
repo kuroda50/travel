@@ -293,7 +293,6 @@ class _TravelScreenState extends State<TravelScreen> {
               ],
             ),
             onTap: () {
-              print("postId:${post.postId}");
               context.push('/recruitment', extra: post.postId);
             },
           ),

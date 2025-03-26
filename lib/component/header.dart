@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  const Header({super.key, required this.title});
+  final List<Widget>? actions;
+
+  const Header({super.key, required this.title, this.actions,});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,8 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       backgroundColor: AppColor.mainButtonColor,
-      actions: FirebaseAuth.instance.currentUser == null
+      actions:  actions ?? 
+          (FirebaseAuth.instance.currentUser == null
           ? [
               Padding(
                 padding: EdgeInsets.only(right: 20),
@@ -34,7 +37,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 ),
               )
             ]
-          : null,
+          : null),
     );
   }
 

@@ -1159,7 +1159,7 @@ Future<String> _createChatRoom(String userId, Map<String, dynamic> userData) asy
     "participants": [userId],
     "createdAt": Timestamp.now(),
     "group": true,
-    "latestMessage": {"text": "", "sender": "", "timeStamp": "", "readBy": []}
+    "latestMessage": {"text": "", "sender": "", "timeStamp": DateTime.now(), "readBy": []}
   };
 
   await chatRoomRef.set(chatRoomData);

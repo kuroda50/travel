@@ -211,6 +211,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
     batch.set(newRoomRef, {
       "createdAt": FieldValue.serverTimestamp(),
       "group": false,
+      "recruit": true,
       "postId": postId,
       "postTitle": postTitle,
       "participants": [participantId, organizerId],

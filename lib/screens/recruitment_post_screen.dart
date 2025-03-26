@@ -1097,39 +1097,39 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
     });
   }
 
-  Future<void> _selectDate(BuildContext context, String label) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Colors.blueAccent, // アクセントカラー
-            colorScheme: ColorScheme.light(primary: Colors.blueAccent),
-            dialogBackgroundColor: Colors.white,
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueAccent, // ボタンの色
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
-        if (label == 'いつから') {
-          selectedStartDate = formattedDate;
-        } else if (label == 'いつまで') {
-          selectedEndDate = formattedDate;
-        }
-      });
-    }
-  }
+  // Future<void> _selectDate(BuildContext context, String label) async {
+  //   DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime.now(),
+  //     lastDate: DateTime(2101),
+  //     builder: (context, child) {
+  //       return Theme(
+  //         data: ThemeData.light().copyWith(
+  //           primaryColor: Colors.blueAccent, // アクセントカラー
+  //           colorScheme: ColorScheme.light(primary: Colors.blueAccent),
+  //           dialogBackgroundColor: Colors.white,
+  //           textButtonTheme: TextButtonThemeData(
+  //             style: TextButton.styleFrom(
+  //               foregroundColor: Colors.blueAccent, // ボタンの色
+  //             ),
+  //           ),
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
+  //   if (picked != null) {
+  //     setState(() {
+  //       String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
+  //       if (label == 'いつから') {
+  //         selectedStartDate = formattedDate;
+  //       } else if (label == 'いつまで') {
+  //         selectedEndDate = formattedDate;
+  //       }
+  //     });
+  //   }
+  // }
 
   Future<void> _postToFirestore() async {
     final user = FirebaseAuth.instance.currentUser;

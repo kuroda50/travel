@@ -104,7 +104,7 @@ final GoRouter goRouter = GoRouter(
       name: 'sameHobby',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: const CustomBottomNavigationBar(
+        child: CustomBottomNavigationBar(
           child: SameHobbyScreen(),
         ),
       ),

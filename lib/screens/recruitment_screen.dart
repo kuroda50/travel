@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel/colors/color.dart';
 import 'package:travel/functions/function.dart';
-import '../component/bottom_navigation_bar.dart';
 
 class RecruitmentScreen extends StatefulWidget {
   final String postId;
@@ -520,8 +519,8 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                       goMessageScreen();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColor.mainButtonColor,
+                      foregroundColor: AppColor.subTextColor,
                     ),
                     child: Text("話を聞きたい"),
                   ),

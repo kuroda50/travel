@@ -153,7 +153,7 @@ class _TravelSearchState extends State<TravelSearch> {
     List<String> ageRange = selectedAge.split('〜');
 
     int minAge = ageRange[0] == 'こだわらない' ? 0 : int.parse(ageRange[0]); // 最小年齢
-    int maxAge = ageRange[1] == 'こだわらない' ? 100 : int.parse(ageRange[1]); // 最大年齢
+    int maxAge = ageRange[1] == 'こだわらない' ? 1000 : int.parse(ageRange[1]); // 最大年齢
 
     return Age >= minAge && Age <= maxAge;
   }
@@ -164,10 +164,10 @@ class _TravelSearchState extends State<TravelSearch> {
     int selectedAgeMin =
         ageRange[0] == 'こだわらない' ? 0 : int.parse(ageRange[0]); // 最小年齢
     int selectedAgeMax =
-        ageRange[1] == 'こだわらない' ? 100 : int.parse(ageRange[1]); // 最大年齢
+        ageRange[1] == 'こだわらない' ? 1000 : int.parse(ageRange[1]); // 最大年齢
 
     targetAgeMin = targetAgeMin ?? 0;
-    targetAgeMax = targetAgeMax ?? 100;
+    targetAgeMax = targetAgeMax ?? 1000;
 
     return selectedAgeMax >= targetAgeMin && selectedAgeMin <= targetAgeMax;
   }
@@ -265,17 +265,13 @@ class _TravelSearchState extends State<TravelSearch> {
                   padding: const EdgeInsets.all(16.0),
                   children: <Widget>[
                     SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 145), // 左側のパディングを調整
-                          child: Text(
-                            '検索条件',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                    Padding(
+                      padding: EdgeInsets.only(left: 145), // 左側のパディングを調整
+                      child: Text(
+                        '検索条件',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ),
                     SizedBox(height: 16),
                     // どこへ
@@ -357,11 +353,6 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                       ],
                     ),
-                    //Wrap(
-                    //spacing: 8.0,
-                    //children:
-                    //  tags.map((tag) => Chip(label: Text(tag))).toList(),
-                    //),
                     Wrap(
                       spacing: 8.0,
                       children: tags
@@ -389,16 +380,6 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                       ],
                     ),
-                    //Row(
-                    //mainAxisAlignment: MainAxisAlignment.center,
-                    //children: <Widget>[
-                    //Icon(Icons.search),
-                    //Text(
-                    //'$filteredPostsCount個に絞り込み中',
-                    //textAlign: TextAlign.center,
-                    //),
-                    //],
-                    //),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

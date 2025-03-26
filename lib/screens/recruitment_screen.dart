@@ -521,8 +521,8 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                         goMessageScreen(); // チャット画面に遷移する関数を呼ぶ
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green, 
-                        foregroundColor: Colors.white, 
+                        backgroundColor: AppColor.mainButtonColor, 
+                        foregroundColor: AppColor.subTextColor, 
                       ),
                       child: const Text("話を聞きたい"), 
                     ),

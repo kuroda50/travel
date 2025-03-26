@@ -294,31 +294,31 @@ class _SignupFormState extends State<AccountCreateScreen> {
                   } else if (value.length < 6 &&
                       !RegExp(r'[a-z]').hasMatch(value) &&
                       !RegExp(r'[0-9]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、小文字・数字を含めてください';
+                    return 'パスワードは6文字以上で、\n小文字・数字を含めてください';
                   } else if (value.length < 6 &&
                       !RegExp(r'[A-Z]').hasMatch(value) &&
                       !RegExp(r'[0-9]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、大文字・数字を含めてください';
+                    return 'パスワードは6文字以上で、\n大文字・数字を含めてください';
                   } else if (value.length < 6 &&
                       !RegExp(r'[A-Z]').hasMatch(value) &&
                       !RegExp(r'[a-z]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、大文字・小文字を含めてください';
+                    return 'パスワードは6文字以上で、\n大文字・小文字を含めてください';
                   } else if (value.length < 6 &&
                       !RegExp(r'[A-Z]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、大文字を含めてください';
+                    return 'パスワードは6文字以上で、\n大文字を含めてください';
                   } else if (value.length < 6 &&
                       !RegExp(r'[a-z]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、小文字を含めてください';
+                    return 'パスワードは6文字以上で、\n小文字を含めてください';
                   } else if (value.length < 6 &&
                       !RegExp(r'[0-9]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、数字を含めてください';
+                    return 'パスワードは6文字以上で、\n数字を含めてください';
                   } else if (value.length < 6) {
                     return 'パスワードは6文字以上にしてください';
                   } else if (value.length < 6 &&
                       (!RegExp(r'[A-Z]').hasMatch(value) ||
                           !RegExp(r'[a-z]').hasMatch(value)) &&
                       !RegExp(r'[0-9]').hasMatch(value)) {
-                    return 'パスワードは6文字以上で、大文字・小文字・数字を含めてください';
+                    return 'パスワードは6文字以上で、\n大文字・小文字・数字を含めてください';
                   } else if (!RegExp(r'[A-Z]').hasMatch(value) &&
                       !RegExp(r'[a-z]').hasMatch(value)) {
                     return 'パスワードは大文字・小文字を含めてください';

@@ -68,7 +68,9 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   @override
   void initState() {
     super.initState();
+    print("getPostDataを実行");
     getPostData();
+    print("_checkFavoriteStatusを実行");
     _checkFavoriteStatus(widget.postId);
   }
 
@@ -260,7 +262,9 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   }
 
   Future<void> _checkFavoriteStatus(String postId) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (FirebaseAuth.instance.currentUser == null) {
+      return;
+    }
     String userId = FirebaseAuth.instance.currentUser!.uid;
     DocumentSnapshot doc =
         await FirebaseFirestore.instance.collection('users').doc(userId).get();
@@ -415,22 +419,28 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                     ListTile(title: const Text('方面'), trailing: Text(area)),
-                    ListTile(title: const Text('行き先'), trailing: Text(destination)),
+                    ListTile(
+                        title: const Text('行き先'), trailing: Text(destination)),
                     const SizedBox(height: 20),
                     const Text('いつ',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(title: const Text('いつから'), trailing: Text(startDate)),
-                    ListTile(title: const Text('いつまで'), trailing: Text(endDate)),
-                    ListTile(title: const Text('曜日'), trailing: Text(daysOfWeek)),
+                    ListTile(
+                        title: const Text('いつから'), trailing: Text(startDate)),
+                    ListTile(
+                        title: const Text('いつまで'), trailing: Text(endDate)),
+                    ListTile(
+                        title: const Text('曜日'), trailing: Text(daysOfWeek)),
                     const SizedBox(height: 20),
                     const Text('募集する人',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                     ListTile(
-                        title: const Text('性別、属性'), trailing: Text(targetGroups)),
+                        title: const Text('性別、属性'),
+                        trailing: Text(targetGroups)),
                     ListTile(title: const Text('年齢'), trailing: Text(age)),
-                    ListTile(title: const Text('写真付き'), trailing: Text(hasPhoto)),
+                    ListTile(
+                        title: const Text('写真付き'), trailing: Text(hasPhoto)),
                   ],
                 ),
               ),
@@ -511,23 +521,26 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                 ),
               ),
               // 現在のログインユーザーのIDと投稿の作成者ID(organizerId)が異なる場合のみ表示する処理
-              if (FirebaseAuth.instance.currentUser!.uid != organizerId) // ログインユーザーが投稿作成者と違うかをチェック
-                Padding(
-                  padding: const EdgeInsets.all(16.0), // ボタン周りの余白設定
-                  child: SizedBox(
-                    width: double.infinity, // ボタンの横幅を画面いっぱいに広げる
-                    child: ElevatedButton(
-                      onPressed: () { // ボタンタップ時の処理
-                        goMessageScreen(); // チャット画面に遷移する関数を呼ぶ
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.mainButtonColor, 
-                        foregroundColor: AppColor.subTextColor, 
+              if (FirebaseAuth.instance.currentUser == null)
+                if (FirebaseAuth.instance.currentUser!.uid !=
+                    organizerId) // ログインユーザーが投稿作成者と違うかをチェック
+                  Padding(
+                    padding: const EdgeInsets.all(16.0), // ボタン周りの余白設定
+                    child: SizedBox(
+                      width: double.infinity, // ボタンの横幅を画面いっぱいに広げる
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // ボタンタップ時の処理
+                          goMessageScreen(); // チャット画面に遷移する関数を呼ぶ
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("話を聞きたい"),
                       ),
-                      child: const Text("話を聞きたい"), 
                     ),
                   ),
-                ),
             ],
           ),
         ),

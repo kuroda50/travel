@@ -16,7 +16,7 @@ class AccountListScreen extends StatefulWidget {
 
 class _AccountListScreenState extends State<AccountListScreen> {
   int currentPage = 0;
-  final int itemsPerPage = 5;
+  final int itemsPerPage = 20;
 
   Future<List<DocumentSnapshot>> _fetchUserData() async {
     List<DocumentSnapshot> userDocs = [];
@@ -61,7 +61,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
                   }
 
                   List<DocumentSnapshot> allDocs = snapshot.data!;
-                  int totalPages = (allDocs.length / itemsPerPage).ceil();
+                  // int totalPages = (allDocs.length / itemsPerPage).ceil();
 
                   List<DocumentSnapshot> paginatedDocs = allDocs
                       .skip(currentPage * itemsPerPage)
@@ -207,8 +207,6 @@ class _ListItemState extends State<ListItem> {
   }
 
   Future<void> _toggleFollow() async {
-    if (currentUserId == null) return;
-
     final currentUserRef =
         FirebaseFirestore.instance.collection('users').doc(currentUserId);
     final targetUserRef =
@@ -257,12 +255,73 @@ class _ListItemState extends State<ListItem> {
     return widget.hobbies!.join(", ");
   }
 
+  void _showLoginPrompt(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ログインが必要です'),
+          content: const Text('この機能を利用するにはログインが必要です。ログインしますか？'),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                        side: const BorderSide(color: Colors.black),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                    ),
+                    child: const Text(
+                      'キャンセル',
+                      style: TextStyle(color: AppColor.mainTextColor),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  const SizedBox(width: 16), // ボタン間のスペース
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColor.mainButtonColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                    ),
+                    child: const Text(
+                      'ログイン',
+                      style: TextStyle(color: AppColor.subTextColor),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.go('/login');
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isCurrentUser = currentUserId == widget.userId; // 自分自身かどうか判定
 
     return GestureDetector(
       onTap: () {
+        if (FirebaseAuth.instance.currentUser == null) {
+          _showLoginPrompt(context);
+          return;
+        }
         context.push('/profile', extra: widget.userId);
       },
       child: Container(
@@ -332,7 +391,13 @@ class _ListItemState extends State<ListItem> {
             ),
             if (!isCurrentUser) // 自分自身のアカウントでない場合のみフォローボタンを表示
               ElevatedButton(
-                onPressed: _toggleFollow,
+                onPressed: () {
+                  if (FirebaseAuth.instance.currentUser == null) {
+                    _showLoginPrompt(context);
+                    return;
+                  }
+                  _toggleFollow();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       isFollowing ? Colors.grey : AppColor.mainButtonColor,

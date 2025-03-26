@@ -110,11 +110,32 @@ class MessageScreen extends StatelessWidget {
                       },
                     );
                   } else {
+                    // ② partnerIdが空の場合のフォールバックUI
+                    if (partnerId.isEmpty) {
+                      // partnerIdが見つからなかった場合の処理
+                      return ListTile(
+                        leading: CircleAvatar(
+                          // 空の場合はデフォルトのアイコンを表示する
+                          child: Icon(Icons.person),
+                        ),
+                        title: Text('情報なし'), // 取得できなかった旨表示
+                        subtitle: Text(lastMessageText), // 最新メッセージをそのまま表示
+                        trailing: Text(
+                          DateFormat('yyyy/MM/dd HH:mm:ss').format(lastMessageTime.toDate()),
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        onTap: () {
+                          // partnerIdが無い場合、特に処理を行わない
+                        },
+                      );
+                    }
+
+                    // ③ partnerIdが存在する場合、通常通りユーザーデータを取得する
                     return FutureBuilder<DocumentSnapshot>(
                       future: FirebaseFirestore.instance
                           .collection('users')
                           .doc(partnerId)
-                          .get(),
+                          .get(), // partnerIdからユーザーデータ取得する非同期処理
                       builder: (context, partnerSnapshot) {
                         if (!partnerSnapshot.hasData) {
                           return Center(child: CircularProgressIndicator());

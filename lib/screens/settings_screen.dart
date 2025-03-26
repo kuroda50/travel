@@ -25,8 +25,9 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             buildButton(context, 'メールアドレスを変更する',
-                isFirst: true, showDialog: false),
-            buildButton(context, 'パスワードを変更する', showDialog: false, isPasswordChange: true), // 変更点
+                isFirst: true, showDialog: false, isEmailChange: true), // 変更点
+            buildButton(context, 'パスワードを変更する',
+                showDialog: false, isPasswordChange: true),
             buildButton(context, 'ログアウト', isLogout: true),
             buildButton(context, 'アカウントを削除する', isLast: true, isDelete: true),
             const SizedBox(height: 20),
@@ -55,7 +56,8 @@ class SettingsScreen extends StatelessWidget {
       bool isDelete = false,
       bool showDialog = true,
       bool isTerms = false,
-      bool isPasswordChange = false}) { // 変更点
+      bool isPasswordChange = false,
+      bool isEmailChange = false}) { // 変更点
     BorderRadius borderRadius = BorderRadius.only(
       topLeft: isFirst ? const Radius.circular(16) : Radius.zero,
       topRight: isFirst ? const Radius.circular(16) : Radius.zero,
@@ -76,11 +78,16 @@ class SettingsScreen extends StatelessWidget {
           onPressed: () => {
             if (showDialog)
               {
-                showConfirmationDialog(context, text, isLogout, isDelete, isTerms),
+                showConfirmationDialog(
+                    context, text, isLogout, isDelete, isTerms),
               }
-            else if (isPasswordChange) // 変更点
+            else if (isPasswordChange)
               {
-                context.go('/password-change'), // 変更点
+                context.go('/password-change'),
+              }
+            else if (isEmailChange) // 変更点
+              {
+                context.go('/email-change'), // 変更点
               }
             else
               {
@@ -108,8 +115,8 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-void showConfirmationDialog(
-    BuildContext context, String title, bool isLogout, bool isDelete, bool isTerms) {
+void showConfirmationDialog(BuildContext context, String title, bool isLogout,
+    bool isDelete, bool isTerms) {
   showDialog(
       context: context,
       builder: (BuildContext context) {

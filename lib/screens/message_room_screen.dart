@@ -40,15 +40,22 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
     return userSnapshot.data() as Map<String, dynamic>?;
   }
 
+  /// 参加者一覧を取得するメソッド
+  /// FirestoreのドキュメントIDを`userId`として利用
   Future<List<Map<String, dynamic>>> _getParticipants() async {
+    // チャットルームのデータを取得
     final chatRoomSnapshot = await chatRoomsCollection.doc(roomId).get();
     final chatRoomData = chatRoomSnapshot.data() as Map<String, dynamic>?;
+
+    // 参加者のIDリストを取得
     final participantIds = List<String>.from(chatRoomData?['participants'] ?? []);
 
-    // 各ユーザーのデータを取得
+    // 各参加者のデータを取得し、ドキュメントIDを`userId`として追加
     final participants = await Future.wait(participantIds.map((userId) async {
       final userSnapshot = await usersCollection.doc(userId).get();
-      return userSnapshot.data() as Map<String, dynamic>;
+      final userData = userSnapshot.data() as Map<String, dynamic>;
+      userData['id'] = userSnapshot.id; // ドキュメントIDを`id`として追加
+      return userData;
     }));
 
     return participants;
@@ -63,68 +70,81 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
   }
 
   /// キック確認ダイアログを表示
-  void _showKickConfirmationDialog(Map<String, dynamic> participant) {
-    final userId = participant['id'];
-    final name = participant['name'] ?? '名前なし';
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("確認"),
-          content: Text("$name を追放しますか？"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("キャンセル"),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  // 1. chatRoomsコレクションのparticipantsから削除
-                  await chatRoomsCollection.doc(roomId).update({
+void _showKickConfirmationDialog(Map<String, dynamic> participant) {
+  final userId = participant['id']; // ドキュメントIDを取得
+  final name = participant['name'] ?? '名前なし';
+
+  if (userId == null) {
+    print("userIdが取得できませんでした");
+    return;
+  }
+
+  print("userId: $userId, currentUserId: $currentUserId");
+
+  if (userId == currentUserId) {
+    print("自分自身を追放することはできません");
+    return;
+  }
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("確認"),
+        content: Text("$name を追放しますか？"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("キャンセル"),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                // 1. chatRoomsコレクションのparticipantsから削除
+                await chatRoomsCollection.doc(roomId).update({
+                  'participants': FieldValue.arrayRemove([userId]),
+                });
+
+                // 2. postsコレクションのparticipantsから削除
+                final chatRoomSnapshot =
+                    await chatRoomsCollection.doc(roomId).get();
+                final chatRoomData =
+                    chatRoomSnapshot.data() as Map<String, dynamic>?;
+                final postId = chatRoomData?['postId'];
+                if (postId != null) {
+                  await FirebaseFirestore.instance
+                      .collection('posts')
+                      .doc(postId)
+                      .update({
                     'participants': FieldValue.arrayRemove([userId]),
                   });
-
-                  // 2. postsコレクションのparticipantsから削除
-                  final chatRoomSnapshot =
-                      await chatRoomsCollection.doc(roomId).get();
-                  final chatRoomData =
-                      chatRoomSnapshot.data() as Map<String, dynamic>?;
-                  final postId = chatRoomData?['postId'];
-                  if (postId != null) {
-                    await FirebaseFirestore.instance
-                        .collection('posts')
-                        .doc(postId)
-                        .update({
-                      'participants': FieldValue.arrayRemove([userId]),
-                    });
-                  }
-
-                  // 3. usersコレクションのchatRoomsから現在のroomIdを削除
-                  await usersCollection.doc(userId).update({
-                    'chatRooms': FieldValue.arrayRemove([roomId]),
-                  });
-
-                  // 4. キャッシュから削除
-                  cachedParticipants?.removeWhere((p) => p['id'] == userId);
-
-                  // UIを更新
-                  setState(() {});
-
-                  // ダイアログを閉じる
-                  Navigator.of(context).pop(); // 確認ダイアログを閉じる
-                  Navigator.of(context).pop(); // 参加者一覧ダイアログを閉じる
-                } catch (e) {
-                  print("追放処理中にエラーが発生しました: $e");
                 }
-              },
-              child: Text("追放"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
+                // 3. usersコレクションのchatRoomsから現在のroomIdを削除
+                await usersCollection.doc(userId).update({
+                  'chatRooms': FieldValue.arrayRemove([roomId]),
+                });
+
+                // 4. キャッシュから削除
+                cachedParticipants?.removeWhere((p) => p['id'] == userId);
+
+                // UIを更新
+                setState(() {});
+
+                // ダイアログを閉じる
+                Navigator.of(context).pop(); // 確認ダイアログを閉じる
+                Navigator.of(context).pop(); // 参加者一覧ダイアログを閉じる
+              } catch (e) {
+                print("追放処理中にエラーが発生しました: $e");
+              }
+            },
+            child: Text("追放"),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {

@@ -87,7 +87,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
         followingUserList.add(followUser);
       }
     }
-    print("ここまで実行2");
     return followingUserList;
   }
 

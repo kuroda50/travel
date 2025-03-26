@@ -101,10 +101,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> checkUserId(String userId) {
     if (userId == FirebaseAuth.instance.currentUser!.uid) {
-      print('自分のプロフィールを見ています');
       isMyProfile = true;
     } else {
-      print('他人のプロフィールを見ています');
       isMyProfile = false;
     }
     setState(() {

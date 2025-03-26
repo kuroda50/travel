@@ -61,7 +61,6 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   void _onSearchChanged() {
-    print("検索を呼び出したよ");
     // 既存のタイマーがあればキャンセル
     _debounce?.cancel();
 
@@ -631,9 +630,6 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   void _showBudgetModal(BuildContext context) {
-    TextEditingController minController = TextEditingController();
-    TextEditingController maxController = TextEditingController();
-    String? errorText;
 
     showDialog(
         context: context,
@@ -1217,7 +1213,7 @@ class _TravelSearchState extends State<TravelSearch> {
 
   Future<void> selectDate(BuildContext context, String label) async {
     DateTime initialTime = DateTime.now();
-    String firstMessage = "入力してください";
+    String firstMessage = "こだわらない";
     if (label == 'いつから' && selectedStartDate != 'こだわらない') {
       initialTime = DateFormat("yyyy/MM/dd").parse(selectedStartDate);
     } else if (label == 'いつまで' && selectedEndDate != 'こだわらない') {

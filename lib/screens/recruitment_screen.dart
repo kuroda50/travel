@@ -68,9 +68,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   @override
   void initState() {
     super.initState();
-    print("getPostDataを実行");
     getPostData();
-    print("_checkFavoriteStatusを実行");
     _checkFavoriteStatus(widget.postId);
   }
 
@@ -246,7 +244,6 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       "chatRooms": FieldValue.arrayUnion([roomId])
     });
 
-    print("$userId の chatRooms に $roomId を追加");
   }
 
   Future<void> goMessageScreen() async {
@@ -464,6 +461,10 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                 title: Text(
                     "$organizerName、$organizerAge歳、${reverseGenderMap[organizerGroup] ?? organizerGroup}"),
                 onTap: () {
+                  if (FirebaseAuth.instance.currentUser == null) {
+                    _showLoginPrompt(context);
+                    return;
+                  }
                   context.push("/profile", extra: organizerId);
                 },
               ),
@@ -485,6 +486,10 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                     ),
                     title: Text(memberTextList[index]),
                     onTap: () {
+                      if (FirebaseAuth.instance.currentUser == null) {
+                        _showLoginPrompt(context);
+                        return;
+                      }
                       context.push("/profile", extra: memberIdList[index]);
                     },
                   );
@@ -521,7 +526,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                 ),
               ),
               // 現在のログインユーザーのIDと投稿の作成者ID(organizerId)が異なる場合のみ表示する処理
-              if (FirebaseAuth.instance.currentUser == null)
+              if (FirebaseAuth.instance.currentUser != null)
                 if (FirebaseAuth.instance.currentUser!.uid !=
                     organizerId) // ログインユーザーが投稿作成者と違うかをチェック
                   Padding(

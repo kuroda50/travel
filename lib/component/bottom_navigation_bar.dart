@@ -36,6 +36,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
   /// 現在のページに応じてボトムナビゲーションの選択状態を決定
   int _getSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
+    final extra = GoRouterState.of(context).extra;
+    final String? userId = extra is String ? extra : null; // `extra`がStringなら取得
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
     switch (location) {
       case '/travel':
         return 0;
@@ -46,7 +49,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
       case '/follow-list':
         return 3;
       case '/profile':
-        return 4;
+        // `extra`に現在のユーザーのIDが含まれていればハイライト、それ以外は非ハイライト
+        return (userId != null && userId == currentUserId) ? 4 : -1;
       default:
         return -1;
     }

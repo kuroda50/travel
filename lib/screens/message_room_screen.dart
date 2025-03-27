@@ -112,20 +112,22 @@ Widget build(BuildContext context) {
                   Expanded(
                     child: _buildMessageList(isGroup),
                   ),
-                  _buildInputArea(),
+                  // ここにボタンとリストを移動
+                  buildJoinRequestButton(
+                    roomId: roomId,
+                    currentUserId: currentUserId,
+                    chatRoomsCollection: chatRoomsCollection,
+                  ),
+                  buildJoinRequestList(
+                    roomId: roomId,
+                    currentUserId: currentUserId,
+                    chatRoomsCollection: chatRoomsCollection,
+                  ),
                 ],
               ),
             ),
-            buildJoinRequestButton(
-              roomId: roomId,
-              currentUserId: currentUserId,
-              chatRoomsCollection: chatRoomsCollection,
-            ),
-            buildJoinRequestList(
-              roomId: roomId,
-              currentUserId: currentUserId,
-              chatRoomsCollection: chatRoomsCollection,
-            ),
+            // 入力エリアを最後に配置
+            _buildInputArea(),
           ],
         ),
         );

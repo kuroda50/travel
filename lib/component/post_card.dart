@@ -50,52 +50,66 @@ class _PostCardState extends State<PostCard> {
   Future<List<RecruitmentPost>> fetchRecruitmentLists(
       List<String> recruitmentPostIdList) async {
     List<RecruitmentPost> recruitmentPosts = [];
-    for (int i = 0; i < recruitmentPostIdList.length; i++) {
-      DocumentReference recruitmentRef = FirebaseFirestore.instance
+    for (String postId in recruitmentPostIdList) {
+      DocumentSnapshot recruitmentSnapshot = await FirebaseFirestore.instance
           .collection('posts')
-          .doc(recruitmentPostIdList[i]);
-      await recruitmentRef.get().then((recruitment) {
-        if (recruitment.exists) {
-          // 'post' をここで初期化
-          RecruitmentPost post = RecruitmentPost(
-            postId: recruitmentPostIdList[i],
-            title: recruitment['title'],
-            organizerPhotoURL: recruitment['organizer']['photoURL'] ?? "",
-            organizerGroup:
-                reverseGenderMap[recruitment['organizer']['organizerGroup']] ??
-                    "不明",
-            targetGroups:
-                (recruitment['target']['targetGroups'] as List).isEmpty
-                    ? ['誰でも']
-                    : List<String>.from(recruitment['target']['targetGroups']
-                        .map((group) => reverseGenderMap[group].toString())
-                        .toList()),
-            targetAgeMin: recruitment['target']['ageMin'].toString(),
-            targetAgeMax: recruitment['target']['ageMax'].toString(),
-            targetHasPhoto: recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし',
-            destinations: List<String>.from(recruitment['where']['destination']
-                .map((destination) => destination.toString())
+          .doc(postId)
+          .get();
+      if (!recruitmentSnapshot.exists) {
+        print("募集情報が見つかりません");
+        continue;
+      }
+      var recruitment = recruitmentSnapshot.data() as Map<String, dynamic>;
+      String organizerId = recruitment['organizer']['organizerId'];
+
+      DocumentSnapshot organizerSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(organizerId)
+          .get();
+
+      Map<String, dynamic>? organizerData =
+          organizerSnapshot.data() as Map<String, dynamic>?;
+
+      // 主催者情報が存在しない場合はデフォルト値を設定
+      String organizerPhotoURL = organizerData?['photoURLs'][0];
+      String organizerName = organizerData?['name'] ?? "不明";
+      String organizerAge = organizerData?['birthday'] != null
+          ? calculateAge(organizerData!['birthday'].toDate()).toString()
+          : "不明";
+
+      // 'post' をここで初期化
+      RecruitmentPost post = RecruitmentPost(
+        postId: postId,
+        title: recruitment['title'],
+        targetGroups: (recruitment['target']['targetGroups'] as List).isEmpty
+            ? ['誰でも']
+            : List<String>.from(recruitment['target']['targetGroups']
+                .map((group) => reverseGenderMap[group].toString())
                 .toList()),
-            organizerName: recruitment['organizer']['organizerName'],
-            organizerAge: calculateAge(
-                    recruitment['organizer']['organizerBirthday'].toDate())
-                .toString(),
-            startDate: DateFormat('yyyy/MM/dd')
-                .format(recruitment['when']['startDate'].toDate())
-                .toString(),
-            endDate: DateFormat('yyyy/MM/dd')
-                .format(recruitment['when']['endDate'].toDate())
-                .toString(),
-            days: List<String>.from(recruitment['when']['dayOfWeek']
-                .map((day) => reverseDayMap[day.toString()])
-                .toList()),
-          );
-          // 'post' をリストに追加
-          recruitmentPosts.add(post);
-        } else {
-          print("募集情報が見つかりません");
-        }
-      });
+        targetAgeMin: recruitment['target']['ageMin'].toString(),
+        targetAgeMax: recruitment['target']['ageMax'].toString(),
+        targetHasPhoto: recruitment['target']['hasPhoto'] ? '写真あり' : '写真なし',
+        destinations: List<String>.from(recruitment['where']['destination']
+            .map((destination) => destination.toString())
+            .toList()),
+        organizerPhotoURL: organizerPhotoURL,
+        organizerGroup:
+            reverseGenderMap[recruitment['organizer']['organizerGroup']] ??
+                "不明",
+        organizerName: organizerName,
+        organizerAge: organizerAge,
+        startDate: DateFormat('yyyy/MM/dd')
+            .format(recruitment['when']['startDate'].toDate())
+            .toString(),
+        endDate: DateFormat('yyyy/MM/dd')
+            .format(recruitment['when']['endDate'].toDate())
+            .toString(),
+        days: List<String>.from(recruitment['when']['dayOfWeek']
+            .map((day) => reverseDayMap[day.toString()])
+            .toList()),
+      );
+      // 'post' をリストに追加
+      recruitmentPosts.add(post);
     }
     return recruitmentPosts;
   }
@@ -161,13 +175,13 @@ class _PostCardState extends State<PostCard> {
 class RecruitmentPost {
   String postId;
   String title;
-  String organizerPhotoURL;
-  String organizerGroup;
   List<String> targetGroups;
   String targetAgeMin;
   String targetAgeMax;
   String targetHasPhoto;
   List<String> destinations;
+  String organizerPhotoURL;
+  String organizerGroup;
   String organizerName;
   String organizerAge;
   String startDate;
@@ -177,13 +191,13 @@ class RecruitmentPost {
   RecruitmentPost({
     required this.postId,
     required this.title,
-    required this.organizerPhotoURL,
-    required this.organizerGroup,
     required this.targetGroups,
     required this.targetAgeMin,
     required this.targetAgeMax,
     required this.targetHasPhoto,
     required this.destinations,
+    required this.organizerPhotoURL,
+    required this.organizerGroup,
     required this.organizerName,
     required this.organizerAge,
     required this.startDate,

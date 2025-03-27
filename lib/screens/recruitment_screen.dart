@@ -73,49 +73,41 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   }
 
   Future<void> getPostData() async {
-    final docRef =
-        FirebaseFirestore.instance.collection("posts").doc(widget.postId);
-    final doc = await docRef.get();
-    if (!doc.exists) return;
+  final docRef = FirebaseFirestore.instance.collection("posts").doc(widget.postId);
+  final doc = await docRef.get();
+  if (!doc.exists) return;
 
-    setState(() {
-      title = doc['title'];
-      tags = _convertListToString(doc['tags']);
-      area = doc['where']['area'];
-      destination = _convertListToString(doc['where']['destination']);
-      startDate = _formatDate(doc['when']['startDate']);
-      endDate = _formatDate(doc['when']['endDate']);
-      daysOfWeek = _convertListToString(doc['when']['dayOfWeek']
-          .map((day) => reverseDayMap[day] ?? day)
-          .toList());
-      targetGroups = _convertListToString(doc['target']['targetGroups']
-          .map((group) => reverseGenderMap[group] ?? group)
-          .toList());
-      age = _formatAge(doc['target']['ageMin'], doc['target']['ageMax']);
-      hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
-      budget =
-          _formatBudget(doc['budget']['budgetMin'], doc['budget']['budgetMax']);
-      budgetType = reversePaymentMethodMap[doc['budget']['budgetType']] ??
-          doc['budget']['budgetType'];
-      region = doc['meetingPlace']['region'] ?? "未定";
-      departure = doc['meetingPlace']['departure'] ?? "未定";
-      description = doc['description'];
-      organizerId = doc["organizer"]["organizerId"];
-      organizerName = doc['organizer']['organizerName'];
-      organizerGroup = reverseGenderMap[doc['organizer']['organizerGroup']] ??
-          doc['organizer']['organizerGroup'];
-      organizerAge =
-          calculateAge(doc['organizer']['organizerBirthday'].toDate())
-              .toString();
-      organizerImageURL = doc['organizer']['photoURL'];
+  setState(() {
+    title = doc['title'] ?? '未設定';
+    tags = _convertListToString(doc['tags'] ?? []);
+    area = doc['where']['area'] ?? '未定';
+    destination = _convertListToString(doc['where']['destination'] ?? []);
+    startDate = _formatDate(doc['when']['startDate']);
+    endDate = _formatDate(doc['when']['endDate']);
+    daysOfWeek = _convertListToString(doc['when']['dayOfWeek']
+        .map((day) => reverseDayMap[day] ?? day)
+        .toList());
+    targetGroups = _convertListToString(doc['target']['targetGroups'] ?? []);
+    age = _formatAge(doc['target']['ageMin'], doc['target']['ageMax']);
+    hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
+    budget = _formatBudget(doc['budget']['budgetMin'], doc['budget']['budgetMax']);
+    budgetType = reversePaymentMethodMap[doc['budget']['budgetType']] ?? '未設定';
+    region = doc['meetingPlace']['region'] ?? '未定';
+    departure = doc['meetingPlace']['departure'] ?? '未定';
+    description = doc['description'] ?? '未設定';
+    organizerId = doc["organizer"]["organizerId"] ?? '';
+    organizerName = doc['organizer']['organizerName'] ?? '未設定';
+    organizerGroup = reverseGenderMap[doc['organizer']['organizerGroup']] ?? '未設定';
+    organizerAge = calculateAge(doc['organizer']['organizerBirthday'].toDate()).toString();
+    organizerImageURL = doc['organizer']['photoURL'] ?? '';
 
-      memberIdList = doc['participants'].cast<String>();
-      memberIdList.remove(doc['organizer']['organizerId']);
-      for (String memberId in memberIdList) {
-        _getMemberData(memberId);
-      }
-    });
-  }
+    memberIdList = doc['participants'].cast<String>();
+    memberIdList.remove(doc['organizer']['organizerId']);
+    for (String memberId in memberIdList) {
+      _getMemberData(memberId);
+    }
+  });
+}
 
   Future<void> _getMemberData(String memberId) async {
     final memberRef =

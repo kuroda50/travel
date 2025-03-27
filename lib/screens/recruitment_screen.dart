@@ -191,8 +191,13 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
         FirebaseFirestore.instance.collection("chatRooms");
     String? existingRoomId = await findExistingRoom(participantId, organizerId);
     if (existingRoomId != null) {
-      return existingRoomId; // 既存のルームが見つかった場合はそれを返す
-    }
+    // 既存のルームが見つかった場合の処理
+    final existingRoomRef = chatRooms.doc(existingRoomId);
+    await existingRoomRef.update({
+      "recruit": true, // recruitフィールドをtrueに設定
+    });
+    return existingRoomId; // 既存のルームIDを返す
+  }
 
     // ルームがなければ新規作成
     String roomKey = generateRoomKey(participantId, organizerId);

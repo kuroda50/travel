@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/colors/color.dart';
 import 'dart:async';
 import 'package:travel/component/header.dart';
+import 'package:travel/component/post_card.dart';
 
 class TravelScreen extends StatefulWidget {
   const TravelScreen({Key? key}) : super(key: key);
@@ -20,7 +21,6 @@ class _TravelScreenState extends State<TravelScreen> {
   late Timer _timer;
 
   List<String> latestPostIds = []; // 投稿の ID を格納
-  List<Post> latestPosts = []; // 投稿データを格納
 
   final List<String> _imageUrls = [
     'assets/images/OIP (1).jpg',
@@ -61,62 +61,15 @@ class _TravelScreenState extends State<TravelScreen> {
     });
   }
 
-  Future<List<Post>> getRecruitmentList(List<String> postIds) async {
-    List<Post> posts = [];
-
-    for (String postId in postIds) {
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection('posts')
-          .doc(postId)
-          .get();
-
-      if (doc.exists) {
-        posts.add(Post(
-          postId: doc.id,
-          title: doc['title'] ?? 'タイトルなし',
-          organizerGroup: doc['organizer']['organizerGroup'],
-          targetGroups: List<String>.from(doc['target']['targetGroups'] ?? []),
-          targetAgeMin: doc['target']['ageMin'] ?? 0,
-          targetAgeMax: doc['target']['ageMax'] ?? 100,
-          targetHasPhoto: doc['target']['hasPhoto'] == true
-              ? 'はい'
-              : 'いいえ', // bool を String に変換
-          destination: List<String>.from(doc['where']['destination'] ?? []),
-          organizerName: doc['organizer']['organizerName'] ?? '主催者不明',
-          organizerAge: doc['organizer']['organizerBirthday'] != null
-              ? DateTime.now().year -
-                  (doc['organizer']['organizerBirthday'] as Timestamp)
-                      .toDate()
-                      .year
-              : null,
-          startDate: doc['when']['startDate'] != null
-              ? (doc['when']['startDate'] as Timestamp)
-                  .toDate()
-                  .toIso8601String()
-              : null,
-          endDate: doc['when']['endDate'] != null
-              ? (doc['when']['endDate'] as Timestamp).toDate().toIso8601String()
-              : null,
-
-          days: List<String>.from(doc['when']['dayOfWeek'] ?? []),
-          organizerPhotoURL: doc['organizer']['photoURL'] ?? '',
-        ));
-      }
-    }
-
-    return posts;
-  }
-
   Future<void> fetchLatestPosts() async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('posts')
         .orderBy('createdAt', descending: true)
         .limit(4)
         .get();
-
-    latestPostIds = querySnapshot.docs.map((doc) => doc.id).toList();
-    latestPosts = await getRecruitmentList(latestPostIds);
-    setState(() {});
+    setState(() {
+      latestPostIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    });
   }
 
   @override
@@ -204,7 +157,10 @@ class _TravelScreenState extends State<TravelScreen> {
                   ),
                 ),
                 SizedBox(height: 16), // 余白追加
-                _buildLatestPostsSection(),
+                latestPostIds.isEmpty
+                    ? Center(
+                        child: CircularProgressIndicator()) // データ取得中はローディングを表示
+                    : PostCard(postIds: latestPostIds),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -235,136 +191,4 @@ class _TravelScreenState extends State<TravelScreen> {
       ),
     );
   }
-
-  Widget _buildLatestPostsSection() {
-    Map<String, String> reverseGenderMap = {
-      'male': '男性',
-      'female': '女性',
-      'family': '家族',
-      'group': 'グループ'
-    };
-
-    Map<String, String> reverseDayMap = {
-      'Mon': '月',
-      'Tue': '火',
-      'Wed': '水',
-      'Thu': '木',
-      'Fri': '金',
-      'Sat': '土',
-      'Sun': '日'
-    };
-
-    return Column(
-      children: latestPosts.map((post) {
-        String organizerGroup = reverseGenderMap[post.organizerGroup] ?? '不明';
-        String days =
-            post.days?.map((day) => reverseDayMap[day] ?? day).join(', ') ??
-                '日程不明';
-        String targetGroups = post.targetGroups
-                ?.map((group) => reverseGenderMap[group] ?? group)
-                .join(', ') ??
-            '対象不明';
-
-        return Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              backgroundImage: (post.organizerPhotoURL != null &&
-                      post.organizerPhotoURL!.isNotEmpty)
-                  ? NetworkImage(post.organizerPhotoURL!)
-                  : null,
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(post.title ?? 'タイトルなし'),
-                Text(
-                    '${post.startDate != null ? post.startDate!.substring(0, 10) : '開始日不明'}~${post.endDate != null ? post.endDate!.substring(0, 10) : '終了日不明'} $days'),
-                Text(post.destination?.join('、') ?? '目的地なし'),
-                Text('$organizerGroup > $targetGroups'),
-                Text(
-                    '${post.targetAgeMin ?? '年齢不明'}歳以上 ${post.targetAgeMax ?? '年齢不明'}歳以下 '),
-                Text(
-                    '${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳')
-              ],
-            ),
-            onTap: () {
-              context.push('/recruitment', extra: post.postId);
-            },
-          ),
-        );
-      }).toList(),
-    );
-  }
 }
-
-class Post {
-  final String postId;
-  final String? title;
-  final String? organizerGroup;
-  final List<String>? targetGroups;
-  final int? targetAgeMin;
-  final int? targetAgeMax;
-  final String? targetHasPhoto;
-  final List<String>? destination;
-  final String? organizerName;
-  final int? organizerAge;
-  final String? startDate;
-  final String? endDate;
-  final List<String>? days;
-  final String? organizerPhotoURL;
-
-  Post({
-    required this.postId,
-    this.title,
-    this.organizerGroup,
-    this.targetGroups,
-    this.targetAgeMin,
-    this.targetAgeMax,
-    this.targetHasPhoto,
-    this.destination,
-    this.organizerName,
-    this.organizerAge,
-    this.startDate,
-    this.endDate,
-    this.days,
-    this.organizerPhotoURL,
-  });
-}
-
-  // "where": {
-  //     "area": "アジア",
-  //     "destination": ["台湾","中国"],
-  // }
-  // "when": {
-  //     "startDate":"2025-02-28",
-  //     "endDate":"2025-03-02",
-  //     "dayOfWeek":["Fri","Sat","Sun"],
-  // }
-  // "target": {
-  //     "targetGroups": ["female","male"],
-  //     "ageMax": 29,
-  //     "ageMin": 20,
-  //     "hasPhoto": true
-  // },
-  // "organizer": {
-  //     "organizerGroup": "female",
-  //     "organizerBirthday": "2005-02-24",
-  //     "hasPhoto": true,
-  // }
-  // "budget": {
-  //     "budgetMin": 10, //nullでもok
-  //     "budgetMax": 15, //nullでもok
-  //     "budgetType": "splitEvenly" //nullでもok
-  // }
-  // "meetingPlace": {
-  //     "region": "日本", //nullでもok
-  //     "departure": "福岡県", //nullでもok
-  // }
-  // "title": "北欧、ヨーロッパ旅行",
-  // "tags": ["オーロラ","犬ぞり","北欧","ヨーロッパ"],
-  // "expire": false,

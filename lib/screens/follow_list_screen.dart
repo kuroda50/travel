@@ -3,12 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
 import 'package:travel/component/header.dart';
+import 'package:travel/component/post_card.dart';
 import 'package:travel/functions/function.dart';
 import 'package:go_router/go_router.dart';
 
 class FollowListScreen extends StatefulWidget {
   const FollowListScreen({super.key});
-
   @override
   State<FollowListScreen> createState() => _FollowListScreenState();
 }
@@ -16,7 +16,7 @@ class FollowListScreen extends StatefulWidget {
 class _FollowListScreenState extends State<FollowListScreen> {
   List<UserInformation> followingUserList = [];
   List<UserInformation> followerUserList = [];
-  List<RecruitmentPost> followerPostsList = [];
+  List<String> followingPostsIdList = [];
   String userId = '';
 
   @override
@@ -31,12 +31,11 @@ class _FollowListScreenState extends State<FollowListScreen> {
         await buildFollowingList(userId);
     List<UserInformation> tempFollowerUserList =
         await buildFollowerList(userId);
-    List<RecruitmentPost> tempFollowerPostsList =
-        await buildFollowPostsList(userId);
+    List<String> tempFollowingPostsIdList = await getFollowerPostsIdList(userId);
     setState(() {
       followingUserList = tempFollowingUserList;
       followerUserList = tempFollowerUserList;
-      followerPostsList = tempFollowerPostsList;
+      followingPostsIdList = tempFollowingPostsIdList;
     });
   }
 
@@ -50,36 +49,36 @@ class _FollowListScreenState extends State<FollowListScreen> {
   }
 
   Future<List<UserInformation>> buildFollowingList(String userId) async {
-    List<String> followIdList = await getFollowingList(userId);
-    followingUserList = await getFollowingUserList(followIdList);
+    List<String> followingIdList = await getFollowingList(userId);
+    followingUserList = await getFollowingUserList(followingIdList);
     return followingUserList;
   }
 
   Future<List<String>> getFollowingList(String userId) async {
-    List<String> followIdList = [];
+    List<String> followingIdList = [];
     DocumentReference userRef =
         FirebaseFirestore.instance.collection("users").doc(userId);
     await userRef.get().then((user) {
       if (user.exists) {
-        followIdList = List<String>.from(user["following"]);
+        followingIdList = List<String>.from(user["following"]);
       } else {
         print("フォローしている人がいません");
       }
     });
-    return followIdList;
+    return followingIdList;
   }
 
   Future<List<UserInformation>> getFollowingUserList(
-      List<String> followIdList) async {
+      List<String> followingIdList) async {
     List<UserInformation> followingUserList = [];
-    for (String followId in followIdList) {
+    for (String followingId in followingIdList) {
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
           .collection("users")
-          .doc(followId)
+          .doc(followingId)
           .get();
       if (userSnapshot.exists) {
         UserInformation followUser = UserInformation(
-            userId: followId,
+            userId: followingId,
             photoURL: userSnapshot['photoURLs'][0],
             name: userSnapshot['name'],
             age: calculateAge(userSnapshot['birthday'].toDate()),
@@ -97,17 +96,17 @@ class _FollowListScreenState extends State<FollowListScreen> {
   }
 
   Future<List<String>> getFollowerList(String userId) async {
-    List<String> followerPostsIdList = [];
+    List<String> followingPostsIdList = [];
     DocumentReference userRef =
         FirebaseFirestore.instance.collection("users").doc(userId);
     await userRef.get().then((user) {
       if (user.exists) {
-        followerPostsIdList = List<String>.from(user["followers"]);
+        followingPostsIdList = List<String>.from(user["followers"]);
       } else {
         print("フォローがいません");
       }
     });
-    return followerPostsIdList;
+    return followingPostsIdList;
   }
 
   Future<List<UserInformation>> getFollowerUserList(
@@ -131,66 +130,14 @@ class _FollowListScreenState extends State<FollowListScreen> {
     return followerUserList;
   }
 
-  Future<List<RecruitmentPost>> buildFollowPostsList(String userId) async {
-    List<String> followerPostsIdList = await getFollowerPostsIdList(userId);
-    followerPostsList = await getFollowerPostsList(followerPostsIdList);
-    return followerPostsList;
-  }
-
   Future<List<String>> getFollowerPostsIdList(String userId) async {
-    List<String> followerPostsIdList = [];
+    List<String> followingPostsIdList = [];
     DocumentReference userRef =
         FirebaseFirestore.instance.collection("users").doc(userId);
     await userRef.get().then((user) {
-      followerPostsIdList = List<String>.from(user["favoritePosts"]);
+      followingPostsIdList = List<String>.from(user["favoritePosts"]);
     });
-    return followerPostsIdList;
-  }
-
-  Future<List<RecruitmentPost>> getFollowerPostsList(
-      List<String> followerIdList) async {
-    return await getRecruitmentList(followerIdList);
-  }
-
-  Widget _buildRecruitmentList() {
-    if (followerPostsList.isEmpty) {
-      return Center(
-        child: Text("ブックマークしている募集がありません"),
-      );
-    }
-    return Column(
-      children: followerPostsList.map((post) {
-        return Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              backgroundImage: NetworkImage(post.organizerPhotoURL),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('${post.title}'),
-                Text(
-                    '${post.organizerGroup}>${post.targetGroups} ${post.targetAgeMin}歳~${post.targetAgeMax}歳 ${post.targetHasPhoto}'),
-                Text(post.destinations
-                    .map((destination) => destination)
-                    .join('、')),
-                Text('${post.organizerName}、${post.organizerAge}歳'),
-                Text(
-                    '${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}')
-              ],
-            ),
-            onTap: () {
-              context.push('/recruitment', extra: post.postId);
-            },
-          ),
-        );
-      }).toList(),
-    );
+    return followingPostsIdList;
   }
 
   @override
@@ -222,7 +169,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
             tabs: [
               Tab(text: 'フォロー(${followingUserList.length})'),
               Tab(text: 'フォロワー(${followerUserList.length})'),
-              Tab(text: '募集(${followerPostsList.length})'),
+              Tab(text: '募集(${followingPostsIdList.length})'),
             ],
           ),
         ),
@@ -230,7 +177,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
           children: [
             FollowingList(userId: userId, followUserList: followingUserList),
             FollowerList(userId: userId, followerUserList: followerUserList),
-            _buildRecruitmentList(),
+            PostCard(postIds: followingPostsIdList)
           ],
         ),
       ),

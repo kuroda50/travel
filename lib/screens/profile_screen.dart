@@ -6,6 +6,7 @@ import 'package:travel/colors/color.dart';
 import 'package:travel/component/header.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:travel/component/post_card.dart';
 import 'package:travel/functions/function.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -96,7 +97,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   getInformation() async {
     await checkUserId(widget.userId);
     await getUserProfile(widget.userId);
-    await fetchRecruitmentList();
   }
 
   Future<void> checkUserId(String userId) {
@@ -123,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       bio = user['bio'];
       hobbies = List<String>.from(user['hobbies'] as List);
       userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
-      recruitmentPostIdList =
+      List<String> tempRecruitmentPostIdList =
           List<String>.from(user['participatedPosts'] as List);
       setState(() {
         name = name;
@@ -131,23 +131,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         hobbies = hobbies;
         bio = bio;
         userImageURL = userImageURL;
+        recruitmentPostIdList = tempRecruitmentPostIdList;
       });
     } else {
       print("ユーザが見つかりません");
     }
   }
 
-  Future<void> fetchRecruitmentList() async {
-    recruitmentPosts = await getRecruitmentList(recruitmentPostIdList);
-    setState(() {
-      recruitmentPosts = recruitmentPosts;
-    });
-  }
-
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: "プロフィール",),
+      appBar: Header(
+        title: "プロフィール",
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -159,7 +155,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text('今までの募集',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
-              _buildRecruitmentList(),
+              recruitmentPostIdList.isNotEmpty
+                  ? PostCard(postIds: recruitmentPostIdList)
+                  : Text("今までの募集はありません")
             ],
           ),
         ),
@@ -194,7 +192,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Expanded(
                             child: Text(
                               '${name}  ${age}歳',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -208,12 +207,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 onPressed: () {
                                   context.push('/settings');
                                 },
-                                icon: Icon(Icons.settings, color: AppColor.subTextColor),
+                                icon: Icon(Icons.settings,
+                                    color: AppColor.subTextColor),
                               ),
                             ),
                         ],
                       ),
-
                       SizedBox(height: 6),
                       isMyProfile
                           ? ElevatedButton.icon(
@@ -249,7 +248,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 SizedBox(width: 8),
                                 ElevatedButton(
-                                  onPressed: _toggleFollow, // フォロー状態を切り替える関数を呼び出す
+                                  onPressed:
+                                      _toggleFollow, // フォロー状態を切り替える関数を呼び出す
                                   child: Text(
                                     isFollowing ? 'フォロー中' : 'フォロー',
                                     style:
@@ -261,85 +261,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             )
-                          ],
-                        ),
-                      ),
                     ],
                   ),
-                  SizedBox(height: 16),
-                  Text('自己紹介文', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Text('${bio}'),
-                  SizedBox(height: 16),
-                  Text('趣味', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children:
-                        hobbies.map((hobby) => Chip(label: Text(hobby))).toList(),
-                  ),
-                  SizedBox(height: 16),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        }
-
-  Widget _buildRecruitmentList() {
-  if (recruitmentPosts.isEmpty) {
-    return Text(
-      '今までの募集はありません',
-      style: TextStyle(fontSize: 16, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('自己紹介文', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 4),
+            Text('${bio}'),
+            SizedBox(height: 16),
+            Text('趣味', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children:
+                  hobbies.map((hobby) => Chip(label: Text(hobby))).toList(),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 
-  return Column(
-    children: recruitmentPosts.map((post) {
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        elevation: 2,
-        margin: EdgeInsets.symmetric(vertical: 8),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.grey[300],
-            backgroundImage: NetworkImage(post.organizerPhotoURL),
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text('${post.title}'),
-              Text(
-                  '${post.organizerGroup}>${post.targetGroups} ${post.targetAgeMin}歳~${post.targetAgeMax}歳 ${post.targetHasPhoto}'),
-              Text(post.destinations.map((destination) => destination).join('、')),
-              Text('${post.organizerName}、${post.organizerAge}歳'),
-              Text(
-                  '${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}'),
-            ],
-          ),
-          onTap: () {
-            context.push('/recruitment', extra: post.postId);
-          },
-        ),
-      );
-    }).toList(),
-  );
-}
-
 // チャットルームを作成する関数を追加
-Future<void> goMessageScreen() async {
-  if (FirebaseAuth.instance.currentUser == null) {
-    _showLoginPrompt(context);
-    return;
+  Future<void> goMessageScreen() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      _showLoginPrompt(context);
+      return;
+    }
+    String participantId = FirebaseAuth.instance.currentUser!.uid;
+    String roomId = await findOrCreateRoom(participantId, widget.userId);
+
+    context.push('/message-room',
+        extra: {"roomId": roomId, "currentUserId": participantId});
   }
-  String participantId = FirebaseAuth.instance.currentUser!.uid;
-  String roomId = await findOrCreateRoom(participantId, widget.userId);
 
-  context.push('/message-room',
-      extra: {"roomId": roomId, "currentUserId": participantId});
-}
-
-Future<String?> findExistingRoom(String userIdA, String userIdB) async {
+  Future<String?> findExistingRoom(String userIdA, String userIdB) async {
     String roomKey = generateRoomKey(userIdA, userIdB);
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection("chatRooms")
@@ -351,55 +311,58 @@ Future<String?> findExistingRoom(String userIdA, String userIdB) async {
     return null; // 見つからなかった場合は null
   }
 
-Future<String> findOrCreateRoom(String participantId, String targetUserId) async {
-  // 既存のチャットルームを探す
-  String? existingRoomId = await findExistingRoom(participantId, targetUserId);
-  if (existingRoomId != null) {
-    return existingRoomId; // 既存のルームが見つかった場合はそれを返す
+  Future<String> findOrCreateRoom(
+      String participantId, String targetUserId) async {
+    // 既存のチャットルームを探す
+    String? existingRoomId =
+        await findExistingRoom(participantId, targetUserId);
+    if (existingRoomId != null) {
+      return existingRoomId; // 既存のルームが見つかった場合はそれを返す
+    }
+
+    // ルームがなければ新規作成
+    String roomKey = generateRoomKey(participantId, targetUserId);
+    DocumentReference newRoomRef =
+        FirebaseFirestore.instance.collection("chatRooms").doc(); // 自動生成ID
+
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+    // 新しいチャットルームを作成
+    batch.set(newRoomRef, {
+      "postId": "",
+      "postTitle": "",
+      "participants": [participantId, targetUserId], // 参加者を設定
+      "roomKey": roomKey,
+      "createdAt": Timestamp.now(),
+      "group": false,
+      "latestMessage": {
+        "text": "",
+        "sender": "",
+        "timeStamp": "",
+        "readBy": [],
+      }
+    });
+
+    await batch.commit();
+
+    // ユーザーのチャットルームリストを更新
+    await updateUserChatRooms(participantId, newRoomRef.id);
+    await updateUserChatRooms(targetUserId, newRoomRef.id);
+
+    return newRoomRef.id;
   }
 
-  // ルームがなければ新規作成
-  String roomKey = generateRoomKey(participantId, targetUserId);
-  DocumentReference newRoomRef = FirebaseFirestore.instance.collection("chatRooms").doc(); // 自動生成ID
+  Future<void> updateUserChatRooms(String userId, String roomId) async {
+    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
 
-  WriteBatch batch = FirebaseFirestore.instance.batch();
+    await userRef.update({
+      "chatRooms": FieldValue.arrayUnion([roomId])
+    });
 
-  // 新しいチャットルームを作成
-  batch.set(newRoomRef, {
-    "postId": "",
-    "postTitle": "",
-    "participants": [participantId, targetUserId], // 参加者を設定
-    "roomKey": roomKey,
-    "createdAt": Timestamp.now(),
-    "group": false,
-    "latestMessage": {
-      "text": "",
-      "sender": "",
-      "timeStamp": "",
-      "readBy": [],
-    }
-  });
+    print("$userId の chatRooms に $roomId を追加");
+  }
 
-  await batch.commit();
-
-  // ユーザーのチャットルームリストを更新
-  await updateUserChatRooms(participantId, newRoomRef.id);
-  await updateUserChatRooms(targetUserId, newRoomRef.id);
-
-  return newRoomRef.id;
-}
-
-Future<void> updateUserChatRooms(String userId, String roomId) async {
-  final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
-
-  await userRef.update({
-    "chatRooms": FieldValue.arrayUnion([roomId])
-  });
-
-  print("$userId の chatRooms に $roomId を追加");
-}
-
-void _showLoginPrompt(BuildContext context) {
+  void _showLoginPrompt(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

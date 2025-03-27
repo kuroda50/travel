@@ -23,8 +23,6 @@ Future<List<RecruitmentPost>> getRecruitmentList(
     await recruitmentRef.get().then((recruitment) {
       if (recruitment.exists) {
         // 'post' をここで初期化
-        print(recruitment['title']);
-        print(i);
         RecruitmentPost post = RecruitmentPost(
           postId: recruitmentPostIdList[i],
           title: recruitment['title'],

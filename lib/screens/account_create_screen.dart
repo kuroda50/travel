@@ -206,7 +206,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                       ),
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () {
-                                          context.go('/terms-of-use');
+                                          context.push('/terms-of-use');
                                         },
                                     ),
                                     TextSpan(text: ' に同意したものとみなされます'),

@@ -57,7 +57,8 @@ class SettingsScreen extends StatelessWidget {
       bool showDialog = true,
       bool isTerms = false,
       bool isPasswordChange = false,
-      bool isEmailChange = false}) { // 変更点
+      bool isEmailChange = false}) {
+    // 変更点
     BorderRadius borderRadius = BorderRadius.only(
       topLeft: isFirst ? const Radius.circular(16) : Radius.zero,
       topRight: isFirst ? const Radius.circular(16) : Radius.zero,
@@ -79,24 +80,19 @@ class SettingsScreen extends StatelessWidget {
             if (showDialog)
               {
                 showConfirmationDialog(
-                    context, text, isLogout, isDelete, isTerms),
+                    context, text, isLogout, isDelete),
               }
             else if (isPasswordChange)
               {
                 context.go('/password-change'),
               }
-            else if (isEmailChange) // 変更点
+            else if (isEmailChange)
               {
-                context.go('/email-change'), // 変更点
+                context.go('/email-change'),
               }
-            else
+            else if(isTerms)
               {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PlaceholderScreen(title: text),
-                  ),
-                )
+                context.push('/terms-of-use'),
               }
           },
           style: ElevatedButton.styleFrom(
@@ -116,7 +112,7 @@ class SettingsScreen extends StatelessWidget {
 }
 
 void showConfirmationDialog(BuildContext context, String title, bool isLogout,
-    bool isDelete, bool isTerms) {
+    bool isDelete) {
   showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -134,15 +130,7 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout,
             ),
             TextButton(
               onPressed: () {
-                if (isTerms) {
-                  //利用規約
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PlaceholderScreen(title: title),
-                    ),
-                  );
-                } else if (isLogout) {
+                if (isLogout) {
                   // ログアウト処理
                   try {
                     FirebaseAuth.instance.signOut();
@@ -170,26 +158,26 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout,
       });
 }
 
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const PlaceholderScreen({super.key, required this.title});
+// class PlaceholderScreen extends StatelessWidget {
+//   final String title;
+//   const PlaceholderScreen({super.key, required this.title});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text('$title の画面')),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text(title)),
+//       body: Center(child: Text('$title の画面')),
+//     );
+//   }
+// }
 
-class TermsScreen extends StatelessWidget {
-  const TermsScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('利用規約')),
-      body: const Center(child: Text('ここに利用規約の内容を表示')),
-    );
-  }
-}
+// class TermsScreen extends StatelessWidget {
+//   const TermsScreen({super.key});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text('利用規約')),
+//       body: const Center(child: Text('ここに利用規約の内容を表示')),
+//     );
+//   }
+// }

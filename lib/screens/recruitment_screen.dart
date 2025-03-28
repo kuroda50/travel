@@ -73,41 +73,56 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
   }
 
   Future<void> getPostData() async {
-  final docRef = FirebaseFirestore.instance.collection("posts").doc(widget.postId);
-  final doc = await docRef.get();
-  if (!doc.exists) return;
+    final docRef =
+        FirebaseFirestore.instance.collection("posts").doc(widget.postId);
+    final doc = await docRef.get();
+    if (!doc.exists) return;
+    var recruitment = doc.data() as Map<String, dynamic>;
+    organizerId = recruitment['organizer']['organizerId'];
+    DocumentSnapshot organizerSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(organizerId)
+        .get();
 
-  setState(() {
-    title = doc['title'] ?? '未設定';
-    tags = _convertListToString(doc['tags'] ?? []);
-    area = doc['where']['area'] ?? '未定';
-    destination = _convertListToString(doc['where']['destination'] ?? []);
-    startDate = _formatDate(doc['when']['startDate']);
-    endDate = _formatDate(doc['when']['endDate']);
-    daysOfWeek = _convertListToString(doc['when']['dayOfWeek']
-        .map((day) => reverseDayMap[day] ?? day)
-        .toList());
-    targetGroups = _convertListToString(doc['target']['targetGroups'] ?? []);
-    age = _formatAge(doc['target']['ageMin'], doc['target']['ageMax']);
-    hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
-    budget = _formatBudget(doc['budget']['budgetMin'], doc['budget']['budgetMax']);
-    budgetType = reversePaymentMethodMap[doc['budget']['budgetType']] ?? '未設定';
-    region = doc['meetingPlace']['region'] ?? '未定';
-    departure = doc['meetingPlace']['departure'] ?? '未定';
-    description = doc['description'] ?? '未設定';
-    organizerId = doc["organizer"]["organizerId"] ?? '';
-    organizerName = doc['organizer']['organizerName'] ?? '未設定';
-    organizerGroup = reverseGenderMap[doc['organizer']['organizerGroup']] ?? '未設定';
-    organizerAge = calculateAge(doc['organizer']['organizerBirthday'].toDate()).toString();
-    organizerImageURL = doc['organizer']['photoURL'] ?? '';
+    Map<String, dynamic>? organizerData =
+        organizerSnapshot.data() as Map<String, dynamic>?;
+    setState(() {
+      title = doc['title'] ?? '未設定';
+      tags = _convertListToString(doc['tags'] ?? []);
+      area = doc['where']['area'] ?? '未定';
+      destination = _convertListToString(doc['where']['destination'] ?? []);
+      startDate = _formatDate(doc['when']['startDate']);
+      endDate = _formatDate(doc['when']['endDate']);
+      daysOfWeek = _convertListToString(doc['when']['dayOfWeek']
+          .map((day) => reverseDayMap[day] ?? day)
+          .toList());
+      targetGroups = _convertListToString(doc['target']['targetGroups'] ?? []);
+      age = _formatAge(doc['target']['ageMin'], doc['target']['ageMax']);
+      hasPhoto = doc['target']['hasPhoto'] ? '写真あり' : 'どちらでも';
+      budget =
+          _formatBudget(doc['budget']['budgetMin'], doc['budget']['budgetMax']);
+      budgetType =
+          reversePaymentMethodMap[doc['budget']['budgetType']] ?? '未設定';
+      region = doc['meetingPlace']['region'] ?? '未定';
+      departure = doc['meetingPlace']['departure'] ?? '未定';
+      description = doc['description'] ?? '未設定';
+      organizerId = organizerId;
+      organizerGroup =
+          reverseGenderMap[doc['organizer']['organizerGroup']] ?? '未設定';
 
-    memberIdList = doc['participants'].cast<String>();
-    memberIdList.remove(doc['organizer']['organizerId']);
-    for (String memberId in memberIdList) {
-      _getMemberData(memberId);
-    }
-  });
-}
+      organizerName = organizerData?['name'] ?? "不明";
+      organizerAge = organizerData?['birthday'] != null
+          ? calculateAge(organizerData!['birthday'].toDate()).toString()
+          : "不明";
+      organizerImageURL = organizerData?['photoURLs'][0];
+
+      memberIdList = doc['participants'].cast<String>();
+      memberIdList.remove(doc['organizer']['organizerId']);
+      for (String memberId in memberIdList) {
+        _getMemberData(memberId);
+      }
+    });
+  }
 
   Future<void> _getMemberData(String memberId) async {
     final memberRef =
@@ -191,13 +206,13 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
         FirebaseFirestore.instance.collection("chatRooms");
     String? existingRoomId = await findExistingRoom(participantId, organizerId);
     if (existingRoomId != null) {
-    // 既存のルームが見つかった場合の処理
-    final existingRoomRef = chatRooms.doc(existingRoomId);
-    await existingRoomRef.update({
-      "recruit": true, // recruitフィールドをtrueに設定
-    });
-    return existingRoomId; // 既存のルームIDを返す
-  }
+      // 既存のルームが見つかった場合の処理
+      final existingRoomRef = chatRooms.doc(existingRoomId);
+      await existingRoomRef.update({
+        "recruit": true, // recruitフィールドをtrueに設定
+      });
+      return existingRoomId; // 既存のルームIDを返す
+    }
 
     // ルームがなければ新規作成
     String roomKey = generateRoomKey(participantId, organizerId);
@@ -241,7 +256,6 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
     await userRef.update({
       "chatRooms": FieldValue.arrayUnion([roomId])
     });
-
   }
 
   Future<void> goMessageScreen() async {

@@ -19,6 +19,7 @@ dependencies:
   cloud_firestore:
   intl:
   go_router: ^14.8.0
+  flutter_markdown: ^0.7.6+2
 
 dev_dependencies:
   flutter_test:

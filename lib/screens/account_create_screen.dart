@@ -70,6 +70,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
           "favoritePosts": [],
           "participatedPosts": [],
           "chatRooms": [],
+          "isDeleted": false,
         });
         context.go('/login');
       }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/colors/color.dart';
 import 'package:travel/component/header.dart';
 import 'package:go_router/go_router.dart'; // go_routerをインポート
 
@@ -79,8 +81,7 @@ class SettingsScreen extends StatelessWidget {
           onPressed: () => {
             if (showDialog)
               {
-                showConfirmationDialog(
-                    context, text, isLogout, isDelete),
+                showConfirmationDialog(context, text, isLogout, isDelete),
               }
             else if (isPasswordChange)
               {
@@ -90,7 +91,7 @@ class SettingsScreen extends StatelessWidget {
               {
                 context.go('/email-change'),
               }
-            else if(isTerms)
+            else if (isTerms)
               {
                 context.push('/terms-of-use'),
               }
@@ -111,8 +112,8 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-void showConfirmationDialog(BuildContext context, String title, bool isLogout,
-    bool isDelete) {
+void showConfirmationDialog(
+    BuildContext context, String title, bool isLogout, bool isDelete) {
   showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -125,10 +126,18 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout,
                   : ''),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
               child: const Text('キャンセル'),
+              onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
+              style: TextButton.styleFrom(
+                  backgroundColor: AppColor.warningColor,
+                  foregroundColor: AppColor.subTextColor),
+              child: Text(isLogout
+                  ? 'ログアウト'
+                  : isDelete
+                      ? '削除'
+                      : 'エラー'),
               onPressed: () {
                 if (isLogout) {
                   // ログアウト処理
@@ -141,7 +150,7 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout,
                 } else if (isDelete) {
                   // アカウント削除処理
                   try {
-                    FirebaseAuth.instance.currentUser?.delete();
+                    deleteUser(context);
                     context.go('/travel'); // アカウント削除後に/travelに遷移
                   } catch (e) {
                     print(e);
@@ -151,33 +160,75 @@ void showConfirmationDialog(BuildContext context, String title, bool isLogout,
                 }
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
             ),
           ],
         );
       });
 }
 
-// class PlaceholderScreen extends StatelessWidget {
-//   final String title;
-//   const PlaceholderScreen({super.key, required this.title});
+Future<void> deleteUser(BuildContext context) async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+  String userId = user.uid;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: Text(title)),
-//       body: Center(child: Text('$title の画面')),
-//     );
-//   }
-// }
+  await firestore.runTransaction((transaction) async {
+    DocumentReference userRef = firestore.collection("users").doc(userId);
 
-// class TermsScreen extends StatelessWidget {
-//   const TermsScreen({super.key});
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('利用規約')),
-//       body: const Center(child: Text('ここに利用規約の内容を表示')),
-//     );
-//   }
-// }
+    // １フォロー、フォロワー関係を解消
+    QuerySnapshot userSnapshot = await firestore.collection("users").get();
+    for (QueryDocumentSnapshot userDoc in userSnapshot.docs) {
+      transaction.update(userDoc.reference, {
+        "followings": FieldValue.arrayRemove([userId]),
+        "followers": FieldValue.arrayRemove([userId])
+      });
+    }
+
+    // ２参加しているチャットルームから削除
+    QuerySnapshot chatSnapshot = await firestore
+        .collection("chatRooms")
+        .where("participants", arrayContains: userId)
+        .get();
+    for (QueryDocumentSnapshot chatDoc in chatSnapshot.docs) {
+      bool isGroup = chatDoc["group"];
+      if (isGroup) {
+        // グループチャットの場合は、"participants"から削除
+        transaction.update(chatDoc.reference, {
+          "participants": FieldValue.arrayRemove([userId])
+        });
+      } else {
+        // グループチャットでない場合は、部屋を物理削除
+        transaction.delete(chatDoc.reference);
+      }
+    }
+
+    // ３投稿から削除
+    List<String> participatedPostsIds = await userRef.get().then((doc) {
+      if (doc.exists) {
+        return List<String>.from(doc["participatedPosts"] ?? []);
+      }
+      return [];
+    });
+    for (String postId in participatedPostsIds) {
+      DocumentReference postRef = firestore.collection("posts").doc(postId);
+      DocumentSnapshot post = await postRef.get();
+      String organizerId = post["organizer"]["organizerId"];
+      if (organizerId == userId) {
+        // 自分が主催者の場合は、投稿を論理削除
+        transaction.update(postRef, {
+          "isDeleted": true,
+          "participants": FieldValue.arrayRemove([userId])
+        });
+      } else {
+        // 自分が主催者でない場合は、参加者から削除
+        transaction.update(postRef, {
+          "participants": FieldValue.arrayRemove([userId])
+        });
+      }
+    }
+    // ４ユーザを論理削除
+    transaction.update(userRef, {"isDeleted": true});
+  });
+  // ５FirebaseAuthからユーザを削除
+  await user.delete();
+}

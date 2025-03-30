@@ -117,7 +117,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         FirebaseFirestore.instance.collection('users').doc(userId);
     var user = await userRef.get();
     if (user.exists) {
-      print("ユーザ情報を取得します");
       name = user['name'];
       age = calculateAge(user['birthday'].toDate()).toString();
       bio = user['bio'];

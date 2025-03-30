@@ -32,8 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("ログイン成功！")),
       );
-      // ログイン成功時に '/travel' に遷移
-      context.go('/travel'); // ここを変更
+      context.go('/travel'); // ログイン成功後に/travelに遷移
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("ログイン失敗: ${e.message}")),

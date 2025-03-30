@@ -1208,6 +1208,7 @@ Map<String, dynamic> _preparePostData(String userId, Map<String, dynamic> userDa
     "description": descriptionController.text,
     "createdAt": Timestamp.now(),
     "expire": false,
+    "isDeleted": false,
   };
 }
 }

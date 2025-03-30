@@ -13,15 +13,20 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool _isObscured = true; // パスワードの表示状態を管理
+  bool _isObscured = true;
+  String _errorMessage = ''; // エラーメッセージの状態を管理
+  static const Color warningColor = Color(0xFFFF0000); // 警告色
 
   Future<void> _login() async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
+    setState(() {
+      _errorMessage = ''; // ログイン試行前にエラーメッセージをクリア
+    });
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("メールアドレスとパスワードを入力してください")),
-      );
+      setState(() {
+        _errorMessage = "メールアドレスとパスワードを入力してください";
+      });
       return;
     }
     try {
@@ -32,11 +37,15 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("ログイン成功！")),
       );
-      context.go('/travel'); // ログイン成功後に/travelに遷移
+      context.go('/travel');
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("ログイン失敗: ${e.message}")),
-      );
+      String errorMessage = "ログインに失敗しました";
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        errorMessage = "メールアドレスまたはパスワードが違います";
+      }
+      setState(() {
+        _errorMessage = errorMessage;
+      });
     }
   }
 
@@ -46,16 +55,15 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: Header(
         title: "ログイン",
       ),
-      backgroundColor: Color(0xFFF5EEDC), // 背景色
+      backgroundColor: Color(0xFFF5EEDC),
       body: SingleChildScrollView(
-        // スマホ対応
         child: Center(
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // メールアドレス入力
                 _buildLabel('メールアドレス'),
@@ -65,8 +73,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 // パスワード入力
                 _buildLabel('パスワード'),
                 _buildTextField(
-                    controller: passwordController,
-                    obscureText: _isObscured), // 変更
+                    controller: passwordController, obscureText: _isObscured),
+                if (_errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Text(
+                      _errorMessage,
+                      style: TextStyle(color: warningColor, fontSize: 12),
+                    ),
+                  ),
                 SizedBox(height: 15),
 
                 // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
@@ -140,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
-        suffixIcon: controller == passwordController // パスワードフィールドのみアイコンを表示
+        suffixIcon: controller == passwordController
             ? IconButton(
                 icon: Icon(
                   _isObscured ? Icons.visibility_off : Icons.visibility,
@@ -163,24 +178,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // テキストの横幅を測定
         TextPainter textPainter = TextPainter(
           text: TextSpan(
             text: text,
-            style: TextStyle(color: Colors.grey, fontSize: 40),
+            style: TextStyle(color: Colors.grey, fontSize: 16),
           ),
           maxLines: 1,
           textDirection: TextDirection.ltr,
         )..layout();
 
-        double textWidth = textPainter.width; // テキストの幅を取得
+        double textWidth = textPainter.width;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextButton(
               onPressed: () {
-                context.push('/password-change'); // ここで遷移
+                context.push('/password-change');
               },
               child: Text(
                 text,

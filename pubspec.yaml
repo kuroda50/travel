@@ -20,6 +20,7 @@ dependencies:
   intl:
   go_router: ^14.8.0
   flutter_markdown: ^0.7.6+2
+  fluttertoast: ^8.2.4 # ← この行を追加
 
 dev_dependencies:
   flutter_test:

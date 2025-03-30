@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart'; // GoRouterをインポート
+import 'package:travel/component/header.dart'; // ★ カスタムヘッダーをインポート
 
 class EmailChangeScreen extends StatelessWidget {
   const EmailChangeScreen({super.key});
@@ -54,14 +55,12 @@ class EmailChangeScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('メールアドレス変更'),
-      ),
-      body: Center( // 画面中央に配置
+      appBar: Header(title: 'メールアドレス変更'), // ★ AppBarをカスタムヘッダーに置き換え
+      body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // 子ウィジェットの高さに合わせる
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextField(

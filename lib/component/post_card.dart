@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../functions/function.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import '../component/login_prompt.dart';
 
 class PostCard extends StatefulWidget {
   final List<String> postIds;
@@ -31,7 +33,7 @@ class _PostCardState extends State<PostCard> {
   };
   List<RecruitmentPost> recruitmentPosts = [];
   bool isLoading = true;
-  String age = "";
+  List<String> favoritePosts = [];
 
   @override
   void initState() {
@@ -40,10 +42,23 @@ class _PostCardState extends State<PostCard> {
   }
 
   void _getRecruitments() async {
+    await getFavoirtePosts();
     recruitmentPosts = await fetchRecruitmentLists(widget.postIds);
     setState(() {
       recruitmentPosts = recruitmentPosts;
       isLoading = false;
+    });
+  }
+
+  Future<void> getFavoirtePosts() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      return;
+    }
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    DocumentSnapshot doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    setState(() {
+      favoritePosts = doc['favoritePosts'].cast<String>();
     });
   }
 
@@ -107,11 +122,34 @@ class _PostCardState extends State<PostCard> {
         days: List<String>.from(recruitment['when']['dayOfWeek']
             .map((day) => reverseDayMap[day.toString()])
             .toList()),
+        isBookmarked: favoritePosts.contains(postId),
       );
       // 'post' をリストに追加
       recruitmentPosts.add(post);
     }
     return recruitmentPosts;
+  }
+
+  Future<void> _toggleFavorite(RecruitmentPost post) async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      showLoginPrompt(context);
+      return;
+    }
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    setState(() {
+      post.isBookmarked = !post.isBookmarked;
+    });
+
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection("users").doc(userId);
+
+    if (post.isBookmarked) {
+      favoritePosts.add(post.postId);
+    } else {
+      favoritePosts.remove(post.postId);
+    }
+
+    await userRef.update({'favoritePosts': favoritePosts});
   }
 
   @override
@@ -124,7 +162,6 @@ class _PostCardState extends State<PostCard> {
           child: Text("募集がありません",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)));
     }
-
     return ListView(
       shrinkWrap: true,
       children: recruitmentPosts.map((post) {
@@ -139,34 +176,46 @@ class _PostCardState extends State<PostCard> {
           ageRange = '${post.targetAgeMin}歳~${post.targetAgeMax}歳';
         }
         return Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              backgroundImage: NetworkImage(post.organizerPhotoURL),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('${post.title}'),
-                Text(
-                    '${post.organizerGroup}>${post.targetGroups.join("、")} ${ageRange} ${post.targetHasPhoto}'),
-                Text(post.destinations
-                    .map((destination) => destination)
-                    .join('、')),
-                Text('${post.organizerName}、${post.organizerAge}歳'),
-                Text(
-                    '${post.startDate}~${post.endDate} ${post.days.map((destination) => destination).join('')}')
-              ],
-            ),
-            onTap: () {
-              context.push('/recruitment', extra: post.postId);
-            },
-          ),
-        );
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 2,
+            margin: EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.grey[300],
+                backgroundImage: NetworkImage(post.organizerPhotoURL),
+              ),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('${post.title}'),
+                  Text(
+                      '${post.organizerGroup}>${post.targetGroups.join("、")} ${ageRange} ${post.targetHasPhoto}'),
+                  Text(post.destinations
+                      .map((destination) => destination)
+                      .join('、')),
+                  Text('${post.organizerName}、${post.organizerAge}歳'),
+                  Text(
+                      '${post.startDate}~${post.endDate} ${post.days.join('')}'),
+                ],
+              ),
+              trailing: SizedBox(
+                width: 60,
+                height: 60,
+                child: IconButton(
+                  icon: Icon(
+                    post.isBookmarked ? Icons.favorite : Icons.favorite_border,
+                    color: post.isBookmarked ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () {
+                    _toggleFavorite(post);
+                  },
+                ),
+              ),
+              onTap: () {
+                context.push('/recruitment', extra: post.postId);
+              },
+            ));
       }).toList(),
     );
   }
@@ -186,6 +235,7 @@ class RecruitmentPost {
   String organizerAge;
   String startDate;
   String endDate;
+  bool isBookmarked = false;
   List<String> days;
 
   RecruitmentPost({
@@ -203,5 +253,6 @@ class RecruitmentPost {
     required this.startDate,
     required this.endDate,
     required this.days,
+    required this.isBookmarked,
   });
 }

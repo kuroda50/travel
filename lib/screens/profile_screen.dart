@@ -337,7 +337,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       "latestMessage": {
         "text": "",
         "sender": "",
-        "timeStamp": "",
+        "timeStamp": Timestamp.now(),
         "readBy": [],
       }
     });

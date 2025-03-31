@@ -255,42 +255,46 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Widget _buildLatestPostsSection() {
-    return Column(
-      children: latestPosts.map((post) {
-        return Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              backgroundImage: (post.organizerPhotoURL != null &&
-                      post.organizerPhotoURL!.isNotEmpty)
-                  ? NetworkImage(post.organizerPhotoURL!)
-                  : null,
+  return Column(
+    children: latestPosts.map((post) {
+      return Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 2,
+        margin: EdgeInsets.symmetric(vertical: 8),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.grey[300],
+            backgroundImage: (post.organizerPhotoURL != null && post.organizerPhotoURL!.isNotEmpty)
+                ? NetworkImage(post.organizerPhotoURL!)
+                : null,
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(post.title ?? 'タイトルなし'),
+              Text('${post.organizerGroup ?? 'グループ不明'} > ${post.targetGroups ?? '対象不明'} ${post.targetAgeMin ?? '年齢不明'}歳~${post.targetAgeMax ?? '年齢不明'}歳 ${post.targetHasPhoto ?? '不明'}'),
+              Text(post.destinations?.join('、') ?? '目的地なし'),
+              Text('${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳'),
+              Text('${post.startDate ?? '開始日不明'}~${post.endDate ?? '終了日不明'} ${post.days?.join('') ?? '日程不明'}')
+            ],
+          ),
+          trailing: IconButton(
+            icon: Icon(
+              Icons.favorite_border, // ハート型のアイコン
+              color: Colors.red, // アイコンの色
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(post.title ?? 'タイトルなし'),
-                Text(
-                    '${post.organizerGroup ?? 'グループ不明'} > ${post.targetGroups ?? '対象不明'} ${post.targetAgeMin ?? '年齢不明'}歳~${post.targetAgeMax ?? '年齢不明'}歳 ${post.targetHasPhoto ?? '不明'}'),
-                Text(post.destinations?.join('、') ?? '目的地なし'),
-                Text(
-                    '${post.organizerName ?? '主催者不明'}、${post.organizerAge ?? '年齢不明'}歳'),
-                Text(
-                    '${post.startDate ?? '開始日不明'}~${post.endDate ?? '終了日不明'} ${post.days?.join('') ?? '日程不明'}')
-              ],
-            ),
-            onTap: () {
-              context.push('/recruitment', extra: post.postId);
+            onPressed: () {
+              // ボタンが押された時の処理
             },
           ),
-        );
-      }).toList(),
-    );
-  }
+          onTap: () {
+            context.push('/recruitment', extra: post.postId);
+          },
+        ),
+      );
+    }).toList(),
+  );
+ }
 }
 
 class Post {

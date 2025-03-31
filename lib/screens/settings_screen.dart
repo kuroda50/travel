@@ -85,11 +85,11 @@ class SettingsScreen extends StatelessWidget {
               }
             else if (isPasswordChange)
               {
-                context.go('/password-change'),
+                context.push('/password-change'),
               }
             else if (isEmailChange)
               {
-                context.go('/email-change'),
+                context.push('/email-change'),
               }
             else if (isTerms)
               {

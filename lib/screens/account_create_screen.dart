@@ -197,7 +197,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                   signUp();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF559900),
+                                  backgroundColor: AppColor.mainButtonColor,
                                 ),
                                 child: Text('会員になる',
                                     style: TextStyle(color: Colors.white)),

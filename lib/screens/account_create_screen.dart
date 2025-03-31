@@ -286,6 +286,9 @@ class _SignupFormState extends State<AccountCreateScreen> {
                   } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return '有効なメールアドレスを入力してください';
                   } else if (isEmailUsed) {
+                    setState(() {
+                      isEmailUsed = false;
+                    });
                     return 'このメールアドレスは既に使用されています';
                   }
                   break;

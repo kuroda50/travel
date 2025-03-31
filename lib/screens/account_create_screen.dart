@@ -72,6 +72,16 @@ class _SignupFormState extends State<AccountCreateScreen> {
           "chatRooms": [],
           "isDeleted": false,
         });
+
+        // アカウント作成完了メッセージを表示
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("アカウント作成が完了しました"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // ログイン画面に遷移
         context.go('/login');
       }
     } on FirebaseAuthException catch (e) {

@@ -159,11 +159,15 @@ class _PostCardState extends State<PostCard> {
     }
     if (recruitmentPosts.isEmpty) {
       return Center(
-          child: Text("募集がありません",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)));
+        child: Text(
+          "募集がありません",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      );
     }
     return ListView(
-      shrinkWrap: true,
+      shrinkWrap: true, // 親のスクロールビューに合わせる
+      physics: NeverScrollableScrollPhysics(), // 子のスクロールを無効化
       children: recruitmentPosts.map((post) {
         String ageRange;
         if (post.targetAgeMin == "null" && post.targetAgeMax == "null") {
@@ -176,46 +180,46 @@ class _PostCardState extends State<PostCard> {
           ageRange = '${post.targetAgeMin}歳~${post.targetAgeMax}歳';
         }
         return Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            elevation: 2,
-            margin: EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.grey[300],
-                backgroundImage: NetworkImage(post.organizerPhotoURL),
-              ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('${post.title}'),
-                  Text(
-                      '${post.organizerGroup}>${post.targetGroups.join("、")} ${ageRange} ${post.targetHasPhoto}'),
-                  Text(post.destinations
-                      .map((destination) => destination)
-                      .join('、')),
-                  Text('${post.organizerName}、${post.organizerAge}歳'),
-                  Text(
-                      '${post.startDate}~${post.endDate} ${post.days.join('')}'),
-                ],
-              ),
-              trailing: SizedBox(
-                width: 60,
-                height: 60,
-                child: IconButton(
-                  icon: Icon(
-                    post.isBookmarked ? Icons.favorite : Icons.favorite_border,
-                    color: post.isBookmarked ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () {
-                    _toggleFavorite(post);
-                  },
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 2,
+          margin: EdgeInsets.symmetric(vertical: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.grey[300],
+              backgroundImage: NetworkImage(post.organizerPhotoURL),
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('${post.title}'),
+                Text(
+                    '${post.organizerGroup}>${post.targetGroups.join("、")} ${ageRange} ${post.targetHasPhoto}'),
+                Text(post.destinations
+                    .map((destination) => destination)
+                    .join('、')),
+                Text('${post.organizerName}、${post.organizerAge}歳'),
+                Text('${post.startDate}~${post.endDate} ${post.days.join('')}'),
+              ],
+            ),
+            trailing: SizedBox(
+              width: 60,
+              height: 60,
+              child: IconButton(
+                icon: Icon(
+                  post.isBookmarked ? Icons.favorite : Icons.favorite_border,
+                  color: post.isBookmarked ? Colors.red : Colors.grey,
                 ),
+                onPressed: () {
+                  _toggleFavorite(post);
+                },
               ),
-              onTap: () {
-                context.push('/recruitment', extra: post.postId);
-              },
-            ));
+            ),
+            onTap: () {
+              context.push('/recruitment', extra: post.postId);
+            },
+          ),
+        );
       }).toList(),
     );
   }

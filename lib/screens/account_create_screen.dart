@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
@@ -125,7 +123,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                     child: Container(
                         padding: EdgeInsets.all(19),
                         decoration: BoxDecoration(
-                          color: Color(0xFFF9F7F5), //でかい四角の色
+                          color: AppColor.subBackgroundColor, //でかい四角の色
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: Form(
@@ -427,7 +425,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
             padding: EdgeInsets.only(top: 5),
             child: Text(
               _genderError!,
-              style: TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
       ],
@@ -564,7 +562,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
             padding: EdgeInsets.only(top: 5),
             child: Text(
               _birthdayError!,
-              style: TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
         SizedBox(height: 8),

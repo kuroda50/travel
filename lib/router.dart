@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:travel/screens/email_change_screen.dart';
 import 'package:travel/screens/email_change_screen2.dart';
 
@@ -12,12 +11,9 @@ import 'screens/recruitment_screen.dart';
 import 'screens/same_hobby_screen.dart';
 import 'screens/account_list_screen.dart';
 import 'screens/message_screen.dart';
-import 'screens/message_send_screen.dart';
 import 'screens/message_room_screen.dart';
 import 'screens/follow_list_screen.dart';
-import 'screens/follower_list_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/past_recruitment_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/password_change_screen.dart';
 import 'screens/password_change_screen_2.dart';
@@ -26,7 +22,6 @@ import 'screens/login_screen.dart';
 import 'screens/account_create_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'component/bottom_navigation_bar.dart';
-import 'screens/follow_recruitments_screen.dart';
 
 final GoRouter goRouter = GoRouter(
   initialLocation: '/travel',
@@ -130,16 +125,6 @@ final GoRouter goRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/message-send',
-      name: 'messageSend',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: MessageSendScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
         path: '/message-room',
         name: 'message-room',
         pageBuilder: (context, state) {
@@ -163,42 +148,12 @@ final GoRouter goRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/follower-list',
-      name: 'followerList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: FollowerListScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/follow-recruitmnts-list',
-      name: 'followRecruitmentsList',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: CustomBottomNavigationBar(
-          child: FollowRecruitmentsScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
       path: '/profile',
       name: 'profile',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: CustomBottomNavigationBar(
           child: ProfileScreen(userId: state.extra! as String),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/past-recruitment',
-      name: 'pastRecruitment',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: PastRecruitmentScreen(),
         ),
       ),
     ),
@@ -280,31 +235,3 @@ final GoRouter goRouter = GoRouter(
     ),
   ),
 );
-
-Future<List<Map<String, dynamic>>> fetchUsers(
-    String? hobby, String? gender, int? startAge, int? endAge) async {
-  try {
-    Query query = FirebaseFirestore.instance.collection('users');
-
-    if (hobby != null && hobby.isNotEmpty) {
-      query = query.where('hobby', isEqualTo: hobby);
-    }
-    if (gender != null && gender != 'どちらでも') {
-      query = query.where('gender', isEqualTo: gender);
-    }
-    if (startAge != null) {
-      query = query.where('age', isGreaterThanOrEqualTo: startAge);
-    }
-    if (endAge != null) {
-      query = query.where('age', isLessThanOrEqualTo: endAge);
-    }
-
-    QuerySnapshot querySnapshot = await query.get();
-    return querySnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
-  } catch (e) {
-    print('Firestore取得エラー: $e');
-    return [];
-  }
-}

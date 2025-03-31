@@ -297,18 +297,6 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
     );
   }
 
-  // void _search() {
-  //   GoRouter.of(context).push(
-  //     '/account-list',
-  //     extra: {
-  //       'hobby': _hobbyController.text,
-  //       'gender': _selectedGender,
-  //       'startAge': _startAge,
-  //       'endAge': _endAge,
-  //     },
-  //   );
-  // }
-
   Future<void> resetFilter() async {
     setState(() {
       ageValue = "こだわらない～こだわらない";
@@ -350,21 +338,6 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
                       },
                     ),
                   ),
-                  // SizedBox(
-                  //   height: 200,
-                  //   child: PageView.builder(
-                  //     controller: _pageController,
-                  //     itemCount: _imageUrls.length,
-                  //     onPageChanged: (index) =>
-                  //         setState(() => _currentPage = index),
-                  //     itemBuilder: (context, index) {
-                  //       return Image.network(
-                  //         _imageUrls[index],
-                  //         fit: BoxFit.cover,
-                  //       );
-                  //     },
-                  //   ),
-                  // ),
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),

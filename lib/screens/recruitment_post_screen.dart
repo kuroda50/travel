@@ -216,7 +216,6 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         if (isRegion) {
           _showRegionModal(context);
         } else if (isDate) {
-          // _selectDate(context, label);
           selectDate(context, label);
         } else if (isCheckbox) {
           setState(() {

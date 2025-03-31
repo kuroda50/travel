@@ -155,8 +155,6 @@ void showConfirmationDialog(
                   } catch (e) {
                     print(e);
                   }
-                } else {
-                  // その他処理
                 }
                 Navigator.of(context).pop();
               },

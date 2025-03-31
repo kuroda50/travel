@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
@@ -8,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/post_card.dart';
 import 'package:travel/functions/function.dart';
+import '../component/login_prompt.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -27,7 +26,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       destinations = [],
       days = [],
       recruitmentPostIdList = [];
-  List<RecruitmentPost> recruitmentPosts = [];
 
   @override
   void initState() {
@@ -288,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 // チャットルームを作成する関数を追加
   Future<void> goMessageScreen() async {
     if (FirebaseAuth.instance.currentUser == null) {
-      _showLoginPrompt(context);
+      showLoginPrompt(context);
       return;
     }
     String participantId = FirebaseAuth.instance.currentUser!.uid;
@@ -359,62 +357,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     print("$userId の chatRooms に $roomId を追加");
-  }
-
-  void _showLoginPrompt(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('ログインが必要です'),
-          content: const Text('この機能を利用するにはログインが必要です。ログインしますか？'),
-          actions: <Widget>[
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                        side: BorderSide(color: Colors.black),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                    ),
-                    child: const Text(
-                      'キャンセル',
-                      style: TextStyle(color: AppColor.mainTextColor),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  SizedBox(width: 16), // ボタン間のスペース
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppColor.mainButtonColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                    ),
-                    child: const Text(
-                      'ログイン',
-                      style: TextStyle(color: AppColor.subTextColor),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      context.go('/login');
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

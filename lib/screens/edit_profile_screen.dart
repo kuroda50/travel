@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // go_routerをインポート
+import 'package:travel/colors/color.dart';
 import 'package:travel/component/header.dart'; // Headerウィジェットをインポート
 
 class EditProfileScreen extends StatefulWidget {
@@ -12,7 +13,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static const Color mainButtonColor = Color(0xFF559900); // 保存ボタンのカラー
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
@@ -132,7 +132,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    Icon(Icons.female, color: Colors.red),
+                    Icon(Icons.female, color: AppColor.warningColor),
                     SizedBox(width: 4),
                     Text('女性',
                         style: TextStyle(color: Colors.black87)), // Textの色も変更
@@ -158,7 +158,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             padding: EdgeInsets.only(top: 5),
             child: Text(
               _genderError!,
-              style: TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
       ],
@@ -272,11 +272,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ElevatedButton(
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: mainButtonColor,
+                  backgroundColor: AppColor.mainButtonColor,
                 ),
                 child: Text(
                   '保存',
-                  style: TextStyle(color: Colors.white), // テキストの色を白に変更
+                  style: TextStyle(color: AppColor.subTextColor), // テキストの色を白に変更
                 )),
           ],
         ),

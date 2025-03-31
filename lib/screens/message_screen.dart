@@ -59,7 +59,8 @@ class MessageScreen extends StatelessWidget {
                   final chatRoomData =
                       chatRoomSnapshot.data!.data() as Map<String, dynamic>?;
                   if (chatRoomData == null) {
-                    return Center(child: Text('チャットルームデータが見つかりません'));
+                    return SizedBox();
+                    // Center(child: Text('チャットルームデータが見つかりません'));
                   }
                   final Map<String, dynamic> latestMessage =
                       chatRoomData['latestMessage'] != null
@@ -121,7 +122,8 @@ class MessageScreen extends StatelessWidget {
                         title: Text('情報なし'), // 取得できなかった旨表示
                         subtitle: Text(lastMessageText), // 最新メッセージをそのまま表示
                         trailing: Text(
-                          DateFormat('yyyy/MM/dd HH:mm:ss').format(lastMessageTime.toDate()),
+                          DateFormat('yyyy/MM/dd HH:mm:ss')
+                              .format(lastMessageTime.toDate()),
                           style: TextStyle(fontSize: 12),
                         ),
                         onTap: () {

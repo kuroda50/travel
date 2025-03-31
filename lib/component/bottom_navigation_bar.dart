@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/colors/color.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 追加
+import 'login_prompt.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final Widget child;
@@ -61,7 +62,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null &&
         (index == 1 || index == 2 || index == 3 || index == 4)) {
-      _showLoginPrompt(context);
+      showLoginPrompt(context);
       return;
     }
 
@@ -82,63 +83,5 @@ class CustomBottomNavigationBar extends StatelessWidget {
         context.go('/profile', extra: user!.uid);
         break;
     }
-  }
-
-  /// ログインを促すウインドウを表示
-  void _showLoginPrompt(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('ログインが必要です'),
-          content: const Text('この機能を利用するにはログインが必要です。ログインしますか？'),
-          actions: <Widget>[
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                        side: BorderSide(color: Colors.black),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                    ),
-                    child: const Text(
-                      'キャンセル',
-                      style: TextStyle(color: AppColor.mainTextColor),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  SizedBox(width: 16), // ボタン間のスペース
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppColor.mainButtonColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                    ),
-                    child: const Text(
-                      'ログイン',
-                      style: TextStyle(color: AppColor.subTextColor),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      context.go('/login');
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

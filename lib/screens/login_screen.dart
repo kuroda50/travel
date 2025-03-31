@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel/component/header.dart';
 import 'package:go_router/go_router.dart';
+import '../colors/color.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -15,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   bool _isObscured = true;
   String _errorMessage = ''; // エラーメッセージの状態を管理
-  static const Color warningColor = Color(0xFFFF0000); // 警告色
 
   Future<void> _login() async {
     String email = emailController.text.trim();
@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(top: 5.0),
                     child: Text(
                       _errorMessage,
-                      style: TextStyle(color: warningColor, fontSize: 12),
+                      style: TextStyle(color: AppColor.warningColor, fontSize: 12),
                     ),
                   ),
                 SizedBox(height: 15),

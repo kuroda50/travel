@@ -54,6 +54,9 @@ class _SignupFormState extends State<AccountCreateScreen> {
           email: _emailController.text,
           password: _passwordController.text,
         );
+        // メール認証を送信
+        await credential.user!.sendEmailVerification();
+
         String uid = credential.user!.uid;
         await FirebaseFirestore.instance.collection("users").doc(uid).set({
           "photoURLs": [""],
@@ -208,7 +211,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                   children: [
                                     TextSpan(text: '会員になると '),
                                     TextSpan(
-                                      text: '利用規約',
+                                      text: '利用規約およびプライバシーポリシー',
                                       style: TextStyle(
                                         color: Colors.lightBlue,
                                         decoration: TextDecoration.underline,

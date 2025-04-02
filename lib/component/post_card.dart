@@ -161,7 +161,6 @@ class _PostCardState extends State<PostCard> {
       return Center(
         child: Text(
           "募集がありません",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       );
     }

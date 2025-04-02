@@ -1,61 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:go_router/go_router.dart'; // GoRouterをインポート
-import 'package:travel/component/header.dart'; // ★ カスタムヘッダーをインポート
+import 'package:go_router/go_router.dart';
+import 'package:travel/component/header.dart';
 
-class EmailChangeScreen extends StatelessWidget {
+class EmailChangeScreen extends StatefulWidget {
   const EmailChangeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
+  _EmailChangeScreenState createState() => _EmailChangeScreenState();
+}
 
-    // メールアドレスを変更する関数
-    Future<void> _changeEmail(BuildContext context) async {
-      final newEmail = emailController.text.trim();
-      final password = passwordController.text.trim();
+class _EmailChangeScreenState extends State<EmailChangeScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+  String? errorMessage;
 
-      if (newEmail.isEmpty || password.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
-        );
-        return;
-      }
+  static const Color warningColor = Color(0xFFFF0000);
 
-      try {
-        final user = FirebaseAuth.instance.currentUser;
+  Future<void> _changeEmail() async {
+    final newEmail = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-        if (user == null) {
-          throw Exception('ユーザーがログインしてません');
-        }
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
 
-        // 再認証が必要
-        final credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: password,
-        );
-        await user.reauthenticateWithCredential(credential);
-
-        // メールアドレスを更新
-        await user.updateEmail(newEmail);
-
-        // 成功メッセージを表示
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('メールアドレスを変更しました')),
-        );
-
-        // /travel画面に遷移
-        context.go('/travel');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生しました: $e')),
-        );
-      }
+    if (newEmail.isEmpty && password.isEmpty) {
+      setState(() {
+        errorMessage = "メールアドレスとパスワードを入力してください";
+      });
+      isLoading = false;
+      return;
+    } else if (newEmail.isEmpty) {
+      setState(() {
+        errorMessage = "新しいメールアドレスを入力してください";
+      });
+      isLoading = false;
+      return;
+    } else if (password.isEmpty) {
+      setState(() {
+        errorMessage = "パスワードを入力してください";
+      });
+      isLoading = false;
+      return;
     }
 
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('ユーザーがログインしていません');
+      }
+
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+
+      await user.updateEmail(newEmail);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('メールアドレスを変更しました！')),
+      );
+
+      context.go('/travel');
+    } on FirebaseAuthException catch (e) {
+      String errorText = "エラーが発生しました: ${e.message}";
+
+      // パスワード関連のエラーコードをまとめて処理
+      if (e.code == 'wrong-password' ||
+          e.code == 'invalid-credential' ||
+          e.code == 'user-disabled' ||
+          e.code == 'user-not-found') {
+        errorText = "パスワードが間違っています";
+      } else if (e.code == 'email-already-in-use') {
+        errorText = "このメールアドレスは既に使われています";
+      } else if (e.code == 'invalid-email') {
+        errorText = "メールアドレスの形式が正しくありません";
+      } else if (e.code == 'requires-recent-login') {
+        errorText = "もう一度ログインしてから試してください";
+      }
+
+      setState(() {
+        errorMessage = errorText;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "エラーが発生しました: $e";
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: 'メールアドレス変更'), // ★ AppBarをカスタムヘッダーに置き換え
+      appBar: Header(title: 'メールアドレス変更'),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -80,11 +126,19 @@ class EmailChangeScreen extends StatelessWidget {
                 ),
                 obscureText: true,
               ),
+              const SizedBox(height: 8),
+              if (errorMessage != null)
+                Text(
+                  errorMessage!,
+                  style: const TextStyle(color: warningColor, fontSize: 14),
+                ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => _changeEmail(context),
-                child: const Text('メールアドレスを変更'),
-              ),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _changeEmail,
+                      child: const Text('メールアドレスを変更'),
+                    ),
             ],
           ),
         ),

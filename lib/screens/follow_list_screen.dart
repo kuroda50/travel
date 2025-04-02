@@ -196,26 +196,36 @@ class FollowingList extends StatefulWidget {
 }
 
 class _FollowingListState extends State<FollowingList> {
-  Future<void> deleteFollow(String targetUserId) async {
-    final userRef =
-        FirebaseFirestore.instance.collection('users').doc(widget.userId);
-    final targetUserRef =
-        FirebaseFirestore.instance.collection('users').doc(targetUserId);
+ Future<void> deleteFollow(String targetUserId) async {
+  final userRef =
+      FirebaseFirestore.instance.collection('users').doc(widget.userId);
+  final targetUserRef =
+      FirebaseFirestore.instance.collection('users').doc(targetUserId);
 
-    WriteBatch batch = FirebaseFirestore.instance.batch();
+  WriteBatch batch = FirebaseFirestore.instance.batch();
 
-    batch.update(userRef, {
-      'following': FieldValue.arrayRemove([targetUserId])
-    });
+  batch.update(userRef, {
+    'following': FieldValue.arrayRemove([targetUserId])
+  });
 
-    batch.update(targetUserRef, {
-      'followers': FieldValue.arrayRemove([widget.userId])
-    });
+  batch.update(targetUserRef, {
+    'followers': FieldValue.arrayRemove([widget.userId])
+  });
 
+  try {
     await batch.commit();
 
+    // フォローリストから削除したユーザーを除外
+    setState(() {
+      widget.followUserList.removeWhere((user) => user.userId == targetUserId);
+    });
+
     print('フォロー関係を解除しました');
+  } catch (e) {
+    print('フォロー解除中にエラーが発生しました: $e');
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -282,12 +292,6 @@ class FollowerList extends StatelessWidget {
           title: Text(
               '${followerUserList[index].name}、${followerUserList[index].age}、${followerUserList[index].gender}'),
           // ブロック機能を後で追加する
-          // trailing: IconButton(
-          //   icon: const Icon(Icons.close),
-          //   onPressed: () {
-          //     blockFollower(followerUserList[index].userId);
-          //   },
-          // ),
           onTap: () {
             context.push('/profile', extra: followerUserList[index].userId);
           },

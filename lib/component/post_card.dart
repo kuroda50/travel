@@ -187,7 +187,12 @@ class _PostCardState extends State<PostCard> {
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: Colors.grey[300],
-              backgroundImage: NetworkImage(post.organizerPhotoURL),
+              backgroundImage: post.organizerPhotoURL.isNotEmpty
+                  ? NetworkImage(post.organizerPhotoURL)
+                  : null, // URLが空の場合はnullを設定
+              child: post.organizerPhotoURL.isNotEmpty
+                  ? null
+                  : Icon(Icons.person, size: 40, color: Colors.grey), // 代替アイコン
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

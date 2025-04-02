@@ -17,7 +17,9 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
       appBar: Header(
         title: "募集",
       ),
-      body: PostCard(postIds: widget.postIds),
+      body: SingleChildScrollView(
+        child: PostCard(postIds: widget.postIds),
+      ),
     );
   }
 }

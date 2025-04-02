@@ -421,7 +421,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                     showLoginPrompt(context);
                     return;
                   }
-                  context.push("/profile", extra: organizerId);
+                  context.push('/profile/${organizerId}');
                 },
               ),
               const Padding(
@@ -446,7 +446,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                         showLoginPrompt(context);
                         return;
                       }
-                      context.push("/profile", extra: memberIdList[index]);
+                      context.push('/profile/${memberIdList[index]}');
                     },
                   );
                 },

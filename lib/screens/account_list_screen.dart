@@ -152,7 +152,7 @@ class ListItem extends StatefulWidget {
   final String name;
   final DateTime? birthday;
   final List<String>? hobbies;
-  final String? photoURL;
+  String? photoURL;
   final String? gender;
 
   ListItem({
@@ -268,98 +268,95 @@ class _ListItemState extends State<ListItem> {
         }
         context.push('/profile/${widget.userId}'); // URL パラメータとして userId を渡す
       },
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 5.0),
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColor.subBackgroundColor,
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.grey.shade300,
-              backgroundImage: widget.photoURL != null
-                  ? NetworkImage(widget.photoURL!)
-                  : null,
-              child: widget.photoURL == null
-                  ? Icon(Icons.person, color: Colors.white)
-                  : null,
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${widget.name}、${getAge() != null ? getAge().toString() + "歳" : "年齢不明"}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (widget.gender == "male")
-                        Icon(Icons.male,
-                            color: Colors.blue, size: 20) // 男性アイコン（青）
-                      else if (widget.gender == "female")
-                        Icon(Icons.female,
-                            color: Colors.red, size: 20) // 女性アイコン（赤）
-                      else if (widget.gender == "family")
-                        Icon(Icons.family_restroom,
-                            color: Colors.green, size: 20) // 家族アイコン（緑）
-                      else if (widget.gender == "group")
-                        Icon(Icons.groups,
-                            color: Colors.orange, size: 20) // グループアイコン（オレンジ）
-                      else
-                        Icon(Icons.help_outline,
-                            color: Colors.grey, size: 20), // 不明な場合のアイコン
-
-                      SizedBox(width: 8),
-                      Text(
-                        widget.gender ?? '不明',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.sports_baseball, size: 16, color: Colors.blue),
-                      SizedBox(width: 4),
-                      Text(getHobbiesText(), style: TextStyle(fontSize: 14)),
-                    ],
-                  ),
-                ],
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 2,
+        margin: EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.grey[300],
+                backgroundImage:
+                    widget.photoURL != null && widget.photoURL!.isNotEmpty
+                        ? NetworkImage(widget.photoURL!)
+                        : null, // URLが空の場合はnullを設定
+                child: widget.photoURL == null || widget.photoURL!.isEmpty
+                    ? Icon(Icons.person, size: 40, color: Colors.grey) // 仮のアイコン
+                    : null,
               ),
-            ),
-            if (!isCurrentUser) // 自分自身のアカウントでない場合のみフォローボタンを表示
-              ElevatedButton(
-                onPressed: () {
-                  if (FirebaseAuth.instance.currentUser == null) {
-                    showLoginPrompt(context);
-                    return;
-                  }
-                  _toggleFollow();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isFollowing ? Colors.grey : AppColor.mainButtonColor,
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  isFollowing ? 'フォロー解除' : 'フォロー',
-                  style: TextStyle(
-                    color: AppColor.subTextColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${widget.name}、${getAge() != null ? getAge().toString() + "歳" : "年齢不明"}',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (widget.gender == "male")
+                          Icon(Icons.male,
+                              color: Colors.blue, size: 20) // 男性アイコン（青）
+                        else if (widget.gender == "female")
+                          Icon(Icons.female,
+                              color: Colors.red, size: 20) // 女性アイコン（赤）
+                        else
+                          Icon(Icons.help_outline,
+                              color: Colors.grey, size: 20), // 不明な場合のアイコン
+                        SizedBox(width: 8),
+                        Text(
+                          widget.gender ?? '不明',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.sports_baseball,
+                            size: 16, color: Colors.blue),
+                        SizedBox(width: 4),
+                        Text(getHobbiesText(), style: TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-          ],
+              if (!isCurrentUser) // 自分自身のアカウントでない場合のみフォローボタンを表示
+                ElevatedButton(
+                  onPressed: () {
+                    if (FirebaseAuth.instance.currentUser == null) {
+                      showLoginPrompt(context);
+                      return;
+                    }
+                    _toggleFollow();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isFollowing ? Colors.grey : AppColor.mainButtonColor,
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    isFollowing ? 'フォロー解除' : 'フォロー',
+                    style: TextStyle(
+                      color: AppColor.subTextColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

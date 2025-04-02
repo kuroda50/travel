@@ -10,7 +10,8 @@ import '../component/login_prompt.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
-  const ProfileScreen({super.key, required this.userId});
+
+  const ProfileScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -30,8 +31,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    getInformation();
-    _getCurrentUser(); // 現在のユーザー情報を取得する関数を呼び出す
+    _initializeProfile();
+  }
+
+  void _initializeProfile() async {
+    FirebaseAuth.instance
+        .authStateChanges()
+        .firstWhere((user) => user != null)
+        .then((user) {
+      String userId = widget.userId.isEmpty ? user!.uid : widget.userId;
+
+      if (userId.isEmpty) {
+        showLoginPrompt(context);
+        return;
+      }
+
+      getInformation(userId);
+      _getCurrentUser();
+    });
   }
 
   void _getCurrentUser() {
@@ -40,12 +57,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         currentUserId = user.uid;
       });
-      _checkIfFollowing(widget.userId); // フォロー状態をチェックする関数を呼び出す
+      _checkIfFollowing(widget.userId);
+    } else {
+      print("ユーザーがログインしていません。");
+      setState(() {
+        currentUserId = null; // 明示的に null を設定
+      });
     }
   }
 
   Future<void> _checkIfFollowing(String targetId) async {
-    if (currentUserId == null) return;
+    if (currentUserId == null || targetId.isEmpty) return;
 
     final userSnapshot = await FirebaseFirestore.instance
         .collection('users')
@@ -92,13 +114,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  getInformation() async {
-    await checkUserId(widget.userId);
-    await getUserProfile(widget.userId);
+  Future<void> getInformation(String userId) async {
+    await checkUserId(userId);
+    await getUserProfile(userId);
   }
 
   Future<void> checkUserId(String userId) {
-    if (userId == FirebaseAuth.instance.currentUser!.uid) {
+    if (userId == FirebaseAuth.instance.currentUser?.uid) {
       isMyProfile = true;
     } else {
       isMyProfile = false;
@@ -114,14 +136,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     DocumentReference userRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
     var user = await userRef.get();
+    print("現在の userId: $userId");
+    print("Firestore から取得したデータ: ${user.data()}");
+    print("現在のフォロー状態: $isFollowing");
     if (user.exists) {
-      name = user['name'];
-      age = calculateAge(user['birthday'].toDate()).toString();
-      bio = user['bio'];
-      hobbies = List<String>.from(user['hobbies'] as List);
+      name = user['name'] ?? '';
+      age = user['birthday'] != null
+          ? calculateAge(user['birthday'].toDate()).toString()
+          : '';
+      bio = user['bio'] ?? '';
+      hobbies = List<String>.from(user['hobbies'] ?? []);
       userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
       List<String> tempRecruitmentPostIdList =
-          List<String>.from(user['participatedPosts'] as List);
+          List<String>.from(user['participatedPosts'] ?? []);
       setState(() {
         name = name;
         age = age;

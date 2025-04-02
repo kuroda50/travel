@@ -80,7 +80,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         context.go('/follow-list');
         break;
       case 4:
-        context.go('/profile', extra: user!.uid);
+        context.go('/profile/${user!.uid}'); // URL パラメータとして userId を渡す
         break;
     }
   }

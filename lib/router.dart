@@ -148,12 +148,14 @@ final GoRouter goRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/profile',
+      path: '/profile/:userId', // userId を URL パラメータとして受け取る
       name: 'profile',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: CustomBottomNavigationBar(
-          child: ProfileScreen(userId: state.extra! as String),
+          child: ProfileScreen(
+              userId:
+                  state.pathParameters['userId']!), // URL パラメータから userId を取得
         ),
       ),
     ),

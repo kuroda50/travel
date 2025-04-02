@@ -39,9 +39,13 @@ class MessageScreen extends StatelessWidget {
 
           final List<dynamic> chatRooms = userMap['chatRooms'];
 
+          if (chatRooms.isEmpty) {
+            return Center(child: Text('メッセージルームがありません'));
+          }
           return ListView.builder(
             itemCount: chatRooms.length,
             itemBuilder: (context, index) {
+              print("呼ばれたよ");
               final chatRoomId = chatRooms[index];
               return FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
@@ -60,7 +64,6 @@ class MessageScreen extends StatelessWidget {
                       chatRoomSnapshot.data!.data() as Map<String, dynamic>?;
                   if (chatRoomData == null) {
                     return SizedBox();
-                    // Center(child: Text('チャットルームデータが見つかりません'));
                   }
                   final Map<String, dynamic> latestMessage =
                       chatRoomData['latestMessage'] != null
@@ -99,15 +102,6 @@ class MessageScreen extends StatelessWidget {
                           "roomId": chatRoomId,
                           "currentUserId": currentUserId
                         });
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => MessageRoomScreen(
-                        //       roomId: chatRoomId,
-                        //       currentUserId: currentUserId,
-                        //     ),
-                        //   ),
-                        // );
                       },
                     );
                   } else {
@@ -177,15 +171,6 @@ class MessageScreen extends StatelessWidget {
                               "roomId": chatRoomId,
                               "currentUserId": currentUserId
                             });
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => MessageRoomScreen(
-                            //       roomId: chatRoomId,
-                            //       currentUserId: currentUserId,
-                            //     ),
-                            //   ),
-                            // );
                           },
                         );
                       },

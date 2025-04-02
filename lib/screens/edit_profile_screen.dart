@@ -13,7 +13,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController hobbyController = TextEditingController();
@@ -77,8 +76,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         SnackBar(content: Text('プロフィールが保存されました')),
       );
 
-      // /profileに遷移
-      context.pop('/profile');
+      // 状態を更新
+      setState(() {
+        _isLoading = false;
+      });
+
+      // 編集後のデータを遷移元に渡す
+      context.pop({
+        'name': name,
+        'gender': _isMale ? 'male' : 'female',
+        'birthday': _selectedDate,
+        'hobbies': hobbies,
+        'bio': bio,
+      });
     } catch (e) {
       // 保存失敗のエラーメッセージ
       ScaffoldMessenger.of(context).showSnackBar(

@@ -266,7 +266,7 @@ class _ListItemState extends State<ListItem> {
           showLoginPrompt(context);
           return;
         }
-        context.push('/profile', extra: widget.userId);
+        context.push('/profile/${widget.userId}'); // URL パラメータとして userId を渡す
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 5.0),

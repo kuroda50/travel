@@ -59,6 +59,7 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
       );
       await user.reauthenticateWithCredential(credential);
 
+
       await user.updateEmail(newEmail);
 
       ScaffoldMessenger.of(context).showSnackBar(

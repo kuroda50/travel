@@ -31,7 +31,8 @@ class _FollowListScreenState extends State<FollowListScreen> {
         await buildFollowingList(userId);
     List<UserInformation> tempFollowerUserList =
         await buildFollowerList(userId);
-    List<String> tempFollowingPostsIdList = await getFollowerPostsIdList(userId);
+    List<String> tempFollowingPostsIdList =
+        await getFollowerPostsIdList(userId);
     setState(() {
       followingUserList = tempFollowingUserList;
       followerUserList = tempFollowerUserList;
@@ -177,7 +178,8 @@ class _FollowListScreenState extends State<FollowListScreen> {
           children: [
             FollowingList(userId: userId, followUserList: followingUserList),
             FollowerList(userId: userId, followerUserList: followerUserList),
-            PostCard(postIds: followingPostsIdList)
+            SingleChildScrollView(
+                child: PostCard(postIds: followingPostsIdList)),
           ],
         ),
       ),
@@ -254,8 +256,8 @@ class _FollowingListState extends State<FollowingList> {
             },
           ),
           onTap: () {
-            context.push('/profile',
-                extra: widget.followUserList[index].userId);
+            context.push(
+                '/profile/${widget.followUserList[index].userId}'); // URL パラメータとして userId を渡す
           },
         );
       },
@@ -293,7 +295,8 @@ class FollowerList extends StatelessWidget {
               '${followerUserList[index].name}、${followerUserList[index].age}、${followerUserList[index].gender}'),
           // ブロック機能を後で追加する
           onTap: () {
-            context.push('/profile', extra: followerUserList[index].userId);
+            context.push(
+                '/profile/${followerUserList[index].userId}'); // URL パラメータとして userId を渡す
           },
         );
       },

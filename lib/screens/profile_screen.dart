@@ -213,8 +213,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       SizedBox(height: 6),
                       isMyProfile
                           ? ElevatedButton.icon(
-                              onPressed: () {
-                                context.push('/edit-profile');
+                              onPressed: () async {
+                                final updatedProfile =
+                                    await context.push('/edit-profile');
+
+                                if (updatedProfile != null) {
+                                  final profileData = updatedProfile
+                                      as Map<String, dynamic>; // 型キャストを追加
+                                  setState(() {
+                                    // 受け取ったデータで画面を更新
+                                    name = profileData['name'];
+                                    bio = profileData['bio'];
+                                    hobbies = List<String>.from(
+                                        profileData['hobbies']); // 型変換を追加
+                                  });
+                                }
                               },
                               icon: Icon(Icons.edit,
                                   color: AppColor.subTextColor),

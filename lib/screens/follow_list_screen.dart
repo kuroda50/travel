@@ -31,7 +31,8 @@ class _FollowListScreenState extends State<FollowListScreen> {
         await buildFollowingList(userId);
     List<UserInformation> tempFollowerUserList =
         await buildFollowerList(userId);
-    List<String> tempFollowingPostsIdList = await getFollowerPostsIdList(userId);
+    List<String> tempFollowingPostsIdList =
+        await getFollowerPostsIdList(userId);
     setState(() {
       followingUserList = tempFollowingUserList;
       followerUserList = tempFollowerUserList;
@@ -177,7 +178,8 @@ class _FollowListScreenState extends State<FollowListScreen> {
           children: [
             FollowingList(userId: userId, followUserList: followingUserList),
             FollowerList(userId: userId, followerUserList: followerUserList),
-            PostCard(postIds: followingPostsIdList)
+            SingleChildScrollView(
+                child: PostCard(postIds: followingPostsIdList)),
           ],
         ),
       ),

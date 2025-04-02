@@ -32,14 +32,22 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential credential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("ログイン成功！")),
-      );
-      context.go('/travel');
+      if (credential.user!.emailVerified == false) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("メール認証が完了していません。メールを確認してください")),
+        );
+        FirebaseAuth.instance.signOut();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("ログイン成功！")),
+        );
+        context.go('/travel');
+      }
     } on FirebaseAuthException catch (e) {
       String errorMessage = "ログインに失敗しました";
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
@@ -81,7 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(top: 5.0),
                     child: Text(
                       _errorMessage,
-                      style: TextStyle(color: AppColor.warningColor, fontSize: 12),
+                      style:
+                          TextStyle(color: AppColor.warningColor, fontSize: 12),
                     ),
                   ),
                 SizedBox(height: 15),

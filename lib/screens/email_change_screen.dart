@@ -18,7 +18,7 @@ class EmailChangeScreen extends StatelessWidget {
 
       if (newEmail.isEmpty || password.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('メールアドレスとパスワードを入力してね')),
+          const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
         );
         return;
       }
@@ -27,7 +27,7 @@ class EmailChangeScreen extends StatelessWidget {
         final user = FirebaseAuth.instance.currentUser;
 
         if (user == null) {
-          throw Exception('ユーザーがログインしてないよ');
+          throw Exception('ユーザーがログインしてません');
         }
 
         // 再認証が必要
@@ -42,14 +42,14 @@ class EmailChangeScreen extends StatelessWidget {
 
         // 成功メッセージを表示
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('メールアドレスを変更したよ！')),
+          const SnackBar(content: Text('メールアドレスを変更しました')),
         );
 
         // /travel画面に遷移
         context.go('/travel');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生した: $e')),
+          SnackBar(content: Text('エラーが発生しました: $e')),
         );
       }
     }

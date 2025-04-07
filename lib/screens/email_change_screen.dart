@@ -30,20 +30,20 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
     if (newEmail.isEmpty && password.isEmpty) {
       setState(() {
         errorMessage = "メールアドレスとパスワードを入力してください";
+        isLoading = false;
       });
-      isLoading = false;
       return;
     } else if (newEmail.isEmpty) {
       setState(() {
         errorMessage = "新しいメールアドレスを入力してください";
+        isLoading = false;
       });
-      isLoading = false;
       return;
     } else if (password.isEmpty) {
       setState(() {
         errorMessage = "パスワードを入力してください";
+        isLoading = false;
       });
-      isLoading = false;
       return;
     }
 
@@ -59,18 +59,21 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
       );
       await user.reauthenticateWithCredential(credential);
 
-
-      await user.updateEmail(newEmail);
+      // 新しいメールアドレスを設定する前に確認メールを送信
+      await user.verifyBeforeUpdateEmail(newEmail);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('メールアドレスを変更しました！')),
+        const SnackBar(content: Text('確認メールを送信しました。メールを確認してください。')),
       );
 
-      context.go('/travel');
+      // ログアウトしてログイン画面に遷移
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        context.go('/login'); // ログイン画面へのルートに遷移
+      }
     } on FirebaseAuthException catch (e) {
       String errorText = "エラーが発生しました: ${e.message}";
 
-      // パスワード関連のエラーコードをまとめて処理
       if (e.code == 'wrong-password' ||
           e.code == 'invalid-credential' ||
           e.code == 'user-disabled' ||
@@ -133,12 +136,21 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
                   style: const TextStyle(color: warningColor, fontSize: 14),
                 ),
               const SizedBox(height: 16),
-              isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _changeEmail,
-                      child: const Text('メールアドレスを変更'),
-                    ),
+              ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : _changeEmail, // isLoadingがtrueの場合、ボタンを無効化
+                child: isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('メールアドレスを変更'),
+              ),
             ],
           ),
         ),

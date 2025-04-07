@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/header.dart';
+import 'package:travel/colors/color.dart';
 
 class EmailChangeScreen extends StatefulWidget {
   const EmailChangeScreen({super.key});
@@ -140,6 +141,10 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
                 onPressed: isLoading
                     ? null
                     : _changeEmail, // isLoadingがtrueの場合、ボタンを無効化
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.mainButtonColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
                 child: isLoading
                     ? const SizedBox(
                         height: 20,

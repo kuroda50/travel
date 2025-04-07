@@ -70,11 +70,13 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
           final gender = data["gender"];
           final age = calculateAge(data["birthday"].toDate());
           final hobbiesData = List<String>.from(data["hobbies"]);
+          final isDeleted = data["isDeleted"] ?? false;
 
           final checkFilter =
               (convertGender(genderValue) == gender || genderValue == "誰でも") &&
                   (isAgeInRange(ageValue, age)) &&
-                  (matchesSearch(hobbies, hobbiesData) || hobbies.isEmpty);
+                  (matchesSearch(hobbies, hobbiesData) || hobbies.isEmpty) &&
+                  (!isDeleted);
 
           return checkFilter;
         }).toList();

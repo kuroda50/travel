@@ -89,6 +89,7 @@ class _TravelSearchState extends State<TravelSearch> {
           final departure = data["meetingPlace"]["departure"];
           final tagsData = data["tags"];
           final expire = data["expire"];
+          final isDeleted = data["isDeleted"];
 
           final checkFilter = (selectedRegion == area ||
                   selectedRegion == "未定") &&
@@ -116,7 +117,8 @@ class _TravelSearchState extends State<TravelSearch> {
               (isBudgetInRange(selectedBudgetMin, selectedBudgetMax, budgetMin,
                   budgetMax)) &&
               (matchesSearch(tags, tagsData) || tags.isEmpty) &&
-              (!expire);
+              (!expire) &&
+              (!isDeleted);
 
           return checkFilter;
         }).toList();
@@ -152,7 +154,8 @@ class _TravelSearchState extends State<TravelSearch> {
     List<String> ageRange = selectedAge.split('〜');
 
     int minAge = ageRange[0] == 'こだわらない' ? 0 : int.parse(ageRange[0]); // 最小年齢
-    int maxAge = ageRange[1] == 'こだわらない' ? 1000 : int.parse(ageRange[1]); // 最大年齢
+    int maxAge =
+        ageRange[1] == 'こだわらない' ? 1000 : int.parse(ageRange[1]); // 最大年齢
 
     return Age >= minAge && Age <= maxAge;
   }
@@ -630,7 +633,6 @@ class _TravelSearchState extends State<TravelSearch> {
   }
 
   void _showBudgetModal(BuildContext context) {
-
     showDialog(
         context: context,
         builder: (BuildContext context) {

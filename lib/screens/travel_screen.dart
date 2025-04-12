@@ -1,10 +1,12 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'travel_search.dart'; // ここに追加
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api, prefer_const_constructors, duplicate_ignore, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, sort_child_properties_last, use_build_context_synchronously
 
-void main() {
-  runApp(TravelScreen());
-}
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // go_router をインポート
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:travel/colors/color.dart';
+import 'dart:async';
+import 'package:travel/component/header.dart';
+import 'package:travel/component/post_card.dart';
 
 class TravelScreen extends StatefulWidget {
   const TravelScreen({Key? key}) : super(key: key);
@@ -17,34 +19,56 @@ class _TravelScreenState extends State<TravelScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   late Timer _timer;
+
+  List<String> latestPostIds = []; // 投稿の ID を格納
+
   final List<String> _imageUrls = [
-    'lib/screens/images/OIP (1).jpg',
-    'lib/screens/images/OIP (2).jpg',
-    'lib/screens/images/OIP (3).jpg',
-    'lib/screens/images/OIP (4).jpg',
-    'lib/screens/images/OIP (5).jpg',
-    'lib/screens/images/OIP (6).jpg',
-    'lib/screens/images/OIP (7).jpg',
-    'lib/screens/images/OIP (8).jpg',
-    'lib/screens/images/OIP (9).jpg',
-    'lib/screens/images/OIP (10).jpg',
-    'lib/screens/images/OIP.jpg',
+    'assets/images/OIP (1).jpg',
+    'assets/images/OIP (2).jpg',
+    'assets/images/OIP (3).jpg',
+    'assets/images/OIP (4).jpg',
+    'assets/images/OIP (5).jpg',
+    'assets/images/OIP (6).jpg',
+    'assets/images/OIP (7).jpg',
+    'assets/images/OIP (8).jpg',
+    'assets/images/OIP (9).jpg',
+    'assets/images/OIP (10).jpg',
+    'assets/images/OIP.jpg',
   ];
 
   @override
   void initState() {
     super.initState();
+
+    // 最新の投稿を取得
+    fetchLatestPosts();
+
+    // 3秒ごとに次のページへ移動する
+    // ignore: prefer_const_constructors
     _timer = Timer.periodic(Duration(seconds: 3), (Timer timer) {
       if (_currentPage < _imageUrls.length - 1) {
         _currentPage++;
       } else {
-        _currentPage = 0;
+        _currentPage = 0; // 最後まで行ったら最初に戻る
       }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeIn,
-      );
+      if (mounted) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  Future<void> fetchLatestPosts() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .orderBy('createdAt', descending: true)
+        .limit(4)
+        .get();
+    setState(() {
+      latestPostIds = querySnapshot.docs.map((doc) => doc.id).toList();
     });
   }
 
@@ -58,85 +82,19 @@ class _TravelScreenState extends State<TravelScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '旅行仲間募集',
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('仲間と集まる'),
-          backgroundColor: Color(0xFF559900),
-          actions: [
-            TextButton(
-              onPressed: () {},
-              child: Text('ログイン'),
-              style: TextButton.styleFrom(foregroundColor: Colors.white),
-            ),
-          ],
+        appBar: Header(
+          title: "旅へ行こう！",
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  Container(
-                    width: 390,
-                    height: 227,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: _imageUrls.length,
-                      itemBuilder: (context, index) {
-                        return Image.network(
-                          _imageUrls[index],
-                          fit: BoxFit.cover,
-                        );
-                      },
-                      onPageChanged: (int page) {
-                        setState(() {
-                          _currentPage = page;
-                        });
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 16.0, left: 0, right: 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {},
-                          child: Text(
-                            '旅行仲間と\n集まる',
-                            textAlign: TextAlign.center,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          child: Text(
-                            '同じ趣味の人と\n集まる',
-                            textAlign: TextAlign.center,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: GestureDetector(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TravelSearch()),
-                    );
+                    context.push('/travel_search');
                   },
                   child: Container(
                     padding:
@@ -148,61 +106,86 @@ class _TravelScreenState extends State<TravelScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('検索条件を設定する'),
+                        Text('募集を検索する'),
                         Icon(Icons.search),
                       ],
                     ),
                   ),
                 ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.grey[300],
+                SizedBox(height: 16),
+                // 画像スライドショーを追加
+                Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Container(
+                      width: 390,
+                      height: 227,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount: _imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return Image.asset(
+                            _imageUrls[index],
+                            fit: BoxFit.cover,
+                          );
+                        },
+                        onPageChanged: (int page) {
+                          setState(() {
+                            _currentPage = page;
+                          });
+                        },
+                      ),
                     ),
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('2週間でアメリカ、カナダ巡り'),
-                        Row(
-                          children: <Widget>[
-                            Icon(Icons.person),
-                            Text('>20才~35才 写真あり'),
-                          ],
-                        ),
-                        Text('アメリカ、カナダ'),
-                        Text('てつろう、20才 2025/04/01~2025/04/30 金土日'),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Text('全て表示する >'),
                   ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // 人を募集する処理
-                    },
-                    child: Text('人を募集する'),
+                SizedBox(height: 16), // 余白追加
+                // 他のウィジェット
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push('/same-hobby');
+                      },
+                      child: Text('同じ趣味の人をさがす'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.mainButtonColor,
+                        foregroundColor: AppColor.subTextColor,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 16), // 余白追加
+                latestPostIds.isEmpty
+                    ? Center(
+                        child: CircularProgressIndicator()) // データ取得中はローディングを表示
+                    : PostCard(postIds: latestPostIds),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      GestureDetector(
+                        onTap: () async {
+                          // 全ての投稿のIDを取得
+                          QuerySnapshot querySnapshot = await FirebaseFirestore
+                              .instance
+                              .collection('posts')
+                              .get();
+                          List<String> allPostIds =
+                              querySnapshot.docs.map((doc) => doc.id).toList();
+
+                          // 次の画面に全ての投稿のIDを渡す
+                          context.push('/recruitment-list', extra: allPostIds);
+                        },
+                        child: Text('全て表示する >'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

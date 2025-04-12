@@ -4,20 +4,24 @@ import 'package:travel/colors/color.dart';
 import 'package:go_router/go_router.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
-  const Header({super.key});
+  final String title;
+  final List<Widget>? actions;
+
+  const Header({super.key, required this.title, this.actions,});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text(
-        '旅へ行こう！',
+      title: Text(
+        title,
         style: TextStyle(
           fontSize: 20,
           color: AppColor.subTextColor,
         ),
       ),
       backgroundColor: AppColor.mainButtonColor,
-      actions: FirebaseAuth.instance.currentUser == null
+      actions:  actions ?? 
+          (FirebaseAuth.instance.currentUser == null
           ? [
               Padding(
                 padding: EdgeInsets.only(right: 20),
@@ -33,7 +37,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 ),
               )
             ]
-          : null,
+          : null),
     );
   }
 

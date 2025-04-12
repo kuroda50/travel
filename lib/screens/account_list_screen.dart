@@ -78,11 +78,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
                       return ListItem(
                         userId: paginatedDocs[index].id,
                         name: data['name'] ?? '名前',
-                        photoURL:
-                            (data['photoURLs'] as List<dynamic>?)?.isNotEmpty ==
-                                    true
-                                ? data['photoURLs'][0]
-                                : null,
+                        iconURL: data['iconURL'] ?? '',
                         birthday: data['birthday'] != null
                             ? (data['birthday'] as Timestamp).toDate()
                             : null,
@@ -152,7 +148,7 @@ class ListItem extends StatefulWidget {
   final String name;
   final DateTime? birthday;
   final List<String>? hobbies;
-  String? photoURL;
+  final String? iconURL;
   final String? gender;
 
   ListItem({
@@ -160,7 +156,7 @@ class ListItem extends StatefulWidget {
     required this.name,
     required this.birthday,
     required this.hobbies,
-    this.photoURL,
+    this.iconURL,
     this.gender,
   });
 
@@ -281,10 +277,10 @@ class _ListItemState extends State<ListItem> {
                 radius: 30,
                 backgroundColor: Colors.grey[300],
                 backgroundImage:
-                    widget.photoURL != null && widget.photoURL!.isNotEmpty
-                        ? NetworkImage(widget.photoURL!)
+                    widget.iconURL != null && widget.iconURL!.isNotEmpty
+                        ? NetworkImage(widget.iconURL!)
                         : null, // URLが空の場合はnullを設定
-                child: widget.photoURL == null || widget.photoURL!.isEmpty
+                child: widget.iconURL == null || widget.iconURL!.isEmpty
                     ? Icon(Icons.person, size: 40, color: Colors.grey) // 仮のアイコン
                     : null,
               ),

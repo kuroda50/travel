@@ -86,7 +86,7 @@ class _PostCardState extends State<PostCard> {
           organizerSnapshot.data() as Map<String, dynamic>?;
 
       // 主催者情報が存在しない場合はデフォルト値を設定
-      String organizerPhotoURL = organizerData?['photoURLs'][0];
+      String organizerPhotoURL = organizerData?['iconURL'] ?? "";
       String organizerName = organizerData?['name'] ?? "不明";
       String organizerAge = organizerData?['birthday'] != null
           ? calculateAge(organizerData!['birthday'].toDate()).toString()

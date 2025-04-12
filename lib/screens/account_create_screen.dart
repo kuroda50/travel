@@ -59,6 +59,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
 
         String uid = credential.user!.uid;
         await FirebaseFirestore.instance.collection("users").doc(uid).set({
+          "iconURL": "",
           "photoURLs": [""],
           "hasPhoto": false,
           "name": _nameController.text,

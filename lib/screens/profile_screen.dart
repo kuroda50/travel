@@ -1,3 +1,6 @@
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
@@ -136,9 +139,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     DocumentReference userRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
     var user = await userRef.get();
-    print("現在の userId: $userId");
-    print("Firestore から取得したデータ: ${user.data()}");
-    print("現在のフォロー状態: $isFollowing");
     if (user.exists) {
       name = user['name'] ?? '';
       age = user['birthday'] != null
@@ -146,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : '';
       bio = user['bio'] ?? '';
       hobbies = List<String>.from(user['hobbies'] ?? []);
-      userImageURL = user['hasPhoto'] ? user['photoURLs'][0] : '';
+      userImageURL = user['hasPhoto'] ? user['iconURL'] : '';
       List<String> tempRecruitmentPostIdList =
           List<String>.from(user['participatedPosts'] ?? []);
       setState(() {
@@ -159,6 +159,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } else {
       print("ユーザが見つかりません");
+    }
+  }
+
+  Future<void> _pickImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true, // Web用に画像のバイトデータを取得
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      Uint8List? fileBytes = result.files.first.bytes;
+      String fileName = "${widget.userId}.jpg";
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Firebase Storage にアップロードする場合
+      final storageRef =
+          FirebaseStorage.instance.ref().child("user_icons/$fileName");
+      await storageRef.putData(
+        fileBytes!,
+        SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {'uid': userId},
+        ),
+      );
+      final imageUrl = await storageRef.getDownloadURL();
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .update({'iconURL': imageUrl, 'hasPhoto': true});
+
+      setState(() {
+        userImageURL = imageUrl;
+      });
+
+      print("画像のURL: $imageUrl");
+    } else {
+      print("画像が選択されませんでした");
     }
   }
 
@@ -200,11 +238,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage:
-                      userImageURL != '' ? NetworkImage(userImageURL) : null,
-                ),
+                userImageURL != ''
+                    ? GestureDetector(
+                        onTap: isMyProfile ? _pickImage : null,
+                        child: CircleAvatar(
+                            radius: 40,
+                            backgroundImage: NetworkImage(userImageURL)),
+                      )
+                    : GestureDetector(
+                        onTap: isMyProfile ? _pickImage : null,
+                        child: CircleAvatar(
+                          radius: 40,
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 30,
+                            color: Colors.grey,
+                          ),
+                          backgroundColor: Colors.grey[200],
+                        ),
+                      ),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(

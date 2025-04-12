@@ -22,6 +22,7 @@ dependencies:
   flutter_markdown: ^0.7.6+2
   fluttertoast: ^8.2.4 # ← この行を追加
   url_launcher: ^6.1.14
+  file_picker: ^6.1.1
 
 dev_dependencies:
   flutter_test:

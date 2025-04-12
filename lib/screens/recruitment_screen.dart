@@ -115,7 +115,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       organizerAge = organizerData?['birthday'] != null
           ? calculateAge(organizerData!['birthday'].toDate()).toString()
           : "不明";
-      organizerImageURL = organizerData?['photoURLs'][0];
+      organizerImageURL = organizerData?['iconURL'];
 
       memberIdList = doc['participants'].cast<String>();
       memberIdList.remove(doc['organizer']['organizerId']);
@@ -133,7 +133,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
       setState(() {
         memberTextList.add(
             '${doc['name']}、${calculateAge(doc['birthday'].toDate())}歳、${reverseGenderMap[doc['gender']] ?? doc['gender']}');
-        memberImageURLList.add(doc['hasPhoto'] ? doc['photoURLs'][0] : '');
+        memberImageURLList.add(doc['hasPhoto'] ? doc['iconURL'] : '');
       });
     }
   }

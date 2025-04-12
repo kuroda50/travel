@@ -80,7 +80,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
       if (userSnapshot.exists) {
         UserInformation followUser = UserInformation(
             userId: followingId,
-            photoURL: userSnapshot['photoURLs'][0],
+            iconURL: userSnapshot['iconURL'],
             name: userSnapshot['name'],
             age: calculateAge(userSnapshot['birthday'].toDate()),
             gender: userSnapshot['gender']);
@@ -121,7 +121,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
       if (userSnapshot.exists) {
         UserInformation followerUser = UserInformation(
             userId: followerIdList[i],
-            photoURL: userSnapshot['photoURLs'][0],
+            iconURL: userSnapshot['iconURL'],
             name: userSnapshot['name'],
             age: calculateAge(userSnapshot['birthday'].toDate()),
             gender: userSnapshot['gender']);
@@ -243,8 +243,8 @@ class _FollowingListState extends State<FollowingList> {
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage: widget.followUserList[index].photoURL != ''
-                ? NetworkImage(widget.followUserList[index].photoURL)
+            backgroundImage: widget.followUserList[index].iconURL != ''
+                ? NetworkImage(widget.followUserList[index].iconURL)
                 : null,
           ),
           title: Text(
@@ -287,8 +287,8 @@ class FollowerList extends StatelessWidget {
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage: followerUserList[index].photoURL != ''
-                ? NetworkImage(followerUserList[index].photoURL)
+            backgroundImage: followerUserList[index].iconURL != ''
+                ? NetworkImage(followerUserList[index].iconURL)
                 : null,
           ),
           title: Text(
@@ -306,14 +306,14 @@ class FollowerList extends StatelessWidget {
 
 class UserInformation {
   String userId;
-  String photoURL;
+  String iconURL;
   String name;
   int age;
   String gender;
 
   UserInformation(
       {required this.userId,
-      required this.photoURL,
+      required this.iconURL,
       required this.name,
       required this.age,
       required this.gender});

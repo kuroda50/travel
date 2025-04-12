@@ -146,8 +146,7 @@ class MessageScreen extends StatelessWidget {
                             'Unknown';
                         final String partnerImageUrl =
                             (partnerSnapshot.data?.data()
-                                        as Map<String, dynamic>?)?['photoURLs']
-                                    ?.first ??
+                                    as Map<String, dynamic>?)?['iconURL'] ??
                                 '';
 
                         return ListTile(

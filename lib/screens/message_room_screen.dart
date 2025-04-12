@@ -559,7 +559,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
     required String message,
     required Timestamp timeStamp,
     required bool isSentByMe,
-    String? photoURL,
+    String? iconURL,
     bool isRead = false,
     bool isGroup = false,
     int readCount = 0,
@@ -575,9 +575,9 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
             isSentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           if (!isSentByMe)
-            photoURL != null
+            iconURL != null
                 ? CircleAvatar(
-                    backgroundImage: NetworkImage(photoURL),
+                    backgroundImage: NetworkImage(iconURL),
                   )
                 : Container(
                     width: 40,
@@ -664,10 +664,10 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
                     final name = userData['name'] ?? '名前なし';
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: userData['photoURL'] != null
-                            ? NetworkImage(userData['photoURL'])
+                        backgroundImage: userData['iconURL'] != null
+                            ? NetworkImage(userData['iconURL'])
                             : null,
-                        child: userData['photoURL'] == null
+                        child: userData['iconURL'] == null
                             ? Icon(Icons.person)
                             : null,
                       ),

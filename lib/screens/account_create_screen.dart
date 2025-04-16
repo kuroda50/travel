@@ -84,7 +84,6 @@ class _SignupFormState extends State<AccountCreateScreen> {
             backgroundColor: Colors.green,
           ),
         );
-
         // ログイン画面に遷移
         context.go('/login');
       }

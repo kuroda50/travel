@@ -14,6 +14,7 @@ class PostCard extends StatefulWidget {
   @override
   State<PostCard> createState() => _PostCardState();
 }
+
 class _PostCardState extends State<PostCard> {
   Map<String, String> reverseGenderMap = {
     'male': '男性',
@@ -69,6 +70,7 @@ class _PostCardState extends State<PostCard> {
     });
   }
 
+  // キャッシュを使う処理
   Future<List<RecruitmentPost>> fetchRecruitmentLists(
       List<String> recruitmentPostIdList) async {
     List<RecruitmentPost> recruitmentPosts = [];
@@ -233,7 +235,8 @@ class _PostCardState extends State<PostCard> {
                   : null, // URLが空の場合はnullを設定
               child: post.organizerThumbnailURL.isNotEmpty
                   ? null
-                  : const Icon(Icons.person, size: 40, color: Colors.grey), // 代替アイコン
+                  : const Icon(Icons.person,
+                      size: 40, color: Colors.grey), // 代替アイコン
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,7 +273,6 @@ class _PostCardState extends State<PostCard> {
     );
   }
 }
-
 
 class RecruitmentPost {
   String postId;

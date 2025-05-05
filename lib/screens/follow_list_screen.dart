@@ -6,6 +6,7 @@ import 'package:travel/component/header.dart';
 import 'package:travel/component/post_card.dart';
 import 'package:travel/functions/function.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class FollowListScreen extends StatefulWidget {
   const FollowListScreen({super.key});
@@ -78,12 +79,13 @@ class _FollowListScreenState extends State<FollowListScreen> {
           .doc(followingId)
           .get();
       if (userSnapshot.exists) {
+        final data = userSnapshot.data() as Map<String, dynamic>;
         UserInformation followUser = UserInformation(
             userId: followingId,
-            iconURL: userSnapshot['iconURL'],
-            name: userSnapshot['name'],
-            age: calculateAge(userSnapshot['birthday'].toDate()),
-            gender: userSnapshot['gender']);
+            iconThumnailURL: data['thumbnailURL'] ?? '',
+            name: data['name'],
+            age: calculateAge(data['birthday'].toDate()),
+            gender: data['gender']);
         followingUserList.add(followUser);
       }
     }
@@ -119,12 +121,13 @@ class _FollowListScreenState extends State<FollowListScreen> {
           .doc(followerIdList[i])
           .get();
       if (userSnapshot.exists) {
+        final data = userSnapshot.data() as Map<String, dynamic>;
         UserInformation followerUser = UserInformation(
             userId: followerIdList[i],
-            iconURL: userSnapshot['iconURL'],
-            name: userSnapshot['name'],
-            age: calculateAge(userSnapshot['birthday'].toDate()),
-            gender: userSnapshot['gender']);
+            iconThumnailURL: data['thumbnailURL'] ?? '',
+            name: data['name'],
+            age: calculateAge(data['birthday'].toDate()),
+            gender: data['gender']);
         followerUserList.add(followerUser);
       }
     }
@@ -198,36 +201,32 @@ class FollowingList extends StatefulWidget {
 }
 
 class _FollowingListState extends State<FollowingList> {
- Future<void> deleteFollow(String targetUserId) async {
-  final userRef =
-      FirebaseFirestore.instance.collection('users').doc(widget.userId);
-  final targetUserRef =
-      FirebaseFirestore.instance.collection('users').doc(targetUserId);
+  Future<void> deleteFollow(String targetUserId) async {
+    final userRef = FirebaseFirestore.instance.collection('users').doc(widget.userId);
+    final targetUserRef = FirebaseFirestore.instance.collection('users').doc(targetUserId);
 
-  WriteBatch batch = FirebaseFirestore.instance.batch();
-
-  batch.update(userRef, {
-    'following': FieldValue.arrayRemove([targetUserId])
-  });
-
-  batch.update(targetUserRef, {
-    'followers': FieldValue.arrayRemove([widget.userId])
-  });
-
-  try {
-    await batch.commit();
-
-    // フォローリストから削除したユーザーを除外
-    setState(() {
-      widget.followUserList.removeWhere((user) => user.userId == targetUserId);
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+    batch.update(userRef, {
+      'following': FieldValue.arrayRemove([targetUserId])
+    });
+    batch.update(targetUserRef, {
+      'followers': FieldValue.arrayRemove([widget.userId])
     });
 
-    print('フォロー関係を解除しました');
-  } catch (e) {
-    print('フォロー解除中にエラーが発生しました: $e');
-  }
-}
+    try {
+      await batch.commit();
 
+      // フォローリストから削除したユーザーを除外
+      setState(() {
+        widget.followUserList
+            .removeWhere((user) => user.userId == targetUserId);
+      });
+
+      print('フォロー関係を解除しました');
+    } catch (e) {
+      print('フォロー解除中にエラーが発生しました: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -242,10 +241,14 @@ class _FollowingListState extends State<FollowingList> {
       itemBuilder: (context, index) {
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: Colors.grey,
-            backgroundImage: widget.followUserList[index].iconURL != ''
-                ? NetworkImage(widget.followUserList[index].iconURL)
+            backgroundColor: Colors.grey[300],
+            backgroundImage: widget.followUserList[index].iconThumnailURL != ''
+                ? CachedNetworkImageProvider(
+                    widget.followUserList[index].iconThumnailURL)
                 : null,
+            child: widget.followUserList[index].iconThumnailURL != ''
+                ? null
+                : Icon(Icons.person, size: 30, color: Colors.grey),
           ),
           title: Text(
               '${widget.followUserList[index].name}、${widget.followUserList[index].age}、${widget.followUserList[index].gender}'),
@@ -287,9 +290,13 @@ class FollowerList extends StatelessWidget {
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage: followerUserList[index].iconURL != ''
-                ? NetworkImage(followerUserList[index].iconURL)
+            backgroundImage: followerUserList[index].iconThumnailURL != ''
+                ? CachedNetworkImageProvider(
+                    followerUserList[index].iconThumnailURL)
                 : null,
+            child: followerUserList[index].iconThumnailURL != ''
+                ? null
+                : Icon(Icons.person, size: 40, color: Colors.grey),
           ),
           title: Text(
               '${followerUserList[index].name}、${followerUserList[index].age}、${followerUserList[index].gender}'),
@@ -306,14 +313,14 @@ class FollowerList extends StatelessWidget {
 
 class UserInformation {
   String userId;
-  String iconURL;
+  String iconThumnailURL;
   String name;
   int age;
   String gender;
 
   UserInformation(
       {required this.userId,
-      required this.iconURL,
+      required this.iconThumnailURL,
       required this.name,
       required this.age,
       required this.gender});

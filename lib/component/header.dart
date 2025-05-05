@@ -14,7 +14,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 20,
           color: AppColor.subTextColor,
         ),
@@ -24,7 +24,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
           (FirebaseAuth.instance.currentUser == null
           ? [
               Padding(
-                padding: EdgeInsets.only(right: 20),
+                padding: const EdgeInsets.only(right: 20),
                 child: TextButton(
                   onPressed: () {
                     context.go('/login');
@@ -32,7 +32,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white,
                   ),
-                  child: Text("ログイン",
+                  child: const Text("ログイン",
                       style: TextStyle(color: AppColor.mainTextColor)),
                 ),
               )

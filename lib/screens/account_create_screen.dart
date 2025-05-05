@@ -61,6 +61,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
         await FirebaseFirestore.instance.collection("users").doc(uid).set({
           "iconURL": "",
           "photoURLs": [""],
+          "uploadedAt": FieldValue.serverTimestamp(),
           "hasPhoto": false,
           "name": _nameController.text,
           "gender": _selectedGender,
@@ -79,7 +80,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
 
         // アカウント作成完了メッセージを表示
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text("アカウント作成が完了しました"),
             backgroundColor: Colors.green,
           ),
@@ -104,7 +105,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(
+      appBar: const Header(
         title: "アカウント作成",
       ),
       backgroundColor: AppColor.subBackgroundColor,
@@ -121,10 +122,10 @@ class _SignupFormState extends State<AccountCreateScreen> {
                 children: [
                   Container(
                     width: formWidth,
-                    padding: EdgeInsets.all(22),
-                    decoration: BoxDecoration(color: Color(0xFF)), //後ろ色
+                    padding: const EdgeInsets.all(22),
+                    decoration: const BoxDecoration(color: Color(0xFF)), //後ろ色
                     child: Container(
-                        padding: EdgeInsets.all(19),
+                        padding: const EdgeInsets.all(19),
                         decoration: BoxDecoration(
                           color: AppColor.subBackgroundColor, //でかい四角の色
                           borderRadius: BorderRadius.circular(7),
@@ -134,12 +135,12 @@ class _SignupFormState extends State<AccountCreateScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(height: 17),
-                              Text('プロフィールを設定しましょう',
+                              const SizedBox(height: 17),
+                              const Text('プロフィールを設定しましょう',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.black87)),
-                              SizedBox(height: 17),
-                              Align(
+                              const SizedBox(height: 17),
+                              const Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   '名前',
@@ -148,12 +149,12 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                 ),
                               ),
                               _buildLabeledTextField('name', formWidth),
-                              SizedBox(height: 17),
+                              const SizedBox(height: 17),
                               _buildGenderSelection(),
-                              SizedBox(height: 17),
+                              const SizedBox(height: 17),
                               _buildBirthDateFields(formWidth),
-                              SizedBox(height: 17),
-                              Align(
+                              const SizedBox(height: 17),
+                              const Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   '電子メール',
@@ -165,8 +166,8 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                 'mail',
                                 formWidth,
                               ),
-                              SizedBox(height: 17),
-                              Align(
+                              const SizedBox(height: 17),
+                              const Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'パスワード',
@@ -178,8 +179,8 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                 'password',
                                 formWidth,
                               ),
-                              SizedBox(height: 17),
-                              Align(
+                              const SizedBox(height: 17),
+                              const Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'パスワード（確認用）',
@@ -191,7 +192,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                 'passwordCheck',
                                 formWidth,
                               ),
-                              SizedBox(height: 17),
+                              const SizedBox(height: 17),
                               ElevatedButton(
                                 onPressed: () async {
                                   printTextField();
@@ -200,19 +201,19 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFF559900),
                                 ),
-                                child: Text('会員になる',
+                                child: const Text('会員になる',
                                     style: TextStyle(color: Colors.white)),
                               ),
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               RichText(
                                 text: TextSpan(
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 10, color: Colors.black87),
                                   children: [
-                                    TextSpan(text: '会員になると '),
+                                    const TextSpan(text: '会員になると '),
                                     TextSpan(
                                       text: '利用規約およびプライバシーポリシー',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.lightBlue,
                                         decoration: TextDecoration.underline,
                                         decorationColor: Colors.black,
@@ -223,7 +224,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                                           context.push('/terms-of-use');
                                         },
                                     ),
-                                    TextSpan(text: ' に同意したものとみなされます'),
+                                    const TextSpan(text: ' に同意したものとみなされます'),
                                   ],
                                 ),
                               ),
@@ -264,10 +265,10 @@ class _SignupFormState extends State<AccountCreateScreen> {
                 ? TextInputType.emailAddress
                 : TextInputType.text,
             decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelStyle: TextStyle(color: Color(0xFFE0E0E0)),
+              border: const OutlineInputBorder(),
+              labelStyle: const TextStyle(color: Color(0xFFE0E0E0)),
               contentPadding:
-                  EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
               suffixIcon: (textFieldType == 'password' ||
                       textFieldType == 'passwordCheck')
                   ? IconButton(
@@ -374,11 +375,11 @@ class _SignupFormState extends State<AccountCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           '性',
           style: TextStyle(fontSize: 13, color: Colors.black87),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Align(
           alignment: Alignment.centerLeft,
           child: ToggleButtons(
@@ -397,7 +398,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
             fillColor: Colors.green, // 選択時の背景色
             borderColor: Colors.black87, // 枠線の色
             borderWidth: 0.6, // 枠線の太さ
-            children: [
+            children: const [
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
@@ -425,10 +426,10 @@ class _SignupFormState extends State<AccountCreateScreen> {
         ),
         if (_genderError != null) // エラーメッセージを表示
           Padding(
-            padding: EdgeInsets.only(top: 5),
+            padding: const EdgeInsets.only(top: 5),
             child: Text(
               _genderError!,
-              style: TextStyle(color: AppColor.warningColor, fontSize: 12),
+              style: const TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
       ],
@@ -473,18 +474,18 @@ class _SignupFormState extends State<AccountCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           '誕生日',
           style: TextStyle(fontSize: 13, color: Colors.black87),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Row(
           children: [
             //// 年
             Expanded(
               child: DropdownButtonFormField<int>(
                 value: _selectedYear,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: '年',
                   contentPadding:
@@ -505,13 +506,13 @@ class _SignupFormState extends State<AccountCreateScreen> {
                 },
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
 
             // 月
             Expanded(
               child: DropdownButtonFormField<int>(
                 value: _selectedMonth,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: '月',
                   contentPadding:
@@ -532,13 +533,13 @@ class _SignupFormState extends State<AccountCreateScreen> {
                 },
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
 
             // 日
             Expanded(
               child: DropdownButtonFormField<int>(
                 value: _selectedDay,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: '日',
                   contentPadding:
@@ -562,14 +563,14 @@ class _SignupFormState extends State<AccountCreateScreen> {
         ),
         if (_birthdayError != null) // エラーメッセージを表示
           Padding(
-            padding: EdgeInsets.only(top: 5),
+            padding: const EdgeInsets.only(top: 5),
             child: Text(
               _birthdayError!,
-              style: TextStyle(color: AppColor.warningColor, fontSize: 12),
+              style: const TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
-        SizedBox(height: 8),
-        Text(
+        const SizedBox(height: 8),
+        const Text(
           '誕生日は年齢の計算に使用され、他のユーザーには表示されません',
           style: TextStyle(
             fontSize: 12,

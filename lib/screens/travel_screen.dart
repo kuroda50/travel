@@ -21,6 +21,7 @@ class _TravelScreenState extends State<TravelScreen> {
   late Timer _timer;
 
   List<String> latestPostIds = []; // 投稿の ID を格納
+  List<Map<String, dynamic>> cachedPosts = [];
 
   final List<String> _imageUrls = [
     'assets/images/OIP (1).jpg',

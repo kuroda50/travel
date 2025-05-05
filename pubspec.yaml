@@ -23,6 +23,10 @@ dependencies:
   fluttertoast: ^8.2.4 # ← この行を追加
   url_launcher: ^6.1.14
   file_picker: ^6.1.1
+  image: ^4.0.17
+  flutter_image_compress: ^2.1.0
+  cached_network_image: ^3.3.1 
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

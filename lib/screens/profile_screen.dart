@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/post_card.dart';
 import 'package:travel/functions/function.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../component/login_prompt.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -163,6 +164,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickImage() async {
+    final userRef =
+        FirebaseFirestore.instance.collection('users').doc(widget.userId);
+    final userDoc = await userRef.get();
+
+    //アップロード制限をチェックする
+    final lastUploaded = userDoc.data()?['lastUploaded']?.toDate();
+    final now = DateTime.now();
+    if (lastUploaded != null && now.difference(lastUploaded).inHours < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("プロフィール画像は1時間に1回まで変更できます。")),
+      );
+      return;
+    }
+
+    //画像を選択する
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
       withData: true, // Web用に画像のバイトデータを取得
@@ -173,11 +189,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String fileName = "${widget.userId}.jpg";
       String userId = FirebaseAuth.instance.currentUser!.uid;
 
+      // ✅ 圧縮処理をここに追加
+      final compressedBytes = await FlutterImageCompress.compressWithList(
+        fileBytes!,
+        quality: 70, // ✅ 画質を70%に
+        format: CompressFormat.jpeg,
+      );
+
       // Firebase Storage にアップロードする場合
       final storageRef =
           FirebaseStorage.instance.ref().child("user_icons/$fileName");
       await storageRef.putData(
-        fileBytes!,
+        Uint8List.fromList(compressedBytes), // ✅ 圧縮後のデータをアップロード
         SettableMetadata(
           contentType: 'image/jpeg',
           customMetadata: {'uid': userId},
@@ -185,16 +208,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       final imageUrl = await storageRef.getDownloadURL();
 
+      // ✅ 🔥 サムネイル生成（100x100px & 画質60%）
+      final thumbnailBytes = await FlutterImageCompress.compressWithList(
+        fileBytes,
+        minWidth: 100,
+        minHeight: 100,
+        quality: 60,
+        format: CompressFormat.jpeg,
+      );
+
+      // ✅ サムネイルアップロード
+      final thumbRef = FirebaseStorage.instance
+          .ref()
+          .child("user_icons/thumbnails/$fileName");
+      await thumbRef.putData(
+        Uint8List.fromList(thumbnailBytes),
+        SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {'uid': userId},
+        ),
+      );
+      final thumbnailUrl = await thumbRef.getDownloadURL();
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
-          .update({'iconURL': imageUrl, 'hasPhoto': true});
+          .update({
+        'iconURL': imageUrl,
+        'thumbnailURL': thumbnailUrl,
+        'hasPhoto': true,
+        "lastUploaded": now
+      });
 
       setState(() {
         userImageURL = imageUrl;
       });
 
-      print("画像のURL: $imageUrl");
     } else {
       print("画像が選択されませんでした");
     }

@@ -43,7 +43,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: "アカウント一覧"),
+      appBar: const Header(title: "アカウント一覧"),
       body: SafeArea(
         child: Column(
           children: [
@@ -52,13 +52,13 @@ class _AccountListScreenState extends State<AccountListScreen> {
                 future: _fetchUserData(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
-                    return Center(child: Text('エラーが発生しました'));
+                    return const Center(child: Text('エラーが発生しました'));
                   }
                   if (snapshot.data == null || snapshot.data!.isEmpty) {
-                    return Center(child: Text('データがありません'));
+                    return const Center(child: Text('データがありません'));
                   }
 
                   List<DocumentSnapshot> allDocs = snapshot.data!;
@@ -267,7 +267,7 @@ class _ListItemState extends State<ListItem> {
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
-        margin: EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -281,10 +281,10 @@ class _ListItemState extends State<ListItem> {
                         ? NetworkImage(widget.iconURL!)
                         : null, // URLが空の場合はnullを設定
                 child: widget.iconURL == null || widget.iconURL!.isEmpty
-                    ? Icon(Icons.person, size: 40, color: Colors.grey) // 仮のアイコン
+                    ? const Icon(Icons.person, size: 40, color: Colors.grey) // 仮のアイコン
                     : null,
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,34 +292,34 @@ class _ListItemState extends State<ListItem> {
                     Text(
                       '${widget.name}、${getAge() != null ? getAge().toString() + "歳" : "年齢不明"}',
                       style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         if (widget.gender == "male")
-                          Icon(Icons.male,
+                          const Icon(Icons.male,
                               color: Colors.blue, size: 20) // 男性アイコン（青）
                         else if (widget.gender == "female")
-                          Icon(Icons.female,
+                          const Icon(Icons.female,
                               color: Colors.red, size: 20) // 女性アイコン（赤）
                         else
-                          Icon(Icons.help_outline,
+                          const Icon(Icons.help_outline,
                               color: Colors.grey, size: 20), // 不明な場合のアイコン
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           widget.gender ?? '不明',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.sports_baseball,
+                        const Icon(Icons.sports_baseball,
                             size: 16, color: Colors.blue),
-                        SizedBox(width: 4),
-                        Text(getHobbiesText(), style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 4),
+                        Text(getHobbiesText(), style: const TextStyle(fontSize: 14)),
                       ],
                     ),
                   ],
@@ -337,14 +337,14 @@ class _ListItemState extends State<ListItem> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         isFollowing ? Colors.grey : AppColor.mainButtonColor,
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: Text(
                     isFollowing ? 'フォロー解除' : 'フォロー',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColor.subTextColor,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

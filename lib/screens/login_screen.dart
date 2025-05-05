@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        TextPainter textPainter = TextPainter(
+        TextPainter(
           text: TextSpan(
             text: text,
             style: TextStyle(color: Colors.grey, fontSize: 16),
@@ -197,8 +197,6 @@ class _LoginScreenState extends State<LoginScreen> {
           maxLines: 1,
           textDirection: TextDirection.ltr,
         )..layout();
-
-        double textWidth = textPainter.width;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

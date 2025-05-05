@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../functions/function.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../functions/function.dart';
 import '../component/login_prompt.dart';
 
 class PostCard extends StatefulWidget {
@@ -31,9 +32,16 @@ class _PostCardState extends State<PostCard> {
     'Sat': '土',
     'Sun': '日'
   };
+
   List<RecruitmentPost> recruitmentPosts = [];
   bool isLoading = true;
   List<String> favoritePosts = [];
+
+  // キャッシュ用のMap
+  final Map<String, Map<String, dynamic>> _postCache = {};
+  final Map<String, Map<String, dynamic>> _organizerCache = {};
+
+  List<Map<String, dynamic>> cachesPosts = [];
 
   @override
   void initState() {
@@ -62,37 +70,71 @@ class _PostCardState extends State<PostCard> {
     });
   }
 
+  // キャッシュを使う処理
   Future<List<RecruitmentPost>> fetchRecruitmentLists(
       List<String> recruitmentPostIdList) async {
     List<RecruitmentPost> recruitmentPosts = [];
-    for (String postId in recruitmentPostIdList) {
-      DocumentSnapshot recruitmentSnapshot = await FirebaseFirestore.instance
+
+    // まだキャッシュされてない投稿IDだけ抽出
+    List<String> uncachedPostIds = recruitmentPostIdList
+        .where((id) => !_postCache.containsKey(id))
+        .toList();
+
+    // 10件ずつ取得
+    for (int i = 0; i < uncachedPostIds.length; i += 10) {
+      List<String> batchIds = uncachedPostIds.sublist(
+        i,
+        i + 10 > uncachedPostIds.length ? uncachedPostIds.length : i + 10,
+      );
+
+      QuerySnapshot batchSnapshot = await FirebaseFirestore.instance
           .collection('posts')
-          .doc(postId)
+          .where(FieldPath.documentId, whereIn: batchIds)
           .get();
-      if (!recruitmentSnapshot.exists) {
-        print("募集情報が見つかりません");
-        continue;
+
+      for (var doc in batchSnapshot.docs) {
+        _postCache[doc.id] = doc.data() as Map<String, dynamic>;
       }
-      var recruitment = recruitmentSnapshot.data() as Map<String, dynamic>;
-      String organizerId = recruitment['organizer']['organizerId'];
+    }
 
-      DocumentSnapshot organizerSnapshot = await FirebaseFirestore.instance
+    // organizerIdリストアップ（キャッシュ未取得分のみ）
+    Set<String> organizerIds = {};
+    for (var id in recruitmentPostIdList) {
+      var post = _postCache[id];
+      if (post != null) {
+        String organizerId = post['organizer']['organizerId'];
+        if (!_organizerCache.containsKey(organizerId)) {
+          organizerIds.add(organizerId);
+        }
+      }
+    }
+
+    // organizerを10件ずつ取得
+    List<String> organizerIdList = organizerIds.toList();
+    for (int i = 0; i < organizerIdList.length; i += 10) {
+      List<String> batchOrganizerIds = organizerIdList.sublist(
+        i,
+        i + 10 > organizerIdList.length ? organizerIdList.length : i + 10,
+      );
+
+      QuerySnapshot organizerSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(organizerId)
+          .where(FieldPath.documentId, whereIn: batchOrganizerIds)
           .get();
 
-      Map<String, dynamic>? organizerData =
-          organizerSnapshot.data() as Map<String, dynamic>?;
+      for (var doc in organizerSnapshot.docs) {
+        _organizerCache[doc.id] = doc.data() as Map<String, dynamic>;
+      }
+    }
 
-      // 主催者情報が存在しない場合はデフォルト値を設定
-      String organizerPhotoURL = organizerData?['iconURL'] ?? "";
-      String organizerName = organizerData?['name'] ?? "不明";
-      String organizerAge = organizerData?['birthday'] != null
-          ? calculateAge(organizerData!['birthday'].toDate()).toString()
-          : "不明";
+    // キャッシュデータをRecruitmentPostに変換
+    for (var postId in recruitmentPostIdList) {
+      Map<String, dynamic>? recruitment = _postCache[postId];
+      if (recruitment == null) continue;
 
-      // 'post' をここで初期化
+      String organizerId = recruitment['organizer']['organizerId'];
+      Map<String, dynamic>? organizerData = _organizerCache[organizerId];
+
       RecruitmentPost post = RecruitmentPost(
         postId: postId,
         title: recruitment['title'],
@@ -107,12 +149,14 @@ class _PostCardState extends State<PostCard> {
         destinations: List<String>.from(recruitment['where']['destination']
             .map((destination) => destination.toString())
             .toList()),
-        organizerPhotoURL: organizerPhotoURL,
+        organizerThumbnailURL: organizerData?['thumbnailURL'] ?? "",
         organizerGroup:
             reverseGenderMap[recruitment['organizer']['organizerGroup']] ??
                 "不明",
-        organizerName: organizerName,
-        organizerAge: organizerAge,
+        organizerName: organizerData?['name'] ?? "不明",
+        organizerAge: organizerData?['birthday'] != null
+            ? calculateAge(organizerData!['birthday'].toDate()).toString()
+            : "不明",
         startDate: DateFormat('yyyy/MM/dd')
             .format(recruitment['when']['startDate'].toDate())
             .toString(),
@@ -124,9 +168,9 @@ class _PostCardState extends State<PostCard> {
             .toList()),
         isBookmarked: favoritePosts.contains(postId),
       );
-      // 'post' をリストに追加
       recruitmentPosts.add(post);
     }
+
     return recruitmentPosts;
   }
 
@@ -155,10 +199,10 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     if (recruitmentPosts.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           "募集がありません",
         ),
@@ -166,7 +210,7 @@ class _PostCardState extends State<PostCard> {
     }
     return ListView(
       shrinkWrap: true, // 親のスクロールビューに合わせる
-      physics: NeverScrollableScrollPhysics(), // 子のスクロールを無効化
+      physics: const NeverScrollableScrollPhysics(), // 子のスクロールを無効化
       children: recruitmentPosts.map((post) {
         String ageRange;
         if (post.targetAgeMin == "null" && post.targetAgeMax == "null") {
@@ -182,21 +226,22 @@ class _PostCardState extends State<PostCard> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
+          margin: const EdgeInsets.symmetric(vertical: 8),
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: Colors.grey[300],
-              backgroundImage: post.organizerPhotoURL.isNotEmpty
-                  ? NetworkImage(post.organizerPhotoURL)
+              backgroundImage: post.organizerThumbnailURL.isNotEmpty
+                  ? CachedNetworkImageProvider(post.organizerThumbnailURL)
                   : null, // URLが空の場合はnullを設定
-              child: post.organizerPhotoURL.isNotEmpty
+              child: post.organizerThumbnailURL.isNotEmpty
                   ? null
-                  : Icon(Icons.person, size: 40, color: Colors.grey), // 代替アイコン
+                  : const Icon(Icons.person,
+                      size: 40, color: Colors.grey), // 代替アイコン
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text('${post.title}'),
+                Text(post.title),
                 Text(
                     '${post.organizerGroup}>${post.targetGroups.join("、")} ${ageRange} ${post.targetHasPhoto}'),
                 Text(post.destinations
@@ -237,7 +282,7 @@ class RecruitmentPost {
   String targetAgeMax;
   String targetHasPhoto;
   List<String> destinations;
-  String organizerPhotoURL;
+  String organizerThumbnailURL;
   String organizerGroup;
   String organizerName;
   String organizerAge;
@@ -254,7 +299,7 @@ class RecruitmentPost {
     required this.targetAgeMax,
     required this.targetHasPhoto,
     required this.destinations,
-    required this.organizerPhotoURL,
+    required this.organizerThumbnailURL,
     required this.organizerGroup,
     required this.organizerName,
     required this.organizerAge,

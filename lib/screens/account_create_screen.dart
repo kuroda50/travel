@@ -117,6 +117,10 @@ class _SignupFormState extends State<AccountCreateScreen> {
 
           return Center(
             child: SingleChildScrollView(
+                child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -234,7 +238,7 @@ class _SignupFormState extends State<AccountCreateScreen> {
                   ),
                 ],
               ),
-            ),
+            )),
           );
         },
       ),
@@ -429,7 +433,8 @@ class _SignupFormState extends State<AccountCreateScreen> {
             padding: const EdgeInsets.only(top: 5),
             child: Text(
               _genderError!,
-              style: const TextStyle(color: AppColor.warningColor, fontSize: 12),
+              style:
+                  const TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
       ],
@@ -566,7 +571,8 @@ class _SignupFormState extends State<AccountCreateScreen> {
             padding: const EdgeInsets.only(top: 5),
             child: Text(
               _birthdayError!,
-              style: const TextStyle(color: AppColor.warningColor, fontSize: 12),
+              style:
+                  const TextStyle(color: AppColor.warningColor, fontSize: 12),
             ),
           ),
         const SizedBox(height: 8),

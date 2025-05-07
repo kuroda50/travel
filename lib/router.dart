@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/screens/email_change_screen.dart';
-import 'package:travel/screens/email_change_screen2.dart';
 
 import 'screens/travel_search.dart';
 import 'screens/travel_screen.dart';
@@ -31,7 +30,7 @@ final GoRouter goRouter = GoRouter(
       name: 'login',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: CustomBottomNavigationBar(
+        child: const CustomBottomNavigationBar(
           child: LoginScreen(),
         ),
       ),
@@ -99,7 +98,7 @@ final GoRouter goRouter = GoRouter(
       name: 'sameHobby',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: CustomBottomNavigationBar(
+        child: const CustomBottomNavigationBar(
           child: SameHobbyScreen(),
         ),
       ),
@@ -142,7 +141,7 @@ final GoRouter goRouter = GoRouter(
       name: 'followList',
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
-        child: CustomBottomNavigationBar(
+        child: const CustomBottomNavigationBar(
           child: FollowListScreen(),
         ),
       ),
@@ -196,16 +195,6 @@ final GoRouter goRouter = GoRouter(
         key: state.pageKey,
         child: const CustomBottomNavigationBar(
           child: EmailChangeScreen(),
-        ),
-      ),
-    ),
-    GoRoute(
-      path: '/email-change-2',
-      name: 'emailChange2',
-      pageBuilder: (context, state) => NoTransitionPage(
-        key: state.pageKey,
-        child: const CustomBottomNavigationBar(
-          child: EmailChangeScreen2(),
         ),
       ),
     ),

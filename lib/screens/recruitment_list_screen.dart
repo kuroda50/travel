@@ -14,12 +14,18 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(
+      appBar: const Header(
         title: "募集",
       ),
       body: SingleChildScrollView(
-        child: PostCard(postIds: widget.postIds),
-      ),
+          padding: EdgeInsets.all(16.0),
+          child: Center(
+              child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+            ),
+            child: PostCard(postIds: widget.postIds),
+          ))),
     );
   }
 }

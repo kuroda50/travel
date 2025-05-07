@@ -89,16 +89,21 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: Header(title: "募集投稿"),
+        appBar: const Header(title: "募集投稿"),
         body: SafeArea(
+            child: Center(
+                child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+          ),
           child: Column(
             children: [
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: <Widget>[
-                    SizedBox(height: 16),
-                    Row(
+                    const SizedBox(height: 16),
+                    const Row(
                       children: [
                         Padding(
                           padding: EdgeInsets.only(left: 145), // 左側のパディングを調整
@@ -110,7 +115,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     // タグ
                     _buildTaginput(),
                     // どこへ
@@ -159,7 +164,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     // 本文
                     _buildSectionTitle('本文(必須)'),
                     _buildDescriptionInput(),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     // ボタン
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -168,7 +173,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                           onPressed: () {
                             resetPost();
                           },
-                          child: Text('リセット',
+                          child: const Text('リセット',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
@@ -179,9 +184,9 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                           onPressed: () async {
                             await _postToFirestore();
                           },
-                          icon: Icon(Icons.send, color: Colors.white),
-                          label:
-                              Text('投稿', style: TextStyle(color: Colors.white)),
+                          icon: const Icon(Icons.send, color: Colors.white),
+                          label: const Text('投稿',
+                              style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColor.mainButtonColor,
                           ),
@@ -193,7 +198,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               ),
             ],
           ),
-        ),
+        ))),
       ),
     );
   }
@@ -277,7 +282,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     Text(
                       value,
                     ),
-                    Icon(Icons.expand_more),
+                    const Icon(Icons.expand_more),
                   ],
                 ),
               ),
@@ -338,7 +343,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               padding: const EdgeInsets.only(left: 8.0),
               child: Text(label),
             ),
-            SizedBox(
+            const SizedBox(
               width: 20,
             ),
             Expanded(
@@ -352,7 +357,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       textAlign: TextAlign.end,
                     ),
                   ),
-                  Icon(Icons.expand_more),
+                  const Icon(Icons.expand_more),
                 ],
               ),
             ),
@@ -370,7 +375,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
             Expanded(
               child: TextField(
                 controller: tagController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'タグを入力',
                 ),
                 onSubmitted: (value) {
@@ -379,14 +384,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.add),
+              icon: const Icon(Icons.add),
               onPressed: () {
                 addTag();
               },
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 8.0,
           children: tags
@@ -411,11 +416,11 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       children: [
         TextField(
           controller: titleController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'タイトルを入力',
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -425,12 +430,12 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       children: [
         TextField(
           controller: descriptionController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: '本文を入力',
           ),
           maxLines: 5,
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -469,7 +474,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       child: Text(selectedBudgetMin),
                     ),
                   ),
-                  Text(' 万円〜 '),
+                  const Text(' 万円〜 '),
                   Container(
                     width: 40,
                     height: 24,
@@ -480,8 +485,8 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       child: Text(selectedBudgetMax),
                     ),
                   ),
-                  Text(' 万円'),
-                  Icon(Icons.expand_more),
+                  const Text(' 万円'),
+                  const Icon(Icons.expand_more),
                 ],
               ),
             ),
@@ -502,13 +507,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            title: Text('予算設定'),
+            title: const Text('予算設定'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 TextField(
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: '最低予算（万円）'),
+                  decoration: const InputDecoration(labelText: '最低予算（万円）'),
                   onChanged: (value) {
                     budgetMin = value;
                   },
@@ -517,7 +522,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                 ),
                 TextField(
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: '最高予算（万円）'),
+                  decoration: const InputDecoration(labelText: '最高予算（万円）'),
                   onChanged: (value) {
                     budgetMax = value;
                   },
@@ -530,20 +535,20 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       errorMessage,
-                      style: TextStyle(color: Colors.red),
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
               ],
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('キャンセル'),
+                child: const Text('キャンセル'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   if (budgetMin.isNotEmpty &&
                       budgetMax.isNotEmpty &&
@@ -591,13 +596,14 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            title: Text('年齢設定'),
+            title: const Text('年齢設定'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 TextField(
-                  keyboardType: TextInputType.numberWithOptions(decimal: false),
-                  decoration: InputDecoration(labelText: '最低年齢'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: false),
+                  decoration: const InputDecoration(labelText: '最低年齢'),
                   maxLength: 3,
                   onChanged: (value) {
                     ageMin = value;
@@ -608,8 +614,9 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                   ], // 追加
                 ),
                 TextField(
-                  keyboardType: TextInputType.numberWithOptions(decimal: false),
-                  decoration: InputDecoration(labelText: '最高年齢'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: false),
+                  decoration: const InputDecoration(labelText: '最高年齢'),
                   maxLength: 3,
                   onChanged: (value) {
                     ageMax = value;
@@ -625,20 +632,20 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       errorMessage,
-                      style: TextStyle(color: Colors.red),
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
               ],
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('キャンセル'),
+                child: const Text('キャンセル'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   if (ageMin.isNotEmpty &&
                       ageMax.isNotEmpty &&
@@ -675,7 +682,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -689,7 +696,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -700,13 +707,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          icon: Icon(Icons.arrow_back)),
-                      Text('行き先',
+                          icon: const Icon(Icons.arrow_back)),
+                      const Text('行き先',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   for (var destination in destinations)
                     CheckboxListTile(
                       title: Text(destination),
@@ -747,7 +754,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -757,13 +764,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.arrow_back)),
-                    Text('曜日',
+                        icon: const Icon(Icons.arrow_back)),
+                    const Text('曜日',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 for (var day in days)
                   CheckboxListTile(
                     title: Text(day),
@@ -804,7 +811,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -814,13 +821,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      icon: Icon(Icons.arrow_back)),
-                  Text('主催者の性別、属性',
+                      icon: const Icon(Icons.arrow_back)),
+                  const Text('主催者の性別、属性',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var gender in genders)
                 ListTile(
                   title: Text(gender),
@@ -848,7 +855,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -858,13 +865,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.arrow_back)),
-                    Text('募集する人の性別、属性',
+                        icon: const Icon(Icons.arrow_back)),
+                    const Text('募集する人の性別、属性',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 for (var gender in genders)
                   CheckboxListTile(
                     title: Text(gender),
@@ -911,7 +918,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -921,13 +928,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      icon: Icon(Icons.arrow_back)),
-                  Text('お金の分け方',
+                      icon: const Icon(Icons.arrow_back)),
+                  const Text('お金の分け方',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var paymentMethod in paymentMethods)
                 ListTile(
                   title: Text(paymentMethod),
@@ -955,7 +962,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -969,13 +976,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
                               selectedDestinations = selectedDestinations;
                             });
                           },
-                          icon: Icon(Icons.arrow_back)),
-                      Text('出発地',
+                          icon: const Icon(Icons.arrow_back)),
+                      const Text('出発地',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   for (var destination in destinations)
                     CheckboxListTile(
                       title: Text(destination),
@@ -1011,13 +1018,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text('方面',
+              const Text('方面',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var region in destinationsByArea.keys)
                 ListTile(
                   title: Text(region),
@@ -1041,13 +1048,13 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text('方面',
+              const Text('方面',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var region in destinationsByArea.keys)
                 ListTile(
                   title: Text(region),
@@ -1121,7 +1128,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
 
     final userData = userDoc.data() as Map<String, dynamic>;
     if (!_validateInputs()) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("すべての必須項目を入力してください"), backgroundColor: Colors.red));
       return;
     }

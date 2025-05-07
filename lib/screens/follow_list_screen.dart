@@ -147,7 +147,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
   @override
   Widget build(BuildContext context) {
     if (userId.isEmpty) {
-      return Scaffold(
+      return const Scaffold(
         appBar: Header(
           title: "お気に入り",
         ),
@@ -157,35 +157,42 @@ class _FollowListScreenState extends State<FollowListScreen> {
     return DefaultTabController(
       length: 3, // タブの数を指定
       child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColor.mainButtonColor,
-          title: const Text(
-            '旅へ行こう！',
-            style: TextStyle(
-              fontSize: 20,
-              color: AppColor.subTextColor,
+          appBar: AppBar(
+            backgroundColor: AppColor.mainButtonColor,
+            title: const Text(
+              '旅へ行こう！',
+              style: TextStyle(
+                fontSize: 20,
+                color: AppColor.subTextColor,
+              ),
+            ),
+            bottom: TabBar(
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.black,
+              indicatorColor: Colors.white,
+              tabs: [
+                Tab(text: 'フォロー(${followingUserList.length})'),
+                Tab(text: 'フォロワー(${followerUserList.length})'),
+                Tab(text: '募集(${followingPostsIdList.length})'),
+              ],
             ),
           ),
-          bottom: TabBar(
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.black,
-            indicatorColor: Colors.white,
-            tabs: [
-              Tab(text: 'フォロー(${followingUserList.length})'),
-              Tab(text: 'フォロワー(${followerUserList.length})'),
-              Tab(text: '募集(${followingPostsIdList.length})'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            FollowingList(userId: userId, followUserList: followingUserList),
-            FollowerList(userId: userId, followerUserList: followerUserList),
-            SingleChildScrollView(
-                child: PostCard(postIds: followingPostsIdList)),
-          ],
-        ),
-      ),
+          body: Center(
+              child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+            ),
+            child: TabBarView(
+              children: [
+                FollowingList(
+                    userId: userId, followUserList: followingUserList),
+                FollowerList(
+                    userId: userId, followerUserList: followerUserList),
+                SingleChildScrollView(
+                    child: PostCard(postIds: followingPostsIdList)),
+              ],
+            ),
+          ))),
     );
   }
 }
@@ -202,8 +209,10 @@ class FollowingList extends StatefulWidget {
 
 class _FollowingListState extends State<FollowingList> {
   Future<void> deleteFollow(String targetUserId) async {
-    final userRef = FirebaseFirestore.instance.collection('users').doc(widget.userId);
-    final targetUserRef = FirebaseFirestore.instance.collection('users').doc(targetUserId);
+    final userRef =
+        FirebaseFirestore.instance.collection('users').doc(widget.userId);
+    final targetUserRef =
+        FirebaseFirestore.instance.collection('users').doc(targetUserId);
 
     WriteBatch batch = FirebaseFirestore.instance.batch();
     batch.update(userRef, {
@@ -231,7 +240,7 @@ class _FollowingListState extends State<FollowingList> {
   @override
   Widget build(BuildContext context) {
     if (widget.followUserList.isEmpty) {
-      return Center(
+      return const Center(
         child: Text("フォローしているユーザがいません"),
       );
     }
@@ -248,7 +257,7 @@ class _FollowingListState extends State<FollowingList> {
                 : null,
             child: widget.followUserList[index].iconThumnailURL != ''
                 ? null
-                : Icon(Icons.person, size: 30, color: Colors.grey),
+                : const Icon(Icons.person, size: 30, color: Colors.grey),
           ),
           title: Text(
               '${widget.followUserList[index].name}、${widget.followUserList[index].age}、${widget.followUserList[index].gender}'),
@@ -280,7 +289,7 @@ class FollowerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (followerUserList.isEmpty) {
-      return Center(
+      return const Center(
         child: Text("フォロワーがいません"),
       );
     }
@@ -296,7 +305,7 @@ class FollowerList extends StatelessWidget {
                 : null,
             child: followerUserList[index].iconThumnailURL != ''
                 ? null
-                : Icon(Icons.person, size: 40, color: Colors.grey),
+                : const Icon(Icons.person, size: 40, color: Colors.grey),
           ),
           title: Text(
               '${followerUserList[index].name}、${followerUserList[index].age}、${followerUserList[index].gender}'),

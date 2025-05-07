@@ -173,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final now = DateTime.now();
     if (lastUploaded != null && now.difference(lastUploaded).inHours < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("プロフィール画像は1時間に1回まで変更できます。")),
+        const SnackBar(content: Text("プロフィール画像は1時間に1回まで変更できます。")),
       );
       return;
     }
@@ -243,7 +243,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         userImageURL = imageUrl;
       });
-
     } else {
       print("画像が選択されませんでした");
     }
@@ -252,26 +251,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(
+      appBar: const Header(
         title: "プロフィール",
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfileSection(),
-              SizedBox(height: 20),
-              Text('今までの募集',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              recruitmentPostIdList.isNotEmpty
-                  ? PostCard(postIds: recruitmentPostIdList)
-                  : Text("今までの募集はありません")
-            ],
-          ),
-        ),
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+                child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfileSection(),
+                  const SizedBox(height: 20),
+                  const Text('今までの募集',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  recruitmentPostIdList.isNotEmpty
+                      ? PostCard(postIds: recruitmentPostIdList)
+                      : const Text("今までの募集はありません")
+                ],
+              ),
+            ))),
       ),
     );
   }
@@ -298,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onTap: isMyProfile ? _pickImage : null,
                         child: CircleAvatar(
                           radius: 40,
-                          child: Icon(
+                          child: const Icon(
                             Icons.camera_alt,
                             size: 30,
                             color: Colors.grey,
@@ -306,7 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           backgroundColor: Colors.grey[200],
                         ),
                       ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,14 +322,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Expanded(
                             child: Text(
                               '${name}  ${age}歳',
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (isMyProfile) // isMyProfileがtrueの時だけ表示する
                             Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColor.mainButtonColor,
                                 shape: BoxShape.circle,
                               ),
@@ -332,13 +337,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 onPressed: () {
                                   context.push('/settings');
                                 },
-                                icon: Icon(Icons.settings,
+                                icon: const Icon(Icons.settings,
                                     color: AppColor.subTextColor),
                               ),
                             ),
                         ],
                       ),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       isMyProfile
                           ? ElevatedButton.icon(
                               onPressed: () async {
@@ -357,22 +362,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   });
                                 }
                               },
-                              icon: Icon(Icons.edit,
+                              icon: const Icon(Icons.edit,
                                   color: AppColor.subTextColor),
-                              label: Text(
+                              label: const Text(
                                 'プロフィールを編集する',
                                 style: TextStyle(color: AppColor.subTextColor),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColor.mainButtonColor,
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 12),
                               ),
                             )
                           : Row(
                               children: [
                                 Container(
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: AppColor.mainButtonColor,
                                     shape: BoxShape.circle,
                                   ),
@@ -380,18 +385,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     onPressed: () async {
                                       await goMessageScreen();
                                     },
-                                    icon: Icon(Icons.mail,
+                                    icon: const Icon(Icons.mail,
                                         color: AppColor.subTextColor),
                                   ),
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 ElevatedButton(
                                   onPressed:
                                       _toggleFollow, // フォロー状態を切り替える関数を呼び出す
                                   child: Text(
                                     isFollowing ? 'フォロー中' : 'フォロー',
-                                    style:
-                                        TextStyle(color: AppColor.subTextColor),
+                                    style: const TextStyle(
+                                        color: AppColor.subTextColor),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                       backgroundColor:
@@ -404,20 +409,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
-            Text('自己紹介文', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 4),
+            const SizedBox(height: 16),
+            const Text('自己紹介文', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
             Text('${bio}'),
-            SizedBox(height: 16),
-            Text('趣味', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 4),
+            const SizedBox(height: 16),
+            const Text('趣味', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 4,
               children:
                   hobbies.map((hobby) => Chip(label: Text(hobby))).toList(),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
         ),
       ),

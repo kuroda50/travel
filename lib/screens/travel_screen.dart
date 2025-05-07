@@ -89,105 +89,112 @@ class _TravelScreenState extends State<TravelScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    context.push('/travel_search');
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('募集を検索する'),
-                        Icon(Icons.search),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16),
-                // 画像スライドショーを追加
-                Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    Container(
-                      width: 390,
-                      height: 227,
-                      child: PageView.builder(
-                        controller: _pageController,
-                        itemCount: _imageUrls.length,
-                        itemBuilder: (context, index) {
-                          return Image.asset(
-                            _imageUrls[index],
-                            fit: BoxFit.cover,
-                          );
-                        },
-                        onPageChanged: (int page) {
-                          setState(() {
-                            _currentPage = page;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16), // 余白追加
-                // 他のウィジェット
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.push('/same-hobby');
-                      },
-                      child: Text('同じ趣味の人をさがす'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.mainButtonColor,
-                        foregroundColor: AppColor.subTextColor,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16), // 余白追加
-                latestPostIds.isEmpty
-                    ? Center(
-                        child: CircularProgressIndicator()) // データ取得中はローディングを表示
-                    : PostCard(postIds: latestPostIds),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 600),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       GestureDetector(
-                        onTap: () async {
-                          // 全ての投稿のIDを取得
-                          QuerySnapshot querySnapshot = await FirebaseFirestore
-                              .instance
-                              .collection('posts')
-                              .get();
-                          List<String> allPostIds =
-                              querySnapshot.docs.map((doc) => doc.id).toList();
-
-                          // 次の画面に全ての投稿のIDを渡す
-                          context.push('/recruitment-list', extra: allPostIds);
+                        onTap: () {
+                          context.push('/travel_search');
                         },
-                        child: Text('全て表示する >'),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('募集を検索する'),
+                              Icon(Icons.search),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      // 画像スライドショーを追加
+                      Stack(
+                        alignment: Alignment.topCenter,
+                        children: [
+                          Container(
+                            width: 390,
+                            height: 227,
+                            child: PageView.builder(
+                              controller: _pageController,
+                              itemCount: _imageUrls.length,
+                              itemBuilder: (context, index) {
+                                return Image.asset(
+                                  _imageUrls[index],
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                              onPageChanged: (int page) {
+                                setState(() {
+                                  _currentPage = page;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16), // 余白追加
+                      // 他のウィジェット
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              context.push('/same-hobby');
+                            },
+                            child: Text('同じ趣味の人をさがす'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColor.mainButtonColor,
+                              foregroundColor: AppColor.subTextColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16), // 余白追加
+                      latestPostIds.isEmpty
+                          ? Center(
+                              child:
+                                  CircularProgressIndicator()) // データ取得中はローディングを表示
+                          : PostCard(postIds: latestPostIds),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () async {
+                                // 全ての投稿のIDを取得
+                                QuerySnapshot querySnapshot =
+                                    await FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .get();
+                                List<String> allPostIds = querySnapshot.docs
+                                    .map((doc) => doc.id)
+                                    .toList();
+
+                                // 次の画面に全ての投稿のIDを渡す
+                                context.push('/recruitment-list',
+                                    extra: allPostIds);
+                              },
+                              child: Text('全て表示する >'),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              )),
         ),
       ),
     );

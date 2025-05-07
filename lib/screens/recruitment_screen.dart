@@ -346,165 +346,173 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
         ),
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              if (organizerImageURL.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(organizerImageURL),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text('タイトル: $title', style: const TextStyle(fontSize: 18)),
-                    Text('タグ: $tags', style: const TextStyle(fontSize: 16)),
-                    const SizedBox(height: 20),
-                    const Text('どこへ',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(title: const Text('方面'), trailing: Text(area)),
-                    ListTile(
-                        title: const Text('行き先'), trailing: Text(destination)),
-                    const SizedBox(height: 20),
-                    const Text('いつ',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(
-                        title: const Text('いつから'), trailing: Text(startDate)),
-                    ListTile(
-                        title: const Text('いつまで'), trailing: Text(endDate)),
-                    ListTile(
-                        title: const Text('曜日'), trailing: Text(daysOfWeek)),
-                    const SizedBox(height: 20),
-                    const Text('募集する人',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
-                    ListTile(
-                        title: const Text('性別、属性'),
-                        trailing: Text(targetGroups)),
-                    ListTile(title: const Text('年齢'), trailing: Text(age)),
-                    ListTile(
-                        title: const Text('写真付き'), trailing: Text(hasPhoto)),
-                  ],
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text("参加メンバー",
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 16, right: 16, left: 16),
-                child: Text("主催者"),
-              ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: organizerImageURL.isNotEmpty
-                      ? NetworkImage(organizerImageURL)
-                      : null,
-                ),
-                title: Text(
-                    "$organizerName、$organizerAge歳、${reverseGenderMap[organizerGroup] ?? organizerGroup}"),
-                onTap: () {
-                  if (FirebaseAuth.instance.currentUser == null) {
-                    showLoginPrompt(context);
-                    return;
-                  }
-                  context.push('/profile/${organizerId}');
-                },
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 16, right: 16, left: 16),
-                child: Text("参加者"),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: memberTextList.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: memberImageURLList[index].isNotEmpty
-                          ? NetworkImage(memberImageURLList[index])
-                          : null,
-                    ),
-                    title: Text(memberTextList[index]),
-                    onTap: () {
-                      if (FirebaseAuth.instance.currentUser == null) {
-                        showLoginPrompt(context);
-                        return;
-                      }
-                      context.push('/profile/${memberIdList[index]}');
-                    },
-                  );
-                },
-              ),
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text("お金について",
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-              ListTile(title: const Text('予算'), trailing: Text(budget)),
-              ListTile(
-                  title: const Text('お金の分け方'),
-                  trailing:
-                      Text(reversePaymentMethodMap[budgetType] ?? budgetType)),
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text("集合場所",
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-              ListTile(title: const Text('方面'), trailing: Text(region)),
-              ListTile(title: const Text('出発地'), trailing: Text(departure)),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFBFAF6),
-                    border: Border.all(color: Colors.grey),
-                  ),
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(description),
-                ),
-              ),
-              // 現在のログインユーザーのIDと投稿の作成者ID(organizerId)が異なる場合のみ表示する処理
-              if (FirebaseAuth.instance.currentUser != null)
-                if (FirebaseAuth.instance.currentUser!.uid !=
-                    organizerId) // ログインユーザーが投稿作成者と違うかをチェック
-                  Padding(
-                    padding: const EdgeInsets.all(16.0), // ボタン周りの余白設定
-                    child: SizedBox(
-                      width: double.infinity, // ボタンの横幅を画面いっぱいに広げる
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // ボタンタップ時の処理
-                          goMessageScreen(); // チャット画面に遷移する関数を呼ぶ
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text("話を聞きたい"),
+            child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (organizerImageURL.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(organizerImageURL),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('タイトル: $title',
+                          style: const TextStyle(fontSize: 18)),
+                      Text('タグ: $tags', style: const TextStyle(fontSize: 16)),
+                      const SizedBox(height: 20),
+                      const Text('どこへ',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      ListTile(title: const Text('方面'), trailing: Text(area)),
+                      ListTile(
+                          title: const Text('行き先'),
+                          trailing: Text(destination)),
+                      const SizedBox(height: 20),
+                      const Text('いつ',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      ListTile(
+                          title: const Text('いつから'), trailing: Text(startDate)),
+                      ListTile(
+                          title: const Text('いつまで'), trailing: Text(endDate)),
+                      ListTile(
+                          title: const Text('曜日'), trailing: Text(daysOfWeek)),
+                      const SizedBox(height: 20),
+                      const Text('募集する人',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      ListTile(
+                          title: const Text('性別、属性'),
+                          trailing: Text(targetGroups)),
+                      ListTile(title: const Text('年齢'), trailing: Text(age)),
+                      ListTile(
+                          title: const Text('写真付き'), trailing: Text(hasPhoto)),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text("参加メンバー",
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16, right: 16, left: 16),
+                  child: Text("主催者"),
+                ),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: organizerImageURL.isNotEmpty
+                        ? NetworkImage(organizerImageURL)
+                        : null,
+                  ),
+                  title: Text(
+                      "$organizerName、$organizerAge歳、${reverseGenderMap[organizerGroup] ?? organizerGroup}"),
+                  onTap: () {
+                    if (FirebaseAuth.instance.currentUser == null) {
+                      showLoginPrompt(context);
+                      return;
+                    }
+                    context.push('/profile/${organizerId}');
+                  },
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16, right: 16, left: 16),
+                  child: Text("参加者"),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: memberTextList.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.grey[300],
+                        backgroundImage: memberImageURLList[index].isNotEmpty
+                            ? NetworkImage(memberImageURLList[index])
+                            : null,
+                      ),
+                      title: Text(memberTextList[index]),
+                      onTap: () {
+                        if (FirebaseAuth.instance.currentUser == null) {
+                          showLoginPrompt(context);
+                          return;
+                        }
+                        context.push('/profile/${memberIdList[index]}');
+                      },
+                    );
+                  },
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text("お金について",
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+                ListTile(title: const Text('予算'), trailing: Text(budget)),
+                ListTile(
+                    title: const Text('お金の分け方'),
+                    trailing: Text(
+                        reversePaymentMethodMap[budgetType] ?? budgetType)),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text("集合場所",
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+                ListTile(title: const Text('方面'), trailing: Text(region)),
+                ListTile(title: const Text('出発地'), trailing: Text(departure)),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBFAF6),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(description),
+                  ),
+                ),
+                // 現在のログインユーザーのIDと投稿の作成者ID(organizerId)が異なる場合のみ表示する処理
+                if (FirebaseAuth.instance.currentUser != null)
+                  if (FirebaseAuth.instance.currentUser!.uid !=
+                      organizerId) // ログインユーザーが投稿作成者と違うかをチェック
+                    Padding(
+                      padding: const EdgeInsets.all(16.0), // ボタン周りの余白設定
+                      child: SizedBox(
+                        width: double.infinity, // ボタンの横幅を画面いっぱいに広げる
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // ボタンタップ時の処理
+                            goMessageScreen(); // チャット画面に遷移する関数を呼ぶ
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text("話を聞きたい"),
+                        ),
+                      ),
+                    ),
+              ],
+            ),
           ),
-        ),
+        )),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             _toggleFavorite();

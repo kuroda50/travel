@@ -62,92 +62,101 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(
-        title: "ログイン",
-      ),
-      backgroundColor: Color(0xFFF5EEDC),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // メールアドレス入力
-                _buildLabel('メールアドレス'),
-                _buildTextField(controller: emailController),
-                SizedBox(height: 15),
-
-                // パスワード入力
-                _buildLabel('パスワード'),
-                _buildTextField(
-                    controller: passwordController, obscureText: _isObscured),
-                if (_errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: Text(
-                      _errorMessage,
-                      style:
-                          TextStyle(color: AppColor.warningColor, fontSize: 12),
-                    ),
-                  ),
-                SizedBox(height: 15),
-
-                // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
-                _buildForgotPassword(context),
-                SizedBox(height: 15),
-
-                // 「ログイン」ボタン
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF559900),
-                      minimumSize: Size(200, 50),
-                    ),
-                    child: Text('ログイン',
-                        style: TextStyle(fontSize: 18, color: Colors.white)),
-                  ),
+        appBar: Header(
+          title: "ログイン",
+        ),
+        backgroundColor: Color(0xFFF5EEDC),
+        body: SingleChildScrollView(
+          child: Center(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
                 ),
-
-                SizedBox(height: 20),
-
-                // OR + 左右の横線
-                Row(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: Divider(color: Colors.grey, thickness: 1)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Text('OR'),
+                    // メールアドレス入力
+                    _buildLabel('メールアドレス'),
+                    _buildTextField(controller: emailController),
+                    SizedBox(height: 15),
+
+                    // パスワード入力
+                    _buildLabel('パスワード'),
+                    _buildTextField(
+                        controller: passwordController,
+                        obscureText: _isObscured),
+                    if (_errorMessage.isNotEmpty) // エラーメッセージがある場合のみ表示
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _errorMessage,
+                          style: TextStyle(
+                              color: AppColor.warningColor, fontSize: 12),
+                        ),
+                      ),
+                    SizedBox(height: 15),
+
+                    // 「パスワードをお忘れですか？」 + テキストの長さに合わせた横線
+                    _buildForgotPassword(context),
+                    SizedBox(height: 15),
+
+                    // 「ログイン」ボタン
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF559900),
+                          minimumSize: Size(200, 50),
+                        ),
+                        child: Text('ログイン',
+                            style:
+                                TextStyle(fontSize: 18, color: Colors.white)),
+                      ),
                     ),
-                    Expanded(child: Divider(color: Colors.grey, thickness: 1)),
+
+                    SizedBox(height: 20),
+
+                    // OR + 左右の横線
+                    Row(
+                      children: const [
+                        Expanded(
+                            child: Divider(color: Colors.grey, thickness: 1)),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text('OR'),
+                        ),
+                        Expanded(
+                            child: Divider(color: Colors.grey, thickness: 1)),
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
+                    // 「アカウントを作る」ボタン
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.push("/account-create");
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF559900),
+                          minimumSize: Size(200, 50),
+                        ),
+                        child: Text('アカウントを作る',
+                            style:
+                                TextStyle(fontSize: 18, color: Colors.white)),
+                      ),
+                    ),
                   ],
                 ),
-
-                SizedBox(height: 20),
-
-                // 「アカウントを作る」ボタン
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.push("/account-create");
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF559900),
-                      minimumSize: Size(200, 50),
-                    ),
-                    child: Text('アカウントを作る',
-                        style: TextStyle(fontSize: 18, color: Colors.white)),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildLabel(String text) {

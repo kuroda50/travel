@@ -35,7 +35,7 @@ class TermsOfUseScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: <Widget>[
-            Center(
+            const Center(
               child: Markdown(
                 data: termsOfService,
               ),

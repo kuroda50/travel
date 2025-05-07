@@ -75,72 +75,79 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
 //ーーーーーーーーーー　UIの構築　ーーーーーーーーーー
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DocumentSnapshot>(
-      future: chatRoomsCollection.doc(roomId).get(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Scaffold(
-            appBar: Header(title: "メッセージ"),
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+    return Center(
+        // ★中央寄せ
+        child: ConstrainedBox(
+            // ★maxWidth制限
+            constraints: BoxConstraints(maxWidth: 600),
+            child: FutureBuilder<DocumentSnapshot>(
+              future: chatRoomsCollection.doc(roomId).get(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Scaffold(
+                    appBar: Header(title: "メッセージ"),
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-        final chatRoomData = snapshot.data!.data() as Map<String, dynamic>?;
-        final isGroup = chatRoomData?['group'] == true;
-        final participants =
-            List<String>.from(chatRoomData?['participants'] ?? []);
+                final chatRoomData =
+                    snapshot.data!.data() as Map<String, dynamic>?;
+                final isGroup = chatRoomData?['group'] == true;
+                final participants =
+                    List<String>.from(chatRoomData?['participants'] ?? []);
 
-        return Scaffold(
-          appBar: Header(
-            title: "メッセージ",
-            actions: isGroup
-                ? [
-                    PopupMenuButton<String>(
-                      icon: Icon(Icons.more_vert),
-                      onSelected: (value) {
-                        if (value == 'manageParticipants') {
-                          showParticipantDialog(context, participants, roomId);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'manageParticipants',
-                          child: Text("参加者を管理"),
+                return Scaffold(
+                  appBar: Header(
+                    title: "メッセージ",
+                    actions: isGroup
+                        ? [
+                            PopupMenuButton<String>(
+                              icon: Icon(Icons.more_vert),
+                              onSelected: (value) {
+                                if (value == 'manageParticipants') {
+                                  showParticipantDialog(
+                                      context, participants, roomId);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'manageParticipants',
+                                  child: Text("参加者を管理"),
+                                ),
+                              ],
+                            ),
+                          ]
+                        : null,
+                  ),
+                  body: Column(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: _buildMessageList(isGroup),
+                            ),
+                            // ここにボタンとリストを移動
+                            buildJoinRequestButton(
+                              roomId: roomId,
+                              currentUserId: currentUserId,
+                              chatRoomsCollection: chatRoomsCollection,
+                            ),
+                            buildJoinRequestList(
+                              roomId: roomId,
+                              currentUserId: currentUserId,
+                              chatRoomsCollection: chatRoomsCollection,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ]
-                : null,
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: _buildMessageList(isGroup),
-                    ),
-                    // ここにボタンとリストを移動
-                    buildJoinRequestButton(
-                      roomId: roomId,
-                      currentUserId: currentUserId,
-                      chatRoomsCollection: chatRoomsCollection,
-                    ),
-                    buildJoinRequestList(
-                      roomId: roomId,
-                      currentUserId: currentUserId,
-                      chatRoomsCollection: chatRoomsCollection,
-                    ),
-                  ],
-                ),
-              ),
-              // 入力エリアを最後に配置
-              _buildInputArea(),
-            ],
-          ),
-        );
-      },
-    );
+                      ),
+                      // 入力エリアを最後に配置
+                      _buildInputArea(),
+                    ],
+                  ),
+                );
+              },
+            )));
   }
 
 //　ーーーーーーーーーー　以下は関数　ーーーーーーーーーー

@@ -40,7 +40,8 @@ class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
         _isLoading = true; // ローディング開始
       });
       try {
-        await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text);
+        await FirebaseAuth.instance
+            .sendPasswordResetEmail(email: _emailController.text);
         // パスワードリセットメール送信成功
         Fluttertoast.showToast(
           msg: "パスワードリセットメールを送信しました",
@@ -80,54 +81,59 @@ class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(
+      appBar: const Header(
         title: 'パスワード変更リクエスト',
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              '登録済みメールアドレスを入力してください',
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+              child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
             ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'メールアドレス',
-                border: OutlineInputBorder(),
-                errorText: _emailError,
-              ),
-              keyboardType: TextInputType.emailAddress,
-              onChanged: (value) {
-                setState(() {
-                  _emailError = null;
-                });
-              },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  '登録済みメールアドレスを入力してください',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'メールアドレス',
+                    border: const OutlineInputBorder(),
+                    errorText: _emailError,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) {
+                    setState(() {
+                      _emailError = null;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _submit, // ローディング中はボタンを無効化
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.mainButtonColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('次へ'),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _submit, // ローディング中はボタンを無効化
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.mainButtonColor,
-                foregroundColor: Colors.white,
-              ),
-              child: _isLoading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text('次へ'),
-            ),
-          ],
-        ),
-      ),
+          ))),
     );
   }
 }

@@ -73,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // 保存成功のメッセージ
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('プロフィールが保存されました')),
+        const SnackBar(content: const Text('プロフィールが保存されました')),
       );
 
       // 状態を更新
@@ -92,7 +92,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       // 保存失敗のエラーメッセージ
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存中にエラーが発生しました')),
+        const SnackBar(content: Text('保存中にエラーが発生しました')),
       );
       print("Error saving profile: $e");
     }
@@ -114,97 +114,105 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildGenderSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '性',
-          style: TextStyle(fontSize: 13, color: Colors.black87),
-        ),
-        SizedBox(height: 4),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: ToggleButtons(
-            isSelected: [_isMale, !_isMale],
-            onPressed: (int index) {
-              setState(() {
-                _isMale = !_isMale;
-                _genderError = null;
-              });
-            },
-            borderRadius: BorderRadius.circular(7),
-            selectedColor: Colors.white, // 選択時の文字色
-            fillColor: Colors.green, // 選択時の背景色
-            borderColor: Colors.black87, // 枠線の色
-            borderWidth: 0.6, // 枠線の太さ
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    Icon(Icons.female, color: AppColor.warningColor),
-                    SizedBox(width: 4),
-                    Text('女性',
-                        style: TextStyle(color: Colors.black87)), // Textの色も変更
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    Icon(Icons.male, color: Colors.blue),
-                    SizedBox(width: 4),
-                    Text('男性',
-                        style: TextStyle(color: Colors.black87)), // Textの色も変更
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (_genderError != null) // エラーメッセージを表示
-          Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              _genderError!,
-              style: TextStyle(color: AppColor.warningColor, fontSize: 12),
+    return Center(
+        child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
             ),
-          ),
-      ],
-    );
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '性',
+                  style: TextStyle(fontSize: 13, color: Colors.black87),
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ToggleButtons(
+                    isSelected: [_isMale, !_isMale],
+                    onPressed: (int index) {
+                      setState(() {
+                        _isMale = !_isMale;
+                        _genderError = null;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(7),
+                    selectedColor: Colors.white, // 選択時の文字色
+                    fillColor: Colors.green, // 選択時の背景色
+                    borderColor: Colors.black87, // 枠線の色
+                    borderWidth: 0.6, // 枠線の太さ
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.female, color: AppColor.warningColor),
+                            SizedBox(width: 4),
+                            Text('女性',
+                                style: TextStyle(
+                                    color: Colors.black87)), // Textの色も変更
+                          ],
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.male, color: Colors.blue),
+                            SizedBox(width: 4),
+                            Text('男性',
+                                style: TextStyle(
+                                    color: Colors.black87)), // Textの色も変更
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_genderError != null) // エラーメッセージを表示
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: Text(
+                      _genderError!,
+                      style: const TextStyle(
+                          color: AppColor.warningColor, fontSize: 12),
+                    ),
+                  ),
+              ],
+            )));
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         appBar: Header(title: "プロフィール編集"),
         body: Center(child: CircularProgressIndicator()),
       );
     }
     return Scaffold(
-      appBar: Header(title: "プロフィール編集"), // ヘッダーを追加
+      appBar: const Header(title: "プロフィール編集"), // ヘッダーを追加
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
-            Text('名前:', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 8),
+            const Text('名前:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '名前を入力',
               ),
             ),
-            SizedBox(height: 16),
-            Text('性別:', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 8),
+            const SizedBox(height: 16),
+            const Text('性別:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
             _buildGenderSelection(),
-            SizedBox(height: 16),
-            Text('誕生日:', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 8),
+            const SizedBox(height: 16),
+            const Text('誕生日:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
             GestureDetector(
               onTap: () => _selectDate(context),
               child: AbsorbPointer(
@@ -212,22 +220,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: TextEditingController(
                     text: "${_selectedDate.toLocal()}".split(' ')[0],
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: '誕生日を選択',
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 16),
-            Text('趣味:', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 8),
+            const SizedBox(height: 16),
+            const Text('趣味:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: hobbyController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: '趣味を入力',
                     ),
                     onSubmitted: (value) {
@@ -241,7 +249,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add),
+                  icon: const Icon(Icons.add),
                   onPressed: () {
                     if (hobbyController.text.isNotEmpty) {
                       setState(() {
@@ -258,7 +266,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: hobbies
                   .map((hobby) => Chip(
                         label: Text(hobby),
-                        deleteIcon: Icon(Icons.cancel), // バツマークのアイコン
+                        deleteIcon: const Icon(Icons.cancel), // バツマークのアイコン
                         onDeleted: () {
                           setState(() {
                             hobbies.remove(hobby); // タップされたタグをリストから削除
@@ -267,24 +275,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ))
                   .toList(),
             ),
-            SizedBox(height: 16),
-            Text('自己紹介:', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 8),
+            const SizedBox(height: 16),
+            const Text('自己紹介:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
             TextField(
               controller: _bioController,
               maxLines: 4,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '自己紹介を入力',
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             ElevatedButton(
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColor.mainButtonColor,
                 ),
-                child: Text(
+                child: const Text(
                   '保存',
                   style: TextStyle(color: AppColor.subTextColor), // テキストの色を白に変更
                 )),

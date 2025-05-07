@@ -62,7 +62,7 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
     // 既存のタイマーがあればキャンセル
     _debounce?.cancel();
 
-    _debounce = Timer(Duration(microseconds: 500), () {
+    _debounce = Timer(const Duration(microseconds: 500), () {
       setState(() {
         _filteredUsers = _allUsers.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
@@ -142,14 +142,14 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
           builder: (BuildContext context, StateSetter setState) {
             // setStateを追加
             return AlertDialog(
-              title: Text('年齢設定'),
+              title: const Text('年齢設定'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   TextField(
                     keyboardType:
-                        TextInputType.numberWithOptions(decimal: false),
-                    decoration: InputDecoration(labelText: '最低年齢'),
+                        const TextInputType.numberWithOptions(decimal: false),
+                    decoration: const InputDecoration(labelText: '最低年齢'),
                     maxLength: 3,
                     onChanged: (value) {
                       ageMin = value;
@@ -159,8 +159,8 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
                   ),
                   TextField(
                     keyboardType:
-                        TextInputType.numberWithOptions(decimal: false),
-                    decoration: InputDecoration(labelText: '最高年齢'),
+                        const TextInputType.numberWithOptions(decimal: false),
+                    decoration: const InputDecoration(labelText: '最高年齢'),
                     maxLength: 3,
                     onChanged: (value) {
                       ageMax = value;
@@ -174,20 +174,20 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         errorMessage,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                 ],
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('キャンセル'),
+                  child: const Text('キャンセル'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     if (ageMin.isNotEmpty &&
                         ageMax.isNotEmpty &&
@@ -220,13 +220,13 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text('方面',
+              const Text('方面',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var gender in ["男性", "女性", "誰でも"])
                 ListTile(
                   title: Text(gender),
@@ -260,7 +260,7 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
             Expanded(
               child: TextField(
                 controller: _hobbyController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: '趣味を入力',
                 ),
                 onSubmitted: (value) {
@@ -270,7 +270,7 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.add),
+              icon: const Icon(Icons.add),
               onPressed: () {
                 addHobbies();
                 _onSearchChanged();
@@ -278,7 +278,7 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 8.0,
           children: hobbies
@@ -317,149 +317,155 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: Header(title: "同じ趣味の人を探す"),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                  child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: <Widget>[
-                  SizedBox(
-                    height: 200,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: _images.length,
-                      onPageChanged: (index) =>
-                          setState(() => _currentPage = index),
-                      itemBuilder: (context, index) {
-                        return Image.asset(
-                          _images[index],
-                          fit: BoxFit.cover,
-                        );
+      appBar: const Header(title: "同じ趣味の人を探す"),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: Column(
+              children: [
+                Expanded(
+                    child: ListView(
+                  padding: const EdgeInsets.all(16.0),
+                  children: <Widget>[
+                    SizedBox(
+                      height: 200,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount: _images.length,
+                        onPageChanged: (index) =>
+                            setState(() => _currentPage = index),
+                        itemBuilder: (context, index) {
+                          return Image.asset(
+                            _images[index],
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        "探す人",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        _showGenderModal(context);
                       },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      "探す人",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      _showGenderModal(context);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text("性別"),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                Text(
-                                  genderValue,
-                                ),
-                                Icon(Icons.expand_more),
-                              ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Text("性別"),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
+                                  Text(
+                                    genderValue,
+                                  ),
+                                  const Icon(Icons.expand_more),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      _showAgeModal(context, (updatedAge) {
-                        setState(() {
-                          ageValue = updatedAge;
+                    InkWell(
+                      onTap: () {
+                        _showAgeModal(context, (updatedAge) {
+                          setState(() {
+                            ageValue = updatedAge;
+                          });
                         });
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text("年齢"),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                Text(
-                                  ageValue,
-                                ),
-                                Icon(Icons.expand_more),
-                              ],
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Text("年齢"),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
+                                  Text(
+                                    ageValue,
+                                  ),
+                                  const Icon(Icons.expand_more),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  _buildhobbiesinput(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(Icons.search),
-                      Text(
-                        '$filteredUsersCount人に絞り込み中',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      ElevatedButton(
-                        onPressed: () {
-                          resetFilter();
-                          _onSearchChanged();
-                        },
-                        child:
-                            Text('リセット', style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              AppColor.mainButtonColor, // ボタンの色を緑に設定
+                    _buildhobbiesinput(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Icon(Icons.search),
+                        Text(
+                          '$filteredUsersCount人に絞り込み中',
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          List<String> userIds = [];
-                          for (int i = 0; i < filteredUsersCount; i++) {
-                            userIds.add(_filteredUsers[i].id);
-                          }
-                          context.push('/account-list', extra: userIds);
-                        },
-                        icon: Icon(Icons.search, color: Colors.white),
-                        label: Text('この条件で検索',
-                            style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColor.mainButtonColor,
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        ElevatedButton(
+                          onPressed: () {
+                            resetFilter();
+                            _onSearchChanged();
+                          },
+                          child: const Text('リセット',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                AppColor.mainButtonColor, // ボタンの色を緑に設定
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ))
-            ],
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            List<String> userIds = [];
+                            for (int i = 0; i < filteredUsersCount; i++) {
+                              userIds.add(_filteredUsers[i].id);
+                            }
+                            context.push('/account-list', extra: userIds);
+                          },
+                          icon: const Icon(Icons.search, color: Colors.white),
+                          label: const Text('この条件で検索',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColor.mainButtonColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ))
+              ],
+            ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 

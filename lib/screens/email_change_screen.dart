@@ -107,6 +107,10 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
     return Scaffold(
       appBar: Header(title: 'メールアドレス変更'),
       body: Center(
+          child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -159,7 +163,7 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

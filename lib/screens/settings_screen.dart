@@ -13,6 +13,10 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: Header(title: "設定"),
       body: Center(
+          child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+        ),
         child: Column(
           children: [
             const SizedBox(height: 40),
@@ -47,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
                 isTerms: true, isFirst: true, isLast: true, showDialog: false),
           ],
         ),
-      ),
+      )),
     );
   }
 

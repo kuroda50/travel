@@ -45,6 +45,11 @@ class _AccountListScreenState extends State<AccountListScreen> {
     return Scaffold(
       appBar: const Header(title: "アカウント一覧"),
       body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+        ),
         child: Column(
           children: [
             Expanded(
@@ -138,7 +143,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
             ),
           ],
         ),
-      ),
+      ))),
     );
   }
 }
@@ -281,7 +286,8 @@ class _ListItemState extends State<ListItem> {
                         ? NetworkImage(widget.iconURL!)
                         : null, // URLが空の場合はnullを設定
                 child: widget.iconURL == null || widget.iconURL!.isEmpty
-                    ? const Icon(Icons.person, size: 40, color: Colors.grey) // 仮のアイコン
+                    ? const Icon(Icons.person,
+                        size: 40, color: Colors.grey) // 仮のアイコン
                     : null,
               ),
               const SizedBox(width: 16),
@@ -291,8 +297,8 @@ class _ListItemState extends State<ListItem> {
                   children: [
                     Text(
                       '${widget.name}、${getAge() != null ? getAge().toString() + "歳" : "年齢不明"}',
-                      style:
-                          const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -309,7 +315,8 @@ class _ListItemState extends State<ListItem> {
                         const SizedBox(width: 8),
                         Text(
                           widget.gender ?? '不明',
-                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -319,7 +326,8 @@ class _ListItemState extends State<ListItem> {
                         const Icon(Icons.sports_baseball,
                             size: 16, color: Colors.blue),
                         const SizedBox(width: 4),
-                        Text(getHobbiesText(), style: const TextStyle(fontSize: 14)),
+                        Text(getHobbiesText(),
+                            style: const TextStyle(fontSize: 14)),
                       ],
                     ),
                   ],
@@ -337,7 +345,8 @@ class _ListItemState extends State<ListItem> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         isFollowing ? Colors.grey : AppColor.mainButtonColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

@@ -64,7 +64,7 @@ class _TravelSearchState extends State<TravelSearch> {
     // 既存のタイマーがあればキャンセル
     _debounce?.cancel();
 
-    _debounce = Timer(Duration(microseconds: 500), () {
+    _debounce = Timer(const Duration(microseconds: 500), () {
       setState(() {
         _filteredPosts = _allPosts.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
@@ -213,61 +213,56 @@ class _TravelSearchState extends State<TravelSearch> {
     });
   }
 
-  void _resetDate(bool isStart) {
-    setState(() {
-      if (isStart) {
-        selectedStartDate = "こだわらない";
-      } else {
-        selectedEndDate = "こだわらない";
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "募集検索",
-            style: TextStyle(
-              fontSize: 20,
-              color: AppColor.subTextColor,
-            ),
+        home: Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "募集検索",
+          style: TextStyle(
+            fontSize: 20,
+            color: AppColor.subTextColor,
           ),
-          backgroundColor: AppColor.mainButtonColor,
-          actions: FirebaseAuth.instance.currentUser == null
-              ? [
-                  Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: TextButton(
-                      onPressed: () {
-                        context.push('/login');
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white,
-                      ),
-                      child: Text("ログイン",
-                          style: TextStyle(color: AppColor.mainTextColor)),
-                    ),
-                  )
-                ]
-              : null,
-          leading: IconButton(
-              onPressed: () {
-                context.pop();
-              },
-              icon: Icon(Icons.arrow_back)),
         ),
-        body: SafeArea(
+        backgroundColor: AppColor.mainButtonColor,
+        actions: FirebaseAuth.instance.currentUser == null
+            ? [
+                Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: TextButton(
+                    onPressed: () {
+                      context.push('/login');
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
+                    child: const Text("ログイン",
+                        style: TextStyle(color: AppColor.mainTextColor)),
+                  ),
+                )
+              ]
+            : null,
+        leading: IconButton(
+            onPressed: () {
+              context.pop();
+            },
+            icon: const Icon(Icons.arrow_back)),
+      ),
+      body: SafeArea(
+        child: Center(
+            child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
+          ),
           child: Column(
             children: [
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: <Widget>[
-                    SizedBox(height: 16),
-                    Padding(
+                    const SizedBox(height: 16),
+                    const Padding(
                       padding: EdgeInsets.only(left: 145), // 左側のパディングを調整
                       child: Text(
                         '検索条件',
@@ -275,7 +270,7 @@ class _TravelSearchState extends State<TravelSearch> {
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     // どこへ
                     _buildSectionTitle('どこへ'),
                     _buildFilterItem(context, '方面', selectedRegion,
@@ -327,7 +322,7 @@ class _TravelSearchState extends State<TravelSearch> {
                         Expanded(
                           child: TextField(
                             controller: tagController,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               hintText: 'タグを入力',
                             ),
                             onSubmitted: (value) {
@@ -342,7 +337,7 @@ class _TravelSearchState extends State<TravelSearch> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.add),
+                          icon: const Icon(Icons.add),
                           onPressed: () {
                             if (tagController.text.isNotEmpty) {
                               setState(() {
@@ -360,7 +355,8 @@ class _TravelSearchState extends State<TravelSearch> {
                       children: tags
                           .map((tag) => Chip(
                                 label: Text(tag),
-                                deleteIcon: Icon(Icons.cancel), // バツマークのアイコン
+                                deleteIcon:
+                                    const Icon(Icons.cancel), // バツマークのアイコン
                                 onDeleted: () {
                                   setState(() {
                                     tags.remove(tag); // タップされたタグをリストから削除
@@ -373,7 +369,7 @@ class _TravelSearchState extends State<TravelSearch> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Icon(Icons.search),
+                        const Icon(Icons.search),
                         Text(
                           tags.isEmpty
                               ? '${_allPosts.length}件の投稿があります'
@@ -382,7 +378,7 @@ class _TravelSearchState extends State<TravelSearch> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
@@ -391,7 +387,7 @@ class _TravelSearchState extends State<TravelSearch> {
                             resetFilter();
                             _onSearchChanged();
                           },
-                          child: Text('リセット',
+                          child: const Text('リセット',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
@@ -406,8 +402,8 @@ class _TravelSearchState extends State<TravelSearch> {
                             }
                             context.push('/recruitment-list', extra: postIds);
                           },
-                          icon: Icon(Icons.search, color: Colors.white),
-                          label: Text('この条件で検索',
+                          icon: const Icon(Icons.search, color: Colors.white),
+                          label: const Text('この条件で検索',
                               style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColor.mainButtonColor,
@@ -420,9 +416,9 @@ class _TravelSearchState extends State<TravelSearch> {
               ),
             ],
           ),
-        ),
+        )),
       ),
-    );
+    ));
   }
 
   Widget _buildFilterItem(BuildContext context, String label, String value,
@@ -483,7 +479,7 @@ class _TravelSearchState extends State<TravelSearch> {
                     Text(
                       value,
                     ),
-                    Icon(Icons.expand_more),
+                    const Icon(Icons.expand_more),
                   ],
                 ),
               ),
@@ -558,7 +554,7 @@ class _TravelSearchState extends State<TravelSearch> {
               padding: const EdgeInsets.only(left: 8.0),
               child: Text(label),
             ),
-            SizedBox(
+            const SizedBox(
               width: 20,
             ),
             Expanded(
@@ -572,7 +568,7 @@ class _TravelSearchState extends State<TravelSearch> {
                       textAlign: TextAlign.end,
                     ),
                   ),
-                  Icon(Icons.expand_more),
+                  const Icon(Icons.expand_more),
                 ],
               ),
             ),
@@ -610,7 +606,7 @@ class _TravelSearchState extends State<TravelSearch> {
                       child: Text(selectedBudgetMin),
                     ),
                   ),
-                  Text(' 万円〜 '),
+                  const Text(' 万円〜 '),
                   Container(
                     width: 40,
                     height: 24,
@@ -621,8 +617,8 @@ class _TravelSearchState extends State<TravelSearch> {
                       child: Text(selectedBudgetMax),
                     ),
                   ),
-                  Text(' 万円'),
-                  Icon(Icons.expand_more),
+                  const Text(' 万円'),
+                  const Icon(Icons.expand_more),
                 ],
               ),
             ),
@@ -643,14 +639,14 @@ class _TravelSearchState extends State<TravelSearch> {
           return StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                title: Text('予算設定'),
+                title: const Text('予算設定'),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     TextField(
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(labelText: '最低予算（万円）'),
+                      decoration: const InputDecoration(labelText: '最低予算（万円）'),
                       onChanged: (value) {
                         budgetMin = value;
                       },
@@ -658,7 +654,7 @@ class _TravelSearchState extends State<TravelSearch> {
                     TextField(
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(labelText: '最高予算（万円）'),
+                      decoration: const InputDecoration(labelText: '最高予算（万円）'),
                       onChanged: (value) {
                         budgetMax = value;
                       },
@@ -668,20 +664,20 @@ class _TravelSearchState extends State<TravelSearch> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           errorMessage,
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                   ],
                 ),
                 actions: <Widget>[
                   TextButton(
-                    child: Text('キャンセル'),
+                    child: const Text('キャンセル'),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
                   ),
                   TextButton(
-                    child: Text('OK'),
+                    child: const Text('OK'),
                     onPressed: () {
                       if (int.tryParse(budgetMin) != null &&
                           int.tryParse(budgetMax) != null) {
@@ -737,14 +733,14 @@ class _TravelSearchState extends State<TravelSearch> {
           builder: (BuildContext context, StateSetter setState) {
             // setStateを追加
             return AlertDialog(
-              title: Text('年齢設定'),
+              title: const Text('年齢設定'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   TextField(
                     keyboardType:
-                        TextInputType.numberWithOptions(decimal: false),
-                    decoration: InputDecoration(labelText: '最低年齢'),
+                        const TextInputType.numberWithOptions(decimal: false),
+                    decoration: const InputDecoration(labelText: '最低年齢'),
                     onChanged: (value) {
                       ageMin = value;
                     },
@@ -753,8 +749,8 @@ class _TravelSearchState extends State<TravelSearch> {
                   ),
                   TextField(
                     keyboardType:
-                        TextInputType.numberWithOptions(decimal: false),
-                    decoration: InputDecoration(labelText: '最高年齢'),
+                        const TextInputType.numberWithOptions(decimal: false),
+                    decoration: const InputDecoration(labelText: '最高年齢'),
                     onChanged: (value) {
                       ageMax = value;
                     },
@@ -767,20 +763,20 @@ class _TravelSearchState extends State<TravelSearch> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         errorMessage,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                 ],
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('キャンセル'),
+                  child: const Text('キャンセル'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     if (ageMin.isNotEmpty &&
                         ageMax.isNotEmpty &&
@@ -819,7 +815,7 @@ class _TravelSearchState extends State<TravelSearch> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -833,7 +829,7 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -844,13 +840,13 @@ class _TravelSearchState extends State<TravelSearch> {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          icon: Icon(Icons.arrow_back)),
-                      Text('行き先',
+                          icon: const Icon(Icons.arrow_back)),
+                      const Text('行き先',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   for (var destination in destinations)
                     CheckboxListTile(
                       title: Text(destination),
@@ -891,7 +887,7 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
                 // ← ここを追加
                 child: Column(
@@ -903,13 +899,13 @@ class _TravelSearchState extends State<TravelSearch> {
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            icon: Icon(Icons.arrow_back)),
-                        Text('曜日',
+                            icon: const Icon(Icons.arrow_back)),
+                        const Text('曜日',
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     for (var day in days)
                       CheckboxListTile(
                         title: Text(day),
@@ -950,7 +946,7 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -969,13 +965,13 @@ class _TravelSearchState extends State<TravelSearch> {
                             }
                           });
                         },
-                        icon: Icon(Icons.arrow_back)),
-                    Text('性別、属性',
+                        icon: const Icon(Icons.arrow_back)),
+                    const Text('性別、属性',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 for (var gender in genders)
                   CheckboxListTile(
                     title: Text(gender),
@@ -1042,7 +1038,7 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -1052,13 +1048,13 @@ class _TravelSearchState extends State<TravelSearch> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.arrow_back)),
-                    Text('お金の分け方',
+                        icon: const Icon(Icons.arrow_back)),
+                    const Text('お金の分け方',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 for (var paymentMethod in paymentMethods)
                   CheckboxListTile(
                     title: Text(paymentMethod),
@@ -1100,7 +1096,7 @@ class _TravelSearchState extends State<TravelSearch> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1114,13 +1110,13 @@ class _TravelSearchState extends State<TravelSearch> {
                               selectedDestinations = selectedDestinations;
                             });
                           },
-                          icon: Icon(Icons.arrow_back)),
-                      Text('出発地',
+                          icon: const Icon(Icons.arrow_back)),
+                      const Text('出発地',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   for (var destination in destinations)
                     CheckboxListTile(
                       title: Text(destination),
@@ -1156,13 +1152,13 @@ class _TravelSearchState extends State<TravelSearch> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text('方面',
+              const Text('方面',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var region in destinationsByArea.keys)
                 ListTile(
                   title: Text(region),
@@ -1187,13 +1183,13 @@ class _TravelSearchState extends State<TravelSearch> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text('方面',
+              const Text('方面',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               for (var region in destinationsByArea.keys)
                 ListTile(
                   title: Text(region),
@@ -1241,23 +1237,6 @@ class _TravelSearchState extends State<TravelSearch> {
     });
     _onSearchChanged();
   }
-
-  // Future<void> _selectDate2(BuildContext context, String label) async {
-  //   final DateTime? picked =
-  //       await showCustomDatePicker(context, parseDate(selectedStartDate, true));
-
-  //   if (picked != null) {
-  //     setState(() {
-  //       String formattedDate = DateFormat('yyyy/MM/dd').format(picked);
-  //       if (label == 'いつから') {
-  //         selectedStartDate = formattedDate;
-  //       } else if (label == 'いつまで') {
-  //         selectedEndDate = formattedDate;
-  //       }
-  //     });
-  //     _onSearchChanged();
-  //   }
-  // }
 }
 
 Future<DateTime?> showCustomDatePicker(
@@ -1337,7 +1316,7 @@ Widget _buildSectionTitle(String title) {
     padding: const EdgeInsets.only(left: 0.0, bottom: 4.0),
     child: Text(
       title,
-      style: TextStyle(fontWeight: FontWeight.bold),
+      style: const TextStyle(fontWeight: FontWeight.bold),
     ),
   );
 }

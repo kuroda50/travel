@@ -268,8 +268,9 @@ class _FollowingListState extends State<FollowingList> {
             },
           ),
           onTap: () {
-            context.push(
-                '/profile/${widget.followUserList[index].userId}'); // URL パラメータとして userId を渡す
+            // context.push('/profile/${widget.followUserList[index].userId}'); // URL パラメータとして userId を渡す
+            context.push('/others-profile',
+                extra: widget.followUserList[index].userId);
           },
         );
       },

@@ -428,8 +428,15 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                       showLoginPrompt(context);
                       return;
                     }
-                    context.push('/profile/${organizerId}');
-                  },
+                    // 主催者がユーザのIDと異なる場合はothers_profileに遷移。
+                    if (FirebaseAuth.instance.currentUser!.uid != organizerId) {
+                      context.go('/others-profile',extra: organizerId);
+                      return;
+                    }
+                    // 同じ場合は自分のプロフィールに遷移
+                    context.go('/my_profile');
+                    // context.push('/my_profile');
+                  },  
                 ),
                 const Padding(
                   padding: EdgeInsets.only(top: 16, right: 16, left: 16),

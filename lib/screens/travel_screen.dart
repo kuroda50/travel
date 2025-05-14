@@ -98,7 +98,7 @@ class _TravelScreenState extends State<TravelScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          context.push('/travel_search');
+                          context.push('/travel/travel_search');
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -150,7 +150,7 @@ class _TravelScreenState extends State<TravelScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              context.push('/same-hobby');
+                              context.push('/travel/same-hobby');
                             },
                             child: Text('同じ趣味の人をさがす'),
                             style: ElevatedButton.styleFrom(
@@ -183,7 +183,7 @@ class _TravelScreenState extends State<TravelScreen> {
                                     .toList();
 
                                 // 次の画面に全ての投稿のIDを渡す
-                                context.push('/recruitment-list',
+                                context.push('/travel/recruitment-list',
                                     extra: allPostIds);
                               },
                               child: Text('全て表示する >'),

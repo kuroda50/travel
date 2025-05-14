@@ -93,7 +93,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         body: SafeArea(
             child: Center(
                 child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
           ),
           child: Column(

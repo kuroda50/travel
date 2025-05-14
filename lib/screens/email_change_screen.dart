@@ -105,10 +105,10 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Header(title: 'メールアドレス変更'),
+      appBar: const Header(title: 'メールアドレス変更'),
       body: Center(
           child: ConstrainedBox(
-        constraints: BoxConstraints(
+        constraints: const BoxConstraints(
           maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
         ),
         child: Padding(
@@ -158,7 +158,8 @@ class _EmailChangeScreenState extends State<EmailChangeScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('メールアドレスを変更'),
+                    : const Text('メールアドレスを変更',
+                        style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

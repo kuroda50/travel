@@ -18,10 +18,10 @@ class _RecruitmentListScreenState extends State<RecruitmentListScreen> {
         title: "募集",
       ),
       body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Center(
               child: ConstrainedBox(
-            constraints: BoxConstraints(
+            constraints: const BoxConstraints(
               maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
             ),
             child: PostCard(postIds: widget.postIds),

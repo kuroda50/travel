@@ -73,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // 保存成功のメッセージ
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: const Text('プロフィールが保存されました')),
+        const SnackBar(content: Text('プロフィールが保存されました')),
       );
 
       // 状態を更新

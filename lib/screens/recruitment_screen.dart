@@ -267,7 +267,7 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
     String participantId = FirebaseAuth.instance.currentUser!.uid;
     String roomId = await findOrCreateRoom(participantId, widget.postId);
 
-    context.push('/message-room',
+    context.pushNamed('messageRoom',
         extra: {"roomId": roomId, "currentUserId": participantId});
   }
 
@@ -430,13 +430,12 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                     }
                     // 主催者がユーザのIDと異なる場合はothers_profileに遷移。
                     if (FirebaseAuth.instance.currentUser!.uid != organizerId) {
-                      context.go('/others-profile',extra: organizerId);
+                      context.pushNamed('othersProfile',extra: organizerId);
                       return;
                     }
                     // 同じ場合は自分のプロフィールに遷移
-                    context.go('/my_profile');
-                    // context.push('/my_profile');
-                  },  
+                    context.pushNamed('myProfile');
+                  },
                 ),
                 const Padding(
                   padding: EdgeInsets.only(top: 16, right: 16, left: 16),
@@ -460,7 +459,11 @@ class _RecruitmentScreenState extends State<RecruitmentScreen> {
                           showLoginPrompt(context);
                           return;
                         }
-                        context.push('/profile/${memberIdList[index]}');
+                        if(FirebaseAuth.instance.currentUser!.uid == memberIdList[index]) {
+                          context.pushNamed('myProfile');
+                        } else{
+                          context.pushNamed('othersProfile',extra: memberIdList[index]);
+                        }
                       },
                     );
                   },

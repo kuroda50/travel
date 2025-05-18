@@ -245,7 +245,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             ),
                             child: IconButton(
                               onPressed: () {
-                                context.push('/settings');
+                                context.pushNamed('settings');
                               },
                               icon: const Icon(Icons.settings,
                                   color: AppColor.subTextColor),
@@ -257,7 +257,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       ElevatedButton.icon(
                         onPressed: () async {
                           final updatedProfile =
-                              await context.push('/edit_profile');
+                              await context.pushNamed('editProfile');
 
                           if (updatedProfile != null) {
                             final profileData = updatedProfile

@@ -268,7 +268,7 @@ class _ListItemState extends State<ListItem> {
           return;
         }
         // context.push('/others-profile/${widget.userId}'); // URL パラメータとして userId を渡す
-        context.push('/others-profile/',
+        context.pushNamed('othersProfile',
             extra: widget.userId); // URL パラメータとして userId を渡す
       },
       child: Card(

@@ -283,7 +283,7 @@ class _OthersProfileScreenState extends State<OthersProfileScreen> {
     String participantId = FirebaseAuth.instance.currentUser!.uid;
     String roomId = await findOrCreateRoom(participantId, widget.userId);
 
-    context.push('/message-room',
+    context.pushNamed('messageRoom',
         extra: {"roomId": roomId, "currentUserId": participantId});
   }
 

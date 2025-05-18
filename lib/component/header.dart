@@ -27,7 +27,7 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 padding: const EdgeInsets.only(right: 20),
                 child: TextButton(
                   onPressed: () {
-                    context.go('/login');
+                    context.pushNamed('login');
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white,

@@ -47,32 +47,52 @@ final GoRouter goRouter = GoRouter(
               builder: (context, state) => const TravelScreen(),
               routes: [
                 GoRoute(
-                  path: 'travel_search',
-                  name: 'travel_search',
+                  path: 'travel-search',
+                  name: 'travelSearch',
                   builder: (context, state) => TravelSearch(),
                 ),
                 GoRoute(
-                  path: '/same-hobby',
+                  path: 'same-hobby',
                   name: 'sameHobby',
                   builder: (context, state) => const SameHobbyScreen(),
                 ),
                 GoRoute(
-                  path: '/account-list',
+                  path: 'account-list',
                   name: 'accountList',
                   builder: (context, state) => AccountListScreen(
                     userIds: state.extra! as List<String>,
                   ),
                 ),
                 GoRoute(
-                  path: '/recruitment-list',
-                  name: 'recruitment-list',
+                  path: 'recruitment-list',
+                  name: 'recruitmentList',
                   builder: (context, state) => RecruitmentListScreen(
                       postIds: state.extra! as List<String>),
+                ),
+                GoRoute(
+                  path: 'recruitment',
+                  name: 'recruitment',
+                  builder: (context, state) =>
+                      RecruitmentScreen(postId: state.extra! as String),
+                ),
+                GoRoute(
+                  path: '/others-profile',
+                  name: 'othersProfile',
+                  builder: (context, state) => OthersProfileScreen(
+                    userId: state.extra! as String,
+                  ),
                 ),
               ],
             ),
           ],
         ),
+        // StatefulShellBranch(routes: [
+        //   GoRoute(
+        //     path: '/travel',
+        //     name: 'travel',
+        //     builder: (context, state) => const TravelScreen(),
+        //   )
+        // ]),
         // 🟠 タブ2: Recruitment
         StatefulShellBranch(
           routes: [
@@ -107,15 +127,14 @@ final GoRouter goRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/my_profile',
-              name: 'profile',
+              path: '/my-profile',
+              name: 'myProfile',
               builder: (context, state) => const MyProfileScreen(),
             ),
           ],
         ),
       ],
     ),
-    // ✅ タブ外ページ
     GoRoute(
       path: '/login',
       name: 'login',
@@ -147,29 +166,16 @@ final GoRouter goRouter = GoRouter(
       builder: (context, state) => const TermsOfUseScreen(),
     ),
     GoRoute(
-      path: '/recruitment',
-      name: 'recruitment',
-      builder: (context, state) =>
-          RecruitmentScreen(postId: state.extra! as String),
-    ),
-    GoRoute(
       path: '/message-room',
-      name: 'message-room',
+      name: 'messageRoom',
       builder: (context, state) => MessageRoomScreen(
         extraData: state.extra! as Map<String, dynamic>,
       ),
     ),
     GoRoute(
-      path: '/edit_profile',
+      path: '/edit-profile',
       name: 'editProfile',
       builder: (context, state) => const EditProfileScreen(),
-    ),
-    GoRoute(
-      path: '/others-profile',
-      name: 'othersProfile',
-      builder: (context, state) => OthersProfileScreen(
-        userId: state.extra! as String,
-      ),
     ),
     GoRoute(
       path: '/settings',

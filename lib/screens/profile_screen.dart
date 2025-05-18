@@ -335,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               child: IconButton(
                                 onPressed: () {
-                                  context.push('/settings');
+                                  context.pushNamed('settings');
                                 },
                                 icon: const Icon(Icons.settings,
                                     color: AppColor.subTextColor),
@@ -348,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ? ElevatedButton.icon(
                               onPressed: () async {
                                 final updatedProfile =
-                                    await context.push('/edit-profile');
+                                    await context.pushNamed('editProfile');
 
                                 if (updatedProfile != null) {
                                   final profileData = updatedProfile
@@ -438,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String participantId = FirebaseAuth.instance.currentUser!.uid;
     String roomId = await findOrCreateRoom(participantId, widget.userId);
 
-    context.push('/message-room',
+    context.pushNamed('messageRoom',
         extra: {"roomId": roomId, "currentUserId": participantId});
   }
 

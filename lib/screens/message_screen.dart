@@ -104,7 +104,7 @@ class MessageScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 12),
                           ),
                           onTap: () {
-                            context.push('/message-room', extra: {
+                            context.pushNamed('messageRoom', extra: {
                               "roomId": chatRoomId,
                               "currentUserId": currentUserId
                             });
@@ -173,7 +173,7 @@ class MessageScreen extends StatelessWidget {
                                 style: TextStyle(fontSize: 12),
                               ),
                               onTap: () {
-                                context.push('/message-room', extra: {
+                                context.pushNamed('messageRoom', extra: {
                                   "roomId": chatRoomId,
                                   "currentUserId": currentUserId
                                 });

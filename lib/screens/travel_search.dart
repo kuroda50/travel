@@ -232,7 +232,7 @@ class _TravelSearchState extends State<TravelSearch> {
                   padding: const EdgeInsets.only(right: 20),
                   child: TextButton(
                     onPressed: () {
-                      context.push('/login');
+                      context.pushNamed('login');
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -400,7 +400,7 @@ class _TravelSearchState extends State<TravelSearch> {
                             for (int i = 0; i < filteredPostsCount; i++) {
                               postIds.add(_filteredPosts[i].id);
                             }
-                            context.push('/travel/recruitment-list', extra: postIds);
+                            context.pushNamed('recruitmentList', extra: postIds);
                           },
                           icon: const Icon(Icons.search, color: Colors.white),
                           label: const Text('この条件で検索',

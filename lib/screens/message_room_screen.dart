@@ -76,9 +76,7 @@ class _MessageRoomScreenState extends State<MessageRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Center(
-        // ★中央寄せ
         child: ConstrainedBox(
-            // ★maxWidth制限
             constraints: BoxConstraints(maxWidth: 600),
             child: FutureBuilder<DocumentSnapshot>(
               future: chatRoomsCollection.doc(roomId).get(),

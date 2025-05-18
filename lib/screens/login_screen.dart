@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(
                       child: ElevatedButton(
                         onPressed: () {
-                          context.push("/account-create");
+                          context.pushNamed("accountCreate");
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF559900),
@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             TextButton(
               onPressed: () {
-                context.push('/password-change');
+                context.pushNamed('passwordChange');
               },
               child: Text(
                 text,

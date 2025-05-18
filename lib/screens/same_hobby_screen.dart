@@ -447,7 +447,7 @@ class _SameHobbyScreenState extends State<SameHobbyScreen> {
                             for (int i = 0; i < filteredUsersCount; i++) {
                               userIds.add(_filteredUsers[i].id);
                             }
-                            context.push('/account-list', extra: userIds);
+                            context.pushNamed('accountList', extra: userIds);
                           },
                           icon: const Icon(Icons.search, color: Colors.white),
                           label: const Text('この条件で検索',

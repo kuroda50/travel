@@ -12,6 +12,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     int selectedIndex = _getSelectedIndex(context);
+
+    final List<Widget> _screens = [
+      
+    ];
     return Scaffold(
       body: child,
       bottomNavigationBar: BottomNavigationBar(

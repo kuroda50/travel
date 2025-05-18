@@ -265,7 +265,7 @@ class _PostCardState extends State<PostCard> {
               ),
             ),
             onTap: () {
-              context.push('/recruitment', extra: post.postId);
+              context.pushNamed('recruitment', extra: post.postId);
             },
           ),
         );

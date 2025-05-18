@@ -89,15 +89,15 @@ class SettingsScreen extends StatelessWidget {
               }
             else if (isPasswordChange)
               {
-                context.go('/password-change'),
+                context.pushNamed('passwordChange'),
               }
             else if (isEmailChange)
               {
-                context.go('/email-change'),
+                context.pushNamed('emailChange'),
               }
             else if (isTerms)
               {
-                context.push('/terms-of-use'),
+                context.pushNamed('termsOfUse'),
               }
           },
           style: ElevatedButton.styleFrom(

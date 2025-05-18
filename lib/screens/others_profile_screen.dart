@@ -1,6 +1,3 @@
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/colors/color.dart';
@@ -9,20 +6,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:travel/component/post_card.dart';
 import 'package:travel/functions/function.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../component/login_prompt.dart';
 
-class ProfileScreen extends StatefulWidget {
+class OthersProfileScreen extends StatefulWidget {
   final String userId;
 
-  const ProfileScreen({Key? key, required this.userId}) : super(key: key);
+  const OthersProfileScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<OthersProfileScreen> createState() => _OthersProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  bool isMyProfile = false;
+class _OthersProfileScreenState extends State<OthersProfileScreen> {
   bool isFollowing = false; // フォロー状態を管理する変数
   String name = '', age = '', bio = '', title = '', userImageURL = '';
   String? currentUserId; // 現在のユーザーIDを管理する変数
@@ -50,9 +45,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return;
       }
 
-      getInformation(userId);
+      getUserProfile(userId);
       _getCurrentUser();
     });
+  }
+
+  Future<void> getUserProfile(String userId) async {
+    // ユーザー情報を取得する処理
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection('users').doc(userId);
+    var user = await userRef.get();
+    if (user.exists) {
+      name = user['name'] ?? '';
+      age = user['birthday'] != null
+          ? calculateAge(user['birthday'].toDate()).toString()
+          : '';
+      bio = user['bio'] ?? '';
+      hobbies = List<String>.from(user['hobbies'] ?? []);
+      userImageURL = user['hasPhoto'] ? user['iconURL'] : '';
+      List<String> tempRecruitmentPostIdList =
+          List<String>.from(user['participatedPosts'] ?? []);
+      setState(() {
+        name = name;
+        age = age;
+        hobbies = hobbies;
+        bio = bio;
+        userImageURL = userImageURL;
+        recruitmentPostIdList = tempRecruitmentPostIdList;
+      });
+    } else {
+      print("ユーザが見つかりません");
+    }
   }
 
   void _getCurrentUser() {
@@ -118,136 +141,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future<void> getInformation(String userId) async {
-    await checkUserId(userId);
-    await getUserProfile(userId);
-  }
-
-  Future<void> checkUserId(String userId) {
-    if (userId == FirebaseAuth.instance.currentUser?.uid) {
-      isMyProfile = true;
-    } else {
-      isMyProfile = false;
-    }
-    setState(() {
-      isMyProfile = isMyProfile;
-    });
-    return Future.value();
-  }
-
-  Future<void> getUserProfile(String userId) async {
-    // ユーザー情報を取得する処理
-    DocumentReference userRef =
-        FirebaseFirestore.instance.collection('users').doc(userId);
-    var user = await userRef.get();
-    if (user.exists) {
-      name = user['name'] ?? '';
-      age = user['birthday'] != null
-          ? calculateAge(user['birthday'].toDate()).toString()
-          : '';
-      bio = user['bio'] ?? '';
-      hobbies = List<String>.from(user['hobbies'] ?? []);
-      userImageURL = user['hasPhoto'] ? user['iconURL'] : '';
-      List<String> tempRecruitmentPostIdList =
-          List<String>.from(user['participatedPosts'] ?? []);
-      setState(() {
-        name = name;
-        age = age;
-        hobbies = hobbies;
-        bio = bio;
-        userImageURL = userImageURL;
-        recruitmentPostIdList = tempRecruitmentPostIdList;
-      });
-    } else {
-      print("ユーザが見つかりません");
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final userRef =
-        FirebaseFirestore.instance.collection('users').doc(widget.userId);
-    final userDoc = await userRef.get();
-
-    //アップロード制限をチェックする
-    final lastUploaded = userDoc.data()?['lastUploaded']?.toDate();
-    final now = DateTime.now();
-    if (lastUploaded != null && now.difference(lastUploaded).inHours < 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("プロフィール画像は1時間に1回まで変更できます。")),
-      );
-      return;
-    }
-
-    //画像を選択する
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true, // Web用に画像のバイトデータを取得
-    );
-
-    if (result != null && result.files.isNotEmpty) {
-      Uint8List? fileBytes = result.files.first.bytes;
-      String fileName = "${widget.userId}.jpg";
-      String userId = FirebaseAuth.instance.currentUser!.uid;
-
-      // ✅ 圧縮処理をここに追加
-      final compressedBytes = await FlutterImageCompress.compressWithList(
-        fileBytes!,
-        quality: 70, // ✅ 画質を70%に
-        format: CompressFormat.jpeg,
-      );
-
-      // Firebase Storage にアップロードする場合
-      final storageRef =
-          FirebaseStorage.instance.ref().child("user_icons/$fileName");
-      await storageRef.putData(
-        Uint8List.fromList(compressedBytes), // ✅ 圧縮後のデータをアップロード
-        SettableMetadata(
-          contentType: 'image/jpeg',
-          customMetadata: {'uid': userId},
-        ),
-      );
-      final imageUrl = await storageRef.getDownloadURL();
-
-      // ✅ 🔥 サムネイル生成（100x100px & 画質60%）
-      final thumbnailBytes = await FlutterImageCompress.compressWithList(
-        fileBytes,
-        minWidth: 100,
-        minHeight: 100,
-        quality: 60,
-        format: CompressFormat.jpeg,
-      );
-
-      // ✅ サムネイルアップロード
-      final thumbRef = FirebaseStorage.instance
-          .ref()
-          .child("user_icons/thumbnails/$fileName");
-      await thumbRef.putData(
-        Uint8List.fromList(thumbnailBytes),
-        SettableMetadata(
-          contentType: 'image/jpeg',
-          customMetadata: {'uid': userId},
-        ),
-      );
-      final thumbnailUrl = await thumbRef.getDownloadURL();
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .update({
-        'iconURL': imageUrl,
-        'thumbnailURL': thumbnailUrl,
-        'hasPhoto': true,
-        "lastUploaded": now
-      });
-
-      setState(() {
-        userImageURL = imageUrl;
-      });
-    } else {
-      print("画像が選択されませんでした");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Center(
                 child: ConstrainedBox(
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
               ),
               child: Column(
@@ -294,21 +187,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 userImageURL != ''
                     ? GestureDetector(
-                        onTap: isMyProfile ? _pickImage : null,
                         child: CircleAvatar(
                             radius: 40,
                             backgroundImage: NetworkImage(userImageURL)),
                       )
                     : GestureDetector(
-                        onTap: isMyProfile ? _pickImage : null,
                         child: CircleAvatar(
                           radius: 40,
+                          backgroundColor: Colors.grey[200],
                           child: const Icon(
                             Icons.camera_alt,
                             size: 30,
                             color: Colors.grey,
                           ),
-                          backgroundColor: Colors.grey[200],
                         ),
                       ),
                 const SizedBox(width: 12),
@@ -327,83 +218,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (isMyProfile) // isMyProfileがtrueの時だけ表示する
-                            Container(
-                              decoration: const BoxDecoration(
-                                color: AppColor.mainButtonColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                onPressed: () {
-                                  context.pushNamed('settings');
-                                },
-                                icon: const Icon(Icons.settings,
-                                    color: AppColor.subTextColor),
-                              ),
-                            ),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      isMyProfile
-                          ? ElevatedButton.icon(
+                      Row(
+                        children: [
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: AppColor.mainButtonColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
                               onPressed: () async {
-                                final updatedProfile =
-                                    await context.pushNamed('editProfile');
-
-                                if (updatedProfile != null) {
-                                  final profileData = updatedProfile
-                                      as Map<String, dynamic>; // 型キャストを追加
-                                  setState(() {
-                                    // 受け取ったデータで画面を更新
-                                    name = profileData['name'];
-                                    bio = profileData['bio'];
-                                    hobbies = List<String>.from(
-                                        profileData['hobbies']); // 型変換を追加
-                                  });
-                                }
+                                await goMessageScreen();
                               },
-                              icon: const Icon(Icons.edit,
+                              icon: const Icon(Icons.mail,
                                   color: AppColor.subTextColor),
-                              label: const Text(
-                                'プロフィールを編集する',
-                                style: TextStyle(color: AppColor.subTextColor),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColor.mainButtonColor,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
-                              ),
-                            )
-                          : Row(
-                              children: [
-                                Container(
-                                  decoration: const BoxDecoration(
-                                    color: AppColor.mainButtonColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: IconButton(
-                                    onPressed: () async {
-                                      await goMessageScreen();
-                                    },
-                                    icon: const Icon(Icons.mail,
-                                        color: AppColor.subTextColor),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed:
-                                      _toggleFollow, // フォロー状態を切り替える関数を呼び出す
-                                  child: Text(
-                                    isFollowing ? 'フォロー中' : 'フォロー',
-                                    style: const TextStyle(
-                                        color: AppColor.subTextColor),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          AppColor.mainButtonColor),
-                                ),
-                              ],
-                            )
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: _toggleFollow, // フォロー状態を切り替える関数を呼び出す
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColor.mainButtonColor),
+                            child: Text(
+                              isFollowing ? 'フォロー中' : 'フォロー',
+                              style:
+                                  const TextStyle(color: AppColor.subTextColor),
+                            ),
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 ),

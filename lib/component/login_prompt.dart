@@ -47,7 +47,7 @@ void showLoginPrompt(BuildContext context) {
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    context.go('/login');
+                    context.pushNamed('login');
                   },
                 ),
               ],

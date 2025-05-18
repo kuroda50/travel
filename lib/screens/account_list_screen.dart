@@ -267,7 +267,9 @@ class _ListItemState extends State<ListItem> {
           showLoginPrompt(context);
           return;
         }
-        context.push('/profile/${widget.userId}'); // URL パラメータとして userId を渡す
+        // context.push('/others-profile/${widget.userId}'); // URL パラメータとして userId を渡す
+        context.pushNamed('othersProfile',
+            extra: widget.userId); // URL パラメータとして userId を渡す
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

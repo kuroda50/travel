@@ -93,7 +93,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
         body: SafeArea(
             child: Center(
                 child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: 600, // 🔄 最大600px（スマホ幅に固定）
           ),
           child: Column(
@@ -1112,7 +1112,7 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
   Future<void> _postToFirestore() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      context.push('/login');
+      context.pushNamed('login');
       return;
     }
 
@@ -1137,8 +1137,16 @@ class _RecruitmentPostScreenState extends State<RecruitmentPostScreen> {
       String roomId = await _createChatRoom(user.uid, userData);
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('投稿が完了しました')));
-      context.push('/message-room',
-          extra: {"roomId": roomId, "currentUserId": user.uid});
+      final shell = StatefulNavigationShell.of(context);
+      // タブを切り替え
+      shell.goBranch(2);
+      // 少し待ってから context.pushNamed を実行
+      Future.delayed(const Duration(milliseconds: 100), () {
+        context.pushNamed(
+          'messageRoom',
+          extra: {"roomId": roomId, "currentUserId": user.uid},
+        );
+      });
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('投稿に失敗しました')));
